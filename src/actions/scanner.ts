@@ -2,9 +2,12 @@
 
 import { processScan } from '@/data/scanner';
 
-// In a real implementation with Supabase Auth, you would extract this from headers/cookies.
+import { getAdminSessionId } from '@/lib/auth';
+
 async function getAdminId() {
-  return '00000000-0000-0000-0000-000000000000'; // mock uuid
+  const id = await getAdminSessionId();
+  if (!id) throw new Error('Unauthorized');
+  return id;
 }
 
 export async function scanTicketAction(eventId: string, scanToken: string) {

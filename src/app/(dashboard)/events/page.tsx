@@ -1,10 +1,14 @@
 import Link from 'next/link';
 import { getEventsForAdmin } from '@/data/events';
 import { CalendarPlus, MapPin, Users, Activity } from 'lucide-react';
+import { getAdminSessionId } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 
 export default async function EventsPage() {
-  // Mock admin ID for now. Will be replaced by actual Supabase session.
-  const adminId = '00000000-0000-0000-0000-000000000000';
+  const adminId = await getAdminSessionId();
+  if (!adminId) {
+    redirect('/login');
+  }
   
   // Try to fetch events, but since DB is empty and no migrations ran, this will crash.
   // We'll wrap in try-catch to allow the UI to render for now.

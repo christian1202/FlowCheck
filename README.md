@@ -61,19 +61,49 @@ Every service FlowCheck uses has a generous free tier. Combined cost: **$0/month
 
 ---
 
-## Quick Start
+## Running Locally
 
-```bash
-git clone https://github.com/yourusername/FlowCheck.git
-cd FlowCheck
-npm install
-cp .env.example .env.local
-# Fill in your environment variables — see docs/deployment.md
-npm run dev
-```
+To run FlowCheck locally, you'll need [Node.js](https://nodejs.org/) (v18+) and [Docker](https://www.docker.com/) installed.
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/FlowCheck.git
+   cd FlowCheck
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env.local
+   ```
+   *Edit `.env.local` to include your Supabase, Brevo, and Google Service Account credentials.*
+
+4. **Start the local PostgreSQL database:**
+   ```bash
+   docker-compose up -d
+   ```
+   *This starts a local PostgreSQL instance on port 5432 using the credentials from your `.env.local`.*
+
+5. **Run Database Migrations:**
+   ```bash
+   npx drizzle-kit generate
+   npx drizzle-kit push
+   ```
+
+6. **Start the Next.js development server:**
+   ```bash
+   npm run dev
+   ```
+
+7. **Access the application:**
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 > [!NOTE]
-> You'll need accounts on Supabase, Cloudflare, Brevo, and Google Cloud before running the app. The [Deployment Guide](docs/deployment.md) walks through every step.
+> For email delivery and Google Sheets syncing to work locally, you must provide valid API keys in your `.env.local` file. See the [Deployment Guide](docs/deployment.md) for instructions on acquiring these keys.
 
 ---
 

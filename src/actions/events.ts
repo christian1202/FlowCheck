@@ -1,13 +1,16 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { createEvent, updateEvent } from '@/data/events';
 import { createEventSchema, updateEventSchema } from '@/lib/validators/events';
 
-// In a real implementation with Supabase Auth, you would extract this from headers/cookies.
-// For now, we mock the admin ID.
+import { getAdminSessionId } from '@/lib/auth';
+
 async function getAdminId() {
-  return '00000000-0000-0000-0000-000000000000'; // mock uuid
+  const id = await getAdminSessionId();
+  if (!id) throw new Error('Unauthorized');
+  return id;
 }
 
 export async function createEventAction(formData: FormData) {
@@ -27,13 +30,17 @@ export async function createEventAction(formData: FormData) {
     return { error: validated.error.flatten().fieldErrors };
   }
 
+  let newEventId: string;
   try {
     const event = await createEvent(validated.data, adminId);
-    revalidatePath('/events'); // revalidate the dashboard
-    return { success: true, eventId: event.id };
-  } catch (err: any) {
-    return { error: { form: [err.message || 'Failed to create event'] } };
+    newEventId = event.id;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to create event';
+    return { error: { form: [message] } };
   }
+
+  revalidatePath('/events'); // revalidate the dashboard
+  redirect(`/events/${newEventId}/settings`);
 }
 
 export async function updateEventAction(eventId: string, formData: FormData) {
@@ -60,8 +67,9 @@ export async function updateEventAction(eventId: string, formData: FormData) {
     revalidatePath(`/events/${eventId}`);
     revalidatePath('/events');
     return { success: true };
-  } catch (err: any) {
-    return { error: { form: [err.message || 'Failed to update event'] } };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to update event';
+    return { error: { form: [message] } };
   }
 }
 
@@ -73,7 +81,7 @@ export async function publishEventAction(eventId: string) {
     revalidatePath(`/events/${eventId}`);
     revalidatePath('/events');
     return { success: true };
-  } catch (err: any) {
-    return { error: err.message || 'Failed to publish event' };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Failed to publish event' };
   }
 }

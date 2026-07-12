@@ -1,28 +1,12 @@
 'use client';
 
-import { useActionState, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useActionState } from 'react';
 import { createEventAction } from '@/actions/events';
 import { Calendar, MapPin, Users, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NewEventPage() {
-  const router = useRouter();
-  const [isPending, setIsPending] = useState(false);
-  // useActionState requires React 19, which Next 15 uses
-  const [state, formAction] = useActionState(createEventAction, null);
-
-  const handleSubmit = async (formData: FormData) => {
-    setIsPending(true);
-    const result = await createEventAction(formData);
-    setIsPending(false);
-    
-    if (result?.success) {
-      router.push(`/events/${result.eventId}/settings`);
-    }
-    // Error state is handled by the result returning to the component manually if we don't use the formAction directly.
-    // For simplicity with useActionState, we'll just let the hook handle it and we manually redirect on success.
-  };
+  const [state, formAction, isPending] = useActionState(createEventAction, null);
 
   return (
     <div className="max-w-3xl mx-auto">

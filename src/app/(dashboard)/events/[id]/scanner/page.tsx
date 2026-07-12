@@ -3,22 +3,25 @@ import { notFound, redirect } from 'next/navigation';
 import QRScanner from '@/components/scanner/QRScanner';
 import Link from 'next/link';
 import { ArrowLeft, Scan } from 'lucide-react';
+import { getAdminSessionId } from '@/lib/auth';
 
 export default async function ScannerPage({
   params,
-}: {
+}: Readonly<{
   params: Promise<{ id: string }>;
-}) {
+}>) {
   const { id } = await params;
   
-  // Mock admin ID (replace with Supabase session)
-  const adminId = '00000000-0000-0000-0000-000000000000';
+  const adminId = await getAdminSessionId();
+  if (!adminId) {
+    redirect('/login');
+  }
   
   let event;
   try {
     event = await getEventById(id, adminId);
-  } catch (err: any) {
-    if (err.message === 'Unauthorized') {
+  } catch (err) {
+    if (err instanceof Error && err.message === 'Unauthorized') {
       redirect('/events');
     }
     notFound();
