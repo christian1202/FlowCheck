@@ -1,5 +1,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { db } from '@/lib/db';
+import { admins } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -31,6 +34,7 @@ export async function createClient() {
 /**
  * Convenience function to get the current user's ID in server actions/components.
  * Returns null if not authenticated.
+ * It also automatically syncs the user to the public.admins table if they don't exist.
  */
 export async function getAdminSessionId(): Promise<string | null> {
   const supabase = await createClient();
@@ -38,6 +42,20 @@ export async function getAdminSessionId(): Promise<string | null> {
   
   if (error || !user) {
     return null;
+  }
+  
+  // Auto-sync user to public.admins table
+  try {
+    const existingAdmin = await db.select().from(admins).where(eq(admins.id, user.id));
+    if (existingAdmin.length === 0 && user.email) {
+      await db.insert(admins).values({
+        id: user.id,
+        email: user.email,
+        fullName: user.user_metadata?.full_name || null,
+      });
+    }
+  } catch (err) {
+    console.error("Failed to sync admin user to public schema:", err);
   }
   
   return user.id;

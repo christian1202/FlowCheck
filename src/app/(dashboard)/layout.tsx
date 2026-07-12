@@ -1,3 +1,4 @@
+import LogoutButton from '@/components/auth/LogoutButton';
 import Link from 'next/link';
 
 export default function DashboardLayout({
@@ -50,10 +51,7 @@ export default function DashboardLayout({
         </div>
         
         <div className="px-4 mt-auto space-y-2">
-          <button className="w-full flex items-center gap-3 px-4 py-2 rounded-md text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container-high transition-all duration-200">
-            <span className="material-symbols-outlined">logout</span>
-            Logout
-          </button>
+          <LogoutButton />
         </div>
       </nav>
 
