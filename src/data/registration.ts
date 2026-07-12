@@ -4,6 +4,7 @@ import { eq, and, sql } from 'drizzle-orm';
 import type { RegistrationInput } from '@/lib/validators/registration';
 import { generateQRBase64 } from '@/lib/qr';
 import { sendQrEmail } from '@/lib/email/brevo';
+import { enqueueSheetSync } from '@/lib/queue/producer';
 
 export type RegistrationResult = 
   | { success: true; queuedEmail: boolean }
@@ -106,6 +107,9 @@ export async function registerAttendee(
       console.error('Error during QR/Email flow:', error);
       // We don't fail the registration, just let it be picked up by the retry queue
     }
+
+    // Enqueue the Google Sheets sync
+    await enqueueSheetSync(eventId);
 
     return { success: true, queuedEmail: false };
   });

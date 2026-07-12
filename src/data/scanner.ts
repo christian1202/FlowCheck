@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { attendees, events, eventAdmins, scanLogs } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { enqueueSheetSync } from '@/lib/queue/producer';
 
 export type ScanResultResponse = {
   result: 'success' | 'duplicate' | 'invalid_event' | 'invalid_ticket' | 'unauthorized';
@@ -103,6 +104,9 @@ export async function processScan(
       scannedBy: adminId,
       result: 'success'
     });
+
+    // Enqueue the Google Sheets sync
+    await enqueueSheetSync(eventId);
 
     return {
       result: 'success',
