@@ -99,3 +99,13 @@ export async function updateEvent(eventId: string, adminId: string, data: Update
 
   return updated;
 }
+
+export async function getEventBySlug(slug: string) {
+  const [event] = await db
+    .select()
+    .from(events)
+    .where(eq(events.slug, slug))
+    .limit(1);
+
+  return event || null;
+}
