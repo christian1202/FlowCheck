@@ -6,10 +6,10 @@ import { Calendar, MapPin } from 'lucide-react';
 export default async function RegisterPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ id: string }>;
 }) {
-  const { slug } = await params;
-  const event = await getEventBySlug(slug);
+  const { id } = await params;
+  const event = await getEventBySlug(id);
 
   if (!event) {
     notFound();
