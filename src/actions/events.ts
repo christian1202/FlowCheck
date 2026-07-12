@@ -13,7 +13,18 @@ async function getAdminId() {
   return id;
 }
 
-export async function createEventAction(formData: FormData) {
+export type CreateEventState = {
+  error?: {
+    form?: string[];
+    title?: string[];
+    description?: string[];
+    date?: string[];
+    location?: string[];
+    maxAttendees?: string[];
+  };
+};
+
+export async function createEventAction(prevState: CreateEventState | null, formData: FormData): Promise<CreateEventState> {
   const adminId = await getAdminId();
   
   // Extract and coerce data

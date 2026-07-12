@@ -54,8 +54,8 @@ export async function registerAttendee(
       }
     }
 
-    // 4. Check Daily Email Cap (290/day)
-    const [{ emailCount }] = await tx.select({ count: sql<number>`count(*)` })
+    // Check daily email limit
+    const [{ count: emailCount }] = await tx.select({ count: sql<number>`count(*)` })
       .from(attendees)
       .where(and(
         eq(attendees.emailSent, true),
