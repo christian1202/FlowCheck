@@ -33,6 +33,7 @@ erDiagram
         integer max_attendees
         event_status status
         text google_sheet_id
+        text google_sheet_url
         timestamp created_at
     }
 
@@ -46,6 +47,7 @@ erDiagram
     attendees {
         uuid id PK
         uuid event_id FK
+        uuid scan_token
         text name
         text email
         text local
@@ -57,6 +59,7 @@ erDiagram
         timestamp email_sent_at
         timestamp registered_at
         timestamp checked_in_at
+        uuid checked_in_by FK
     }
 
     scan_logs {
@@ -123,6 +126,7 @@ export const events = pgTable('events', {
   maxAttendees: integer('max_attendees'),
   status: eventStatusEnum('status').default('draft').notNull(),
   googleSheetId: text('google_sheet_id'),
+  googleSheetUrl: text('google_sheet_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -138,6 +142,7 @@ export const eventAdmins = pgTable('event_admins', {
 export const attendees = pgTable('attendees', {
   id: uuid('id').defaultRandom().primaryKey(),
   eventId: uuid('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  scanToken: uuid('scan_token').defaultRandom().notNull().unique(),
   name: text('name').notNull(),
   email: text('email').notNull(),
   local: text('local'),      // e.g., Mabolo, Mandaue
@@ -149,6 +154,7 @@ export const attendees = pgTable('attendees', {
   emailSentAt: timestamp('email_sent_at', { withTimezone: true }),
   registeredAt: timestamp('registered_at', { withTimezone: true }).defaultNow().notNull(),
   checkedInAt: timestamp('checked_in_at', { withTimezone: true }),
+  checkedInBy: uuid('checked_in_by').references(() => admins.id, { onDelete: 'set null' }),
 }, (t) => ({
   unqEventEmail: uniqueIndex('unq_event_email').on(t.eventId, t.email),
 }));

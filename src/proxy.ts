@@ -44,13 +44,7 @@ export async function proxy(req: NextRequest) {
     
     // If not authenticated, redirect to login (unless already on a public route)
     if (!user) {
-      // In a real app we'd redirect to /login
-      // return NextResponse.redirect(new URL('/login', req.url));
-      
-      // For now, allow pass-through if testing locally without auth setup
-      if (process.env.NODE_ENV !== 'development') {
-        return NextResponse.redirect(new URL('/login', req.url));
-      }
+      return NextResponse.redirect(new URL('/login', req.url));
     }
   }
 

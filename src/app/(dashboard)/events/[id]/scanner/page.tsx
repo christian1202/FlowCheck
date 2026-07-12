@@ -2,7 +2,6 @@ import { getEventById } from '@/data/events';
 import { notFound, redirect } from 'next/navigation';
 import QRScanner from '@/components/scanner/QRScanner';
 import Link from 'next/link';
-import { ArrowLeft, Scan } from 'lucide-react';
 import { getAdminSessionId } from '@/lib/auth';
 
 export default async function ScannerPage({
@@ -29,15 +28,16 @@ export default async function ScannerPage({
 
   if (event.status === 'draft' || event.status === 'archived') {
     return (
-      <div className="max-w-md mx-auto text-center mt-12">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-yellow-800">Scanner Disabled</h2>
-          <p className="mt-2 text-sm text-yellow-700">
+      <div className="flex-1 flex flex-col items-center justify-center p-gutter">
+        <div className="bg-error-container border border-error/20 rounded-xl p-8 max-w-md text-center">
+          <span className="material-symbols-outlined text-error text-5xl mb-4">scan_delete</span>
+          <h2 className="text-headline-md font-headline-md text-on-error-container font-bold">Scanner Disabled</h2>
+          <p className="mt-2 font-body-md text-on-error-container/80">
             Scanning is only available for open or recently closed events. 
             This event is currently set to <strong>{event.status}</strong>.
           </p>
           <div className="mt-6">
-            <Link href={`/events/${event.id}/settings`} className="text-blue-600 hover:underline text-sm font-medium">
+            <Link href={`/events/${event.id}/settings`} className="bg-surface-container-lowest text-on-surface font-label-sm px-6 py-2 rounded-full inline-block hover:bg-surface-container-high transition-colors">
               Go to Event Settings
             </Link>
           </div>
@@ -47,30 +47,15 @@ export default async function ScannerPage({
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <Link href={`/events/${event.id}/settings`} className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500">
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Event Settings
+    <div className="flex-1 relative h-full min-h-[calc(100vh-64px)] w-full flex flex-col bg-surface-bright overflow-hidden">
+      {/* Mobile-only header back button (optional, since topnav is hidden on scanner if absolute) */}
+      <div className="absolute top-4 left-4 z-50 md:hidden">
+        <Link href={`/events/${event.id}/settings`} className="w-touch-target h-touch-target bg-surface/80 backdrop-blur-md rounded-full flex items-center justify-center shadow-md">
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
         </Link>
-        <div className="flex items-center text-gray-500 text-sm">
-          <Scan className="mr-1.5 h-4 w-4" />
-          Live Scanner
-        </div>
       </div>
 
-      <div className="bg-white shadow sm:rounded-lg overflow-hidden">
-        <div className="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Entrance Scanner</h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            {event.title} — {new Date(event.date).toLocaleDateString()}
-          </p>
-        </div>
-        
-        <div className="p-6">
-          <QRScanner eventId={event.id} />
-        </div>
-      </div>
+      <QRScanner eventId={event.id} />
     </div>
   );
 }

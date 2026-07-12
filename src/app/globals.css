@@ -1,26 +1,140 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-tertiary-fixed: #e2e2e2;
+  --color-tertiary-container: #1b1b1b;
+  --color-error: #ba1a1a;
+  --color-on-error-container: #93000a;
+  --color-inverse-surface: #2a313d;
+  --color-secondary-container: #d9dff5;
+  --color-inverse-on-surface: #ebf1ff;
+  --color-surface-tint: #5e5e5e;
+  --color-inverse-primary: #c6c6c6;
+  --color-surface-container-low: #f0f3ff;
+  --color-primary-fixed-dim: #c6c6c6;
+  --color-on-secondary-fixed-variant: #404758;
+  --color-primary-fixed: #e2e2e2;
+  --color-on-secondary-container: #5c6274;
+  --color-on-surface-variant: #4c4546;
+  --color-on-primary-container: #848484;
+  --color-background: #f9f9ff;
+  --color-on-primary-fixed-variant: #474747;
+  --color-on-tertiary-container: #848484;
+  --color-surface-container-high: #e2e8f8;
+  --color-secondary: #575e70;
+  --color-surface-variant: #dce2f3;
+  --color-on-surface: #151c27;
+  --color-primary-container: #1b1b1b;
+  --color-on-background: #151c27;
+  --color-primary: #000000;
+  --color-secondary-fixed: #dce2f7;
+  --color-tertiary-fixed-dim: #c6c6c6;
+  --color-surface-container: #e7eefe;
+  --color-error-container: #ffdad6;
+  --color-on-primary-fixed: #1b1b1b;
+  --color-on-secondary: #ffffff;
+  --color-on-primary: #ffffff;
+  --color-surface-bright: #f9f9ff;
+  --color-tertiary: #000000;
+  --color-surface: #f9f9ff;
+  --color-on-tertiary: #ffffff;
+  --color-secondary-fixed-dim: #c0c6db;
+  --color-surface-container-lowest: #ffffff;
+  --color-outline-variant: #cfc4c5;
+  --color-on-secondary-fixed: #141b2b;
+  --color-on-tertiary-fixed: #1b1b1b;
+  --color-outline: #7e7576;
+  --color-on-error: #ffffff;
+  --color-surface-container-highest: #dce2f3;
+  --color-on-tertiary-fixed-variant: #474747;
+  --color-surface-dim: #d3daea;
+
+  --font-display-lg: "Geist", sans-serif;
+  --font-display-lg-mobile: "Geist", sans-serif;
+  --font-headline-md: "Geist", sans-serif;
+  --font-body-lg: "Geist", sans-serif;
+  --font-body-md: "Geist", sans-serif;
+  --font-label-sm: "Geist", sans-serif;
+  --font-label-xs: "Geist", sans-serif;
+
+  --spacing-touch-target: 44px;
+  --spacing-section-padding: 64px;
+  --spacing-gutter: 16px;
+  --spacing-container-margin: 24px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  .font-display-lg {
+    font-family: var(--font-display-lg);
+    font-size: 48px;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    font-weight: 700;
+  }
+  .font-display-lg-mobile {
+    font-family: var(--font-display-lg-mobile);
+    font-size: 32px;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+  }
+  .font-headline-md {
+    font-family: var(--font-headline-md);
+    font-size: 24px;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+  .font-body-lg {
+    font-family: var(--font-body-lg);
+    font-size: 18px;
+    line-height: 1.6;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+  .font-body-md {
+    font-family: var(--font-body-md);
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+  .font-label-sm {
+    font-family: var(--font-label-sm);
+    font-size: 14px;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    font-weight: 500;
+  }
+  .font-label-xs {
+    font-family: var(--font-label-xs);
+    font-size: 12px;
+    line-height: 1.2;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+}
+
+@layer utilities {
+  .fade-in-stagger > * {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+  
+  .fade-in-stagger > *:nth-child(1) { animation-delay: 0.1s; }
+  .fade-in-stagger > *:nth-child(2) { animation-delay: 0.2s; }
+  .fade-in-stagger > *:nth-child(3) { animation-delay: 0.3s; }
+  .fade-in-stagger > *:nth-child(4) { animation-delay: 0.4s; }
+  .fade-in-stagger > *:nth-child(5) { animation-delay: 0.5s; }
+
+  @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-body-md);
 }

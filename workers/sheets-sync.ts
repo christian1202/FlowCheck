@@ -12,7 +12,7 @@ export interface Env {
 
 export default {
   // Triggered by messages in the Queue
-  async queue(batch: MessageBatch<any>, env: Env, ctx: ExecutionContext): Promise<void> {
+  async queue(batch: any, env: Env, ctx: any): Promise<void> {
     const eventIds = new Set<string>();
     
     // Deduplicate event IDs in the batch
@@ -47,7 +47,7 @@ export default {
   },
 
   // Triggered by Cron
-  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(controller: any, env: Env, ctx: any): Promise<void> {
     try {
       // We pass an empty array to indicate a full catch-up sync of all active events
       const response = await fetch(`${env.NEXT_APP_URL}/api/cron/sync-sheets`, {

@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getEventBySlug } from '@/data/events';
 import RegistrationForm from './RegistrationForm';
-import { Calendar, MapPin } from 'lucide-react';
 
 export default async function RegisterPage({
   params,
@@ -17,10 +16,11 @@ export default async function RegisterPage({
 
   if (event.status !== 'open') {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Registration Closed</h2>
-          <p className="mt-2 text-sm text-gray-600">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center py-section-padding px-gutter">
+        <div className="bg-surface-container-lowest rounded-xl shadow-md p-10 text-center max-w-md">
+          <span className="material-symbols-outlined text-primary text-5xl mb-4">event_busy</span>
+          <h2 className="text-display-lg-mobile font-display-lg-mobile text-primary mb-2">Registration Closed</h2>
+          <p className="font-body-md text-on-surface-variant">
             This event is currently not accepting registrations.
           </p>
         </div>
@@ -29,37 +29,23 @@ export default async function RegisterPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-xl">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Register for {event.title}
-        </h2>
-        
-        <div className="mt-4 flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6 text-sm text-gray-500">
-          <div className="flex items-center">
-            <Calendar className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-            {new Date(event.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-          </div>
-          {event.location && (
-            <div className="flex items-center">
-              <MapPin className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              {event.location}
-            </div>
-          )}
+    <div className="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col items-center justify-center py-section-padding px-gutter">
+      {/* Minimal Header for Transactional Flow */}
+      <header className="mb-8 flex flex-col items-center gap-2">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1", fontSize: "32px" }}>qr_code_scanner</span>
+          <h1 className="font-headline-md text-headline-md text-primary tracking-tight">FlowCheck</h1>
         </div>
-        
-        {event.description && (
-          <p className="mt-4 text-center text-sm text-gray-600 px-4">
-            {event.description}
-          </p>
-        )}
-      </div>
+        <p className="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase mt-2">{event.title}</p>
+      </header>
+      
+      {/* Main Registration Card Container */}
+      <RegistrationForm eventId={event.id} />
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <RegistrationForm eventId={event.id} />
-        </div>
-      </div>
+      {/* Simplified Footer */}
+      <footer className="mt-12 text-center">
+        <p className="font-label-xs text-label-xs text-on-surface-variant opacity-70">© 2024 FlowCheck. Secure Encrypted Registration.</p>
+      </footer>
     </div>
   );
 }

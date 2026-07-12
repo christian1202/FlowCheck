@@ -1,4 +1,4 @@
-import type { OpenNextConfig } from 'open-next/types/open-next.js';
+
 
 const config = {
   default: {
@@ -18,6 +18,6 @@ const config = {
       proxyExternalRequest: 'fetch',
     },
   },
-} satisfies OpenNextConfig;
+};
 
 export default config;
