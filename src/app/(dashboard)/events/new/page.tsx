@@ -63,10 +63,10 @@ export default function NewEventPage() {
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="date" className="block text-sm font-medium text-gray-700">
-                  <div className="flex items-center">
+                  <span className="flex items-center">
                     <Calendar className="mr-1.5 h-4 w-4 text-gray-400" />
                     Date & Time <span className="text-red-500 ml-1">*</span>
-                  </div>
+                  </span>
                 </label>
                 <div className="mt-1">
                   <input
@@ -82,10 +82,10 @@ export default function NewEventPage() {
 
               <div>
                 <label htmlFor="maxAttendees" className="block text-sm font-medium text-gray-700">
-                  <div className="flex items-center">
+                  <span className="flex items-center">
                     <Users className="mr-1.5 h-4 w-4 text-gray-400" />
                     Capacity (Optional)
-                  </div>
+                  </span>
                 </label>
                 <div className="mt-1">
                   <input
@@ -103,10 +103,10 @@ export default function NewEventPage() {
 
             <div>
               <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                <div className="flex items-center">
+                <span className="flex items-center">
                   <MapPin className="mr-1.5 h-4 w-4 text-gray-400" />
                   Location (Venue)
-                </div>
+                </span>
               </label>
               <div className="mt-1">
                 <input

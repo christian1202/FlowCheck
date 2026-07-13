@@ -53,40 +53,38 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
   return (
     <main className="w-full max-w-2xl bg-surface-container-lowest rounded-xl shadow-md p-6 md:p-10 relative">
       {/* Progress Stepper */}
-      <nav aria-label="Progress" className="mb-10">
-        <ol className="flex items-center" role="list">
+      <nav aria-label="Progress" className="mb-10 w-full">
+        <ol className="flex items-start w-full" role="list">
           {/* Step 1 Indicator */}
-          <li className="relative pr-8 sm:pr-20" id="indicator-step-1">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className={`h-0.5 w-full ${step >= 1 ? 'bg-primary' : 'bg-surface-variant'}`} />
+          <li className="relative flex-1 flex flex-col items-center group">
+            <div className="absolute top-4 left-1/2 w-full h-[2px] z-0" aria-hidden="true">
+              <div className={`h-full w-full ${step >= 2 ? 'bg-primary' : 'bg-surface-variant'}`} />
             </div>
-            <button type="button" onClick={() => step < 3 && goToStep(1)} disabled={step === 3} className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-colors ${step >= 1 ? 'bg-primary border-primary text-on-primary' : 'bg-surface-variant border-2 border-surface-variant text-on-surface-variant'}`}>
+            <button type="button" onClick={() => step < 3 && goToStep(1)} disabled={step === 3} className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors ${step >= 1 ? 'bg-primary border-primary text-on-primary' : 'bg-surface-container-highest border-2 border-surface-variant text-on-surface-variant'}`}>
               <span className="font-label-sm text-label-sm">1</span>
             </button>
+            <span className={`mt-3 font-label-xs text-label-xs text-center ${step >= 1 ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>Basic Info</span>
           </li>
           
           {/* Step 2 Indicator */}
-          <li className="relative pr-8 sm:pr-20" id="indicator-step-2">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className={`h-0.5 w-full transition-colors duration-300 ${step >= 2 ? 'bg-primary' : 'bg-surface-variant'}`} />
+          <li className="relative flex-1 flex flex-col items-center group">
+            <div className="absolute top-4 left-1/2 w-full h-[2px] z-0" aria-hidden="true">
+              <div className={`h-full w-full transition-colors duration-300 ${step >= 3 ? 'bg-primary' : 'bg-surface-variant'}`} />
             </div>
-            <button type="button" onClick={() => step < 3 && goToStep(2)} disabled={step === 3} className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-300 border-2 ${step >= 2 ? 'bg-primary border-primary text-on-primary' : 'bg-surface-variant border-surface-variant text-on-surface-variant'}`}>
+            <button type="button" onClick={() => step < 3 && goToStep(2)} disabled={step === 3} className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-300 border-2 ${step >= 2 ? 'bg-primary border-primary text-on-primary' : 'bg-surface-container-lowest border-surface-variant text-on-surface-variant'}`}>
               <span className="font-label-sm text-label-sm">2</span>
             </button>
+            <span className={`mt-3 font-label-xs text-label-xs text-center ${step >= 2 ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>Group Info</span>
           </li>
 
           {/* Step 3 Indicator */}
-          <li className="relative" id="indicator-step-3">
-            <button type="button" disabled className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-300 border-2 ${step >= 3 ? 'bg-primary border-primary text-on-primary' : 'bg-surface-variant border-surface-variant text-on-surface-variant'}`}>
+          <li className="relative flex-1 flex flex-col items-center group">
+            <button type="button" disabled className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-300 border-2 ${step >= 3 ? 'bg-primary border-primary text-on-primary' : 'bg-surface-container-lowest border-surface-variant text-on-surface-variant'}`}>
               <span className="font-label-sm text-label-sm">3</span>
             </button>
+            <span className={`mt-3 font-label-xs text-label-xs text-center ${step >= 3 ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>Confirm</span>
           </li>
         </ol>
-        <div className="flex justify-between mt-2 max-w-[calc(100%-2rem)] sm:max-w-[calc(100%-4rem)]">
-          <span className={`font-label-xs text-label-xs ${step >= 1 ? 'text-primary' : 'text-on-surface-variant'}`}>Basic Info</span>
-          <span className={`font-label-xs text-label-xs ${step >= 2 ? 'text-primary' : 'text-on-surface-variant'}`}>Group Info</span>
-          <span className={`font-label-xs text-label-xs ${step >= 3 ? 'text-primary' : 'text-on-surface-variant'}`}>Confirm</span>
-        </div>
       </nav>
 
       {/* Form Steps Container */}
@@ -171,30 +169,23 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
 
         {/* STEP 3: Confirmation */}
         <section className={`w-full text-center transition-all duration-300 ${step === 3 ? 'opacity-100 translate-y-0 visible relative' : 'opacity-0 translate-y-2 invisible absolute'}`}>
-          <div className="mb-6 flex justify-center">
-            <div className="h-16 w-16 bg-surface-container-high rounded-full flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1", fontSize: "32px" }}>check_circle</span>
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-8 max-w-sm mx-auto shadow-sm mb-8 mt-4">
+            <div className="w-16 h-16 bg-[#e7f5e8] text-[#1e4620] mx-auto rounded-full flex items-center justify-center mb-6">
+              <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
             </div>
-          </div>
-          <h2 className="font-headline-md text-headline-md text-primary mb-2">Registration Complete!</h2>
-          <p className="font-body-md text-body-md text-on-surface-variant mb-8 max-w-md mx-auto">
-            {queuedEmail 
-              ? "Due to high volume today, your QR code ticket will be emailed to you later. Don't worry, your spot is secured!"
-              : "We've sent your QR code ticket to your email. Please check your inbox and present it at the entrance."
-            }
-          </p>
-          
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 inline-block shadow-sm mb-8">
-            <div className="w-48 h-48 bg-surface-variant relative mx-auto flex items-center justify-center rounded-lg">
-               <span className="material-symbols-outlined text-on-surface-variant text-5xl">qr_code_2</span>
-            </div>
-            <div className="mt-4 font-label-sm text-label-sm text-on-surface tracking-widest uppercase">
-                Check Email
-            </div>
+            <h2 className="font-headline-md text-headline-sm text-on-surface font-bold mb-3">
+              {queuedEmail ? 'Registration Queued' : 'Check Your Inbox'}
+            </h2>
+            <p className="font-body-sm text-body-md text-on-surface-variant mb-2">
+              {queuedEmail 
+                ? "Due to high volume today, your QR code ticket will be emailed to you later. Don't worry, your spot is secured!"
+                : "We've sent your QR code ticket to your email. Please present it at the entrance."
+              }
+            </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-             <button type="button" onClick={() => window.location.reload()} className="h-touch-target px-8 bg-surface-container-lowest border border-outline-variant text-primary font-label-sm text-label-sm rounded-lg hover:bg-surface-container-high transition-colors shadow-sm flex items-center justify-center gap-2">
+          <div className="flex justify-center">
+             <button type="button" onClick={() => window.location.reload()} className="h-touch-target px-8 bg-surface-container-highest border border-outline-variant text-on-surface font-label-sm text-label-sm rounded-lg hover:bg-surface-variant transition-colors shadow-sm flex items-center justify-center gap-2">
                  Register Another Person
              </button>
           </div>

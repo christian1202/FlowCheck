@@ -51,7 +51,7 @@ export async function createEventAction(prevState: CreateEventState | null, form
   }
 
   revalidatePath('/events'); // revalidate the dashboard
-  redirect(`/events/${newEventId}/settings`);
+  redirect('/events');
 }
 
 export async function updateEventAction(eventId: string, formData: FormData) {

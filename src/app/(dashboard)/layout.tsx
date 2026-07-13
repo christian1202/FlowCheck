@@ -1,4 +1,5 @@
 import LogoutButton from '@/components/auth/LogoutButton';
+import SidebarNav from '@/components/layout/SidebarNav';
 import Link from 'next/link';
 
 export default function DashboardLayout({
@@ -28,26 +29,7 @@ export default function DashboardLayout({
         </div>
         
         <div className="flex-1 mt-6">
-          <ul className="space-y-2 px-4">
-            <li>
-              <Link href="/events" className="flex items-center gap-3 px-4 py-2 rounded-md text-primary font-bold border-r-4 border-primary bg-surface-container-low font-label-sm text-label-sm hover:bg-surface-container-high transition-all duration-200">
-                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>dashboard</span>
-                Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link href="/events" className="flex items-center gap-3 px-4 py-2 rounded-md text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container-high transition-all duration-200">
-                <span className="material-symbols-outlined">event</span>
-                Events
-              </Link>
-            </li>
-            <li>
-              <Link href="/settings" className="flex items-center gap-3 px-4 py-2 rounded-md text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container-high transition-all duration-200">
-                <span className="material-symbols-outlined">settings</span>
-                Settings
-              </Link>
-            </li>
-          </ul>
+          <SidebarNav />
         </div>
         
         <div className="px-4 mt-auto space-y-2">

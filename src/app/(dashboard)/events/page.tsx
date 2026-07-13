@@ -13,7 +13,17 @@ export default async function EventsPage() {
   let error = null;
   
   try {
-    events = await getEventsForAdmin(adminId);
+    const allEvents = await getEventsForAdmin(adminId);
+    
+    // Filter to only show events for today and tomorrow
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2);
+    
+    events = allEvents.filter(e => {
+      const eventDate = new Date(e.date);
+      return eventDate >= startOfToday && eventDate < endOfTomorrow;
+    });
   } catch (err: any) {
     error = err.message;
   }
@@ -86,10 +96,9 @@ export default async function EventsPage() {
         </div>
       </div>
 
-      {/* Main Content Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Upcoming Events (Span 2) */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* Main Content */}
+      <div className="w-full">
+        <div className="space-y-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-headline-md text-headline-md font-bold text-primary">Your Events</h3>
           </div>
@@ -108,10 +117,10 @@ export default async function EventsPage() {
               </Link>
             </div>
           ) : (
-            <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {events.map((event) => (
-                <Link key={event.id} href={`/events/${event.id}/scanner`} className="block group">
-                  <div className="bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-surface-container-high overflow-hidden flex flex-col sm:flex-row">
+                <Link key={event.id} href={`/events/${event.id}/settings`} className="block group">
+                  <div className="bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-surface-container-high overflow-hidden flex flex-col sm:flex-row h-full">
                     <div className="p-6 flex flex-col justify-between flex-1">
                       <div>
                         <div className="flex justify-between items-start mb-2">
@@ -123,7 +132,7 @@ export default async function EventsPage() {
                           {event.location || 'No location set'} • {new Date(event.date).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="flex justify-between items-center border-t border-surface-container-highest pt-4 mt-4">
+                      <div className="flex justify-between items-center border-t border-surface-container-highest pt-4 mt-auto">
                         <div className="flex flex-wrap items-center gap-4">
                           <div className="flex flex-col">
                             <span className="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider">Status</span>
@@ -142,27 +151,6 @@ export default async function EventsPage() {
               ))}
             </div>
           )}
-        </div>
-
-        {/* Right Column: Quick Actions */}
-        <div className="space-y-8">
-          <div className="bg-primary rounded-xl p-6 text-on-primary shadow-md">
-            <h3 className="font-headline-md text-headline-md font-bold mb-4">Quick Actions</h3>
-            <div className="space-y-3">
-              <Link href="/events/new" className="w-full bg-surface-container-lowest text-primary font-label-sm py-3 px-4 rounded-lg flex items-center justify-between hover:bg-surface transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined">add_circle</span>
-                  Create New Event
-                </div>
-              </Link>
-              <button className="w-full bg-transparent border border-on-primary border-opacity-30 text-on-primary font-label-sm py-3 px-4 rounded-lg flex items-center justify-between hover:bg-white/10 transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined">download</span>
-                  Export Reports
-                </div>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

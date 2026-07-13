@@ -31,12 +31,14 @@ export async function createClient() {
   );
 }
 
+import { cache } from 'react';
+
 /**
  * Convenience function to get the current user's ID in server actions/components.
  * Returns null if not authenticated.
  * It also automatically syncs the user to the public.admins table if they don't exist.
  */
-export async function getAdminSessionId(): Promise<string | null> {
+export const getAdminSessionId = cache(async (): Promise<string | null> => {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   
@@ -59,4 +61,4 @@ export async function getAdminSessionId(): Promise<string | null> {
   }
   
   return user.id;
-}
+});
