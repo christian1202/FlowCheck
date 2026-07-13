@@ -84,7 +84,7 @@ export async function updateEventAction(eventId: string, formData: FormData) {
   }
 }
 
-export async function publishEventAction(eventId: string) {
+export async function publishEventAction(eventId: string, formData?: FormData) {
   const adminId = await getAdminId();
   try {
     // We update the status. In Phase 5, we will trigger the Google Sheet creation here.

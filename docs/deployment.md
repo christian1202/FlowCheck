@@ -3,7 +3,7 @@
 This guide walks through setting up FlowCheck from scratch — every service, every key, every config file. FlowCheck runs entirely on free tiers with **zero monthly cost**.
 
 > [!NOTE]
-> FlowCheck is hosted on **Cloudflare Pages** (not Vercel). There is no `vercel.json`, no Redis, and no paid infrastructure required.
+> FlowCheck is hosted on **Vercel** (not Vercel). There is no `vercel.json`, no Redis, and no paid infrastructure required.
 
 ---
 
@@ -163,7 +163,7 @@ Cloudflare hosts the Next.js app via Pages, processes background jobs via Queues
    wrangler login
    ```
 
-**Connect to Cloudflare Pages:**
+**Connect to Vercel:**
 
 1. In the Cloudflare dashboard, go to **Workers & Pages** → **Create**
 2. Select **Pages** → **Connect to Git**
@@ -172,7 +172,7 @@ Cloudflare hosts the Next.js app via Pages, processes background jobs via Queues
 
    | Setting | Value |
    |---------|-------|
-   | Build command | `npx @opennextjs/cloudflare build` |
+   | Build command | `next build` |
    | Build output directory | `.open-next` |
    | Root directory | `/` |
    | Node.js version | `20` |
@@ -238,7 +238,7 @@ crons = ["*/2 * * * *"]
 
 ### `open-next.config.ts`
 
-This file configures the OpenNext adapter for Cloudflare Pages. It lives at the project root.
+This file configures the OpenNext adapter for Vercel. It lives at the project root.
 
 ```typescript
 import type { OpenNextConfig } from '@opennextjs/cloudflare';
@@ -354,20 +354,20 @@ Deployments are automatic via GitHub integration:
 
 ```mermaid
 flowchart LR
-    A[git push to main] --> B[Cloudflare Pages CI]
-    B --> C["npx @opennextjs/cloudflare build"]
+    A[git push to main] --> B[Vercel CI]
+    B --> C["next build"]
     C --> D[Deploy to .open-next]
     D --> E[Live at flowcheck.pages.dev]
 ```
 
-1. Push to `main` → triggers Cloudflare Pages build
+1. Push to `main` → triggers Vercel build
 2. OpenNext adapter builds the Next.js app for Cloudflare's edge runtime
 3. Static assets are served from Cloudflare's CDN
 4. Server-side routes run as Cloudflare Workers
 
 ### Custom Domain
 
-1. In Cloudflare Pages → **Custom domains** → **Set up a custom domain**
+1. In Vercel → **Custom domains** → **Set up a custom domain**
 2. Enter your domain (e.g., `flowcheck.yourdomain.com`)
 3. Cloudflare automatically provisions an SSL certificate
 

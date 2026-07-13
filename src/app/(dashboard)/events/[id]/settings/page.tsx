@@ -18,17 +18,9 @@ export default async function EventSettingsPage({
   const adminId = await getAdminSessionId();
   if (!adminId) redirect('/login');
 
-  let event;
-  try {
-    event = await getEventById(id, adminId);
-  } catch (err) {
-    if (err instanceof Error && err.message === 'Unauthorized') redirect('/events');
-    notFound();
-  }
-
-  // Fetch the team members
-  const teamRecords = await db
-    .select({
+  const [event, teamRecords] = await Promise.all([
+    getEventById(id, adminId),
+    db.select({
       adminId: eventAdmins.adminId,
       role: eventAdmins.role,
       email: admins.email,
@@ -36,10 +28,19 @@ export default async function EventSettingsPage({
     })
     .from(eventAdmins)
     .innerJoin(admins, eq(eventAdmins.adminId, admins.id))
-    .where(eq(eventAdmins.eventId, id));
+    .where(eq(eventAdmins.eventId, id))
+  ]).catch((err) => {
+    if (err instanceof Error && err.message === 'Unauthorized') redirect('/events');
+    notFound();
+  });
+
+  if (!event || !teamRecords) notFound();
 
   // Server action to publish this specific event
-  const publishAction = publishEventAction.bind(null, id);
+  const publishAction = async (formData: FormData) => {
+    'use server';
+    await publishEventAction(id);
+  };
 
   return (
     <div className="p-container-margin md:p-section-padding flex-1 fade-in-stagger w-full max-w-4xl mx-auto space-y-6">

@@ -2,12 +2,10 @@ import { db } from '@/lib/db';
 import { attendees, events } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import type { RegistrationInput } from '@/lib/validators/registration';
-import { generateQRBase64 } from '@/lib/qr';
-import { sendQrEmail } from '@/lib/email/brevo';
 import { enqueueSheetSync } from '@/lib/queue/producer';
 
 export type RegistrationResult = 
-  | { success: true; queuedEmail: boolean }
+  | { success: true; scanToken: string }
   | { success: false; error: string };
 
 export async function registerAttendee(
@@ -54,17 +52,7 @@ export async function registerAttendee(
       }
     }
 
-    // Check daily email limit
-    const [{ count: emailCount }] = await tx.select({ count: sql<number>`count(*)` })
-      .from(attendees)
-      .where(and(
-        eq(attendees.emailSent, true),
-        sql`DATE(email_sent_at) = CURRENT_DATE`
-      ));
-
-    const limitReached = Number(emailCount) >= 290;
-
-    // 5. Insert Attendee
+    // 4. Insert Attendee
     // Drizzle defaults `scanToken` to `gen_random_uuid()`
     const [newAttendee] = await tx.insert(attendees).values({
       eventId,
@@ -75,42 +63,20 @@ export async function registerAttendee(
       zone: data.zone,
       duty: data.duty,
       status: 'registered',
-      emailSent: false, // Initially false
     }).returning();
 
-    // 6. Handle Email Sending / Queueing
-    if (limitReached) {
-      // Return early; the Cron Job will pick this up tomorrow
-      return { success: true, queuedEmail: true };
-    }
-
-    // Try sending the email synchronously
-    try {
-      const qrBase64 = await generateQRBase64(newAttendee.scanToken);
-      const emailSent = await sendQrEmail(
-        newAttendee.email,
-        newAttendee.name,
-        event.title,
-        qrBase64,
-        newAttendee.scanToken
-      );
-
-      if (emailSent) {
-        await tx.update(attendees)
-          .set({ emailSent: true, emailSentAt: new Date() })
-          .where(eq(attendees.id, newAttendee.id));
-      }
-      
-      // If email fails to send here (e.g. Brevo API down), it remains emailSent=false 
-      // and will be retried by the queue/cron job automatically.
-    } catch (error) {
-      console.error('Error during QR/Email flow:', error);
-      // We don't fail the registration, just let it be picked up by the retry queue
-    }
-
-    // Enqueue the Google Sheets sync
+    // 5. Enqueue the Google Sheets sync
     await enqueueSheetSync(eventId);
 
-    return { success: true, queuedEmail: false };
+    return { success: true, scanToken: newAttendee.scanToken };
   });
+}
+
+export async function lookupAttendee(eventId: string, email: string) {
+  const [attendee] = await db.select({ scanToken: attendees.scanToken })
+    .from(attendees)
+    .where(and(eq(attendees.eventId, eventId), eq(attendees.email, email)))
+    .limit(1);
+    
+  return attendee || null;
 }

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { submitRegistrationAction } from '@/actions/registration';
+import QRCode from 'qrcode';
 
 type FormErrors = {
   form?: string[];
@@ -16,8 +17,13 @@ type FormErrors = {
 export default function RegistrationForm({ eventId }: { eventId: string }) {
   const [step, setStep] = useState(1);
   const [isPending, setIsPending] = useState(false);
-  const [queuedEmail, setQueuedEmail] = useState(false);
+  const [scanToken, setScanToken] = useState<string | null>(null);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
+  
+  const [lookupEmail, setLookupEmail] = useState('');
+  const [lookupError, setLookupError] = useState('');
+  const [isLookingUp, setIsLookingUp] = useState(false);
 
   // We need to keep track of form data across steps manually or just use a single form and hide/show sections.
   // Hiding/showing sections inside one form is easier for FormData collection.
@@ -29,8 +35,19 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
     const result = await submitRegistrationAction(eventId, formData);
     setIsPending(false);
     
-    if (result?.success) {
-      setQueuedEmail(!!result.queuedEmail);
+    if (result?.success && result.scanToken) {
+      setScanToken(result.scanToken);
+      try {
+        const url = await QRCode.toDataURL(result.scanToken, {
+          errorCorrectionLevel: 'H',
+          margin: 2,
+          width: 300,
+          color: { dark: '#000000', light: '#ffffff' }
+        });
+        setQrCodeDataUrl(url);
+      } catch (err) {
+        console.error('Failed to generate QR code', err);
+      }
       setStep(3); // Success step
     } else if (result?.error) {
       setErrors(result.error);
@@ -60,7 +77,7 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
             <div className="absolute top-4 left-1/2 w-full h-[2px] z-0" aria-hidden="true">
               <div className={`h-full w-full ${step >= 2 ? 'bg-primary' : 'bg-surface-variant'}`} />
             </div>
-            <button type="button" onClick={() => step < 3 && goToStep(1)} disabled={step === 3} className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors ${step >= 1 ? 'bg-primary border-primary text-on-primary' : 'bg-surface-container-highest border-2 border-surface-variant text-on-surface-variant'}`}>
+            <button type="button" onClick={() => step < 3 && goToStep(1)} disabled={step >= 3} className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors ${step >= 1 ? 'bg-primary border-primary text-on-primary' : 'bg-surface-container-highest border-2 border-surface-variant text-on-surface-variant'}`}>
               <span className="font-label-sm text-label-sm">1</span>
             </button>
             <span className={`mt-3 font-label-xs text-label-xs text-center ${step >= 1 ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>Basic Info</span>
@@ -71,7 +88,7 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
             <div className="absolute top-4 left-1/2 w-full h-[2px] z-0" aria-hidden="true">
               <div className={`h-full w-full transition-colors duration-300 ${step >= 3 ? 'bg-primary' : 'bg-surface-variant'}`} />
             </div>
-            <button type="button" onClick={() => step < 3 && goToStep(2)} disabled={step === 3} className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-300 border-2 ${step >= 2 ? 'bg-primary border-primary text-on-primary' : 'bg-surface-container-lowest border-surface-variant text-on-surface-variant'}`}>
+            <button type="button" onClick={() => step < 3 && goToStep(2)} disabled={step >= 3} className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-300 border-2 ${step >= 2 ? 'bg-primary border-primary text-on-primary' : 'bg-surface-container-lowest border-surface-variant text-on-surface-variant'}`}>
               <span className="font-label-sm text-label-sm">2</span>
             </button>
             <span className={`mt-3 font-label-xs text-label-xs text-center ${step >= 2 ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>Group Info</span>
@@ -113,7 +130,10 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
                 {errors.email && <p className="mt-2 font-label-xs text-label-xs text-error flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">error</span>{errors.email[0]}</p>}
               </div>
 
-              <div className="pt-4 flex justify-end">
+              <div className="pt-4 flex justify-between items-center">
+                <button type="button" onClick={() => goToStep(4)} className="text-primary font-label-sm hover:underline flex items-center gap-1">
+                  Forgot your QR code?
+                </button>
                 <button type="button" onClick={() => goToStep(2)} className="h-touch-target px-8 bg-primary text-on-primary font-label-sm text-label-sm rounded-lg hover:bg-tertiary-container transition-colors shadow-sm hover:shadow-md flex items-center gap-2">
                   Continue <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </button>
@@ -170,24 +190,99 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
         {/* STEP 3: Confirmation */}
         <section className={`w-full text-center transition-all duration-300 ${step === 3 ? 'opacity-100 translate-y-0 visible relative' : 'opacity-0 translate-y-2 invisible absolute'}`}>
           <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-8 max-w-sm mx-auto shadow-sm mb-8 mt-4">
-            <div className="w-16 h-16 bg-[#e7f5e8] text-[#1e4620] mx-auto rounded-full flex items-center justify-center mb-6">
-              <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
-            </div>
             <h2 className="font-headline-md text-headline-sm text-on-surface font-bold mb-3">
-              {queuedEmail ? 'Registration Queued' : 'Check Your Inbox'}
+              Registration Successful
             </h2>
-            <p className="font-body-sm text-body-md text-on-surface-variant mb-2">
-              {queuedEmail 
-                ? "Due to high volume today, your QR code ticket will be emailed to you later. Don't worry, your spot is secured!"
-                : "We've sent your QR code ticket to your email. Please present it at the entrance."
-              }
+            <p className="font-body-sm text-body-md text-on-surface-variant mb-6">
+              Please save this QR Code. You will need it for entry.
             </p>
+            {qrCodeDataUrl ? (
+              <div className="flex flex-col items-center justify-center gap-4">
+                <div className="p-4 bg-white rounded-xl shadow-inner border border-surface-container-highest">
+                  <img src={qrCodeDataUrl} alt="Your Ticket QR Code" className="w-48 h-48" />
+                </div>
+                <a 
+                  href={qrCodeDataUrl} 
+                  download="flowcheck-ticket.png" 
+                  className="h-touch-target px-6 bg-primary text-on-primary font-label-sm rounded-lg hover:bg-tertiary-container transition-colors shadow-sm flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined">download</span> Download Ticket
+                </a>
+              </div>
+            ) : (
+              <div className="animate-pulse w-48 h-48 bg-surface-variant rounded-xl mx-auto mb-4"></div>
+            )}
           </div>
           
           <div className="flex justify-center">
              <button type="button" onClick={() => window.location.reload()} className="h-touch-target px-8 bg-surface-container-highest border border-outline-variant text-on-surface font-label-sm text-label-sm rounded-lg hover:bg-surface-variant transition-colors shadow-sm flex items-center justify-center gap-2">
                  Register Another Person
              </button>
+          </div>
+        </section>
+
+        {/* STEP 4: Lookup Ticket */}
+        <section className={`w-full transition-all duration-300 ${step === 4 ? 'opacity-100 translate-y-0 visible relative' : 'opacity-0 translate-y-2 invisible absolute'}`}>
+          <h2 className="font-headline-md text-headline-md text-primary mb-2">Lookup Ticket</h2>
+          <p className="font-body-md text-body-md text-on-surface-variant mb-6">Enter the email address you used to register to retrieve your QR code.</p>
+          
+          <div className="space-y-6">
+            {lookupError && (
+              <div className="bg-error-container text-on-error-container p-4 rounded-lg flex items-center gap-2">
+                <span className="material-symbols-outlined">error</span>
+                <p className="text-sm">{lookupError}</p>
+              </div>
+            )}
+            <div>
+              <label htmlFor="lookupEmail" className="block font-label-sm text-label-sm text-on-surface mb-2">Email Address</label>
+              <input 
+                type="email" 
+                id="lookupEmail" 
+                value={lookupEmail}
+                onChange={(e) => setLookupEmail(e.target.value)}
+                className={`w-full h-touch-target px-4 bg-surface-bright border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface placeholder-on-surface-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all`} 
+                placeholder="juan@example.com" 
+              />
+            </div>
+
+            <div className="pt-4 flex justify-between items-center">
+              <button type="button" onClick={() => goToStep(1)} className="h-touch-target px-6 text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back
+              </button>
+              <button 
+                type="button" 
+                onClick={async () => {
+                  if (!lookupEmail) return setLookupError('Please enter an email address');
+                  setIsLookingUp(true);
+                  setLookupError('');
+                  const { lookupAttendeeAction } = await import('@/actions/registration');
+                  const result = await lookupAttendeeAction(eventId, lookupEmail);
+                  setIsLookingUp(false);
+                  
+                  if (result.success && result.scanToken) {
+                    setScanToken(result.scanToken);
+                    try {
+                      const url = await QRCode.toDataURL(result.scanToken, {
+                        errorCorrectionLevel: 'H',
+                        margin: 2,
+                        width: 300,
+                        color: { dark: '#000000', light: '#ffffff' }
+                      });
+                      setQrCodeDataUrl(url);
+                    } catch (err) {
+                      console.error('Failed to generate QR code', err);
+                    }
+                    setStep(3); // Jump to success step to show QR
+                  } else {
+                    setLookupError(result.error || 'Registration not found');
+                  }
+                }} 
+                disabled={isLookingUp} 
+                className="h-touch-target px-8 bg-primary text-on-primary font-label-sm text-label-sm rounded-lg hover:bg-tertiary-container transition-colors shadow-sm hover:shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLookingUp ? 'Looking up...' : 'Lookup Ticket'} <span className="material-symbols-outlined text-[18px]">search</span>
+              </button>
+            </div>
           </div>
         </section>
       </div>

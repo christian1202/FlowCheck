@@ -1,6 +1,6 @@
 import { getEventById } from '@/data/events';
 import { notFound, redirect } from 'next/navigation';
-import QRScanner from '@/components/scanner/QRScanner';
+import QRScannerDynamic from '@/components/scanner/QRScannerDynamic';
 import Link from 'next/link';
 import { getAdminSessionId } from '@/lib/auth';
 
@@ -55,7 +55,7 @@ export default async function ScannerPage({
         </Link>
       </div>
 
-      <QRScanner eventId={event.id} />
+      <QRScannerDynamic eventId={event.id} />
     </div>
   );
 }

@@ -12,23 +12,21 @@ export async function addEventAdmin(eventId: string, email: string, role: 'edito
     return { error: 'Unauthorized' };
   }
 
-  // 1. Verify that the current user has permission (must be owner or editor)
-  const currentAccess = await db
-    .select()
-    .from(eventAdmins)
-    .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.adminId, adminId)))
-    .limit(1);
+  // 1. Fetch current user's access and the target user concurrently to avoid waterfall
+  const [currentAccess, targetUsers] = await Promise.all([
+    db.select()
+      .from(eventAdmins)
+      .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.adminId, adminId)))
+      .limit(1),
+    db.select()
+      .from(admins)
+      .where(eq(admins.email, email.trim().toLowerCase()))
+      .limit(1)
+  ]);
 
   if (currentAccess.length === 0 || currentAccess[0].role === 'scanner') {
     return { error: 'You do not have permission to add team members to this event.' };
   }
-
-  // 2. Find the target user by email
-  const targetUsers = await db
-    .select()
-    .from(admins)
-    .where(eq(admins.email, email.trim().toLowerCase()))
-    .limit(1);
 
   if (targetUsers.length === 0) {
     return { error: 'User not found. Please ask them to create an account first before inviting them.' };

@@ -27,10 +27,24 @@ export async function submitRegistrationAction(eventId: string, formData: FormDa
 
     return { 
       success: true, 
-      queuedEmail: result.queuedEmail 
+      scanToken: result.scanToken
     };
   } catch (err: any) {
     console.error('Registration Action Error:', err);
     return { error: { form: ['An unexpected error occurred during registration.'] } };
+  }
+}
+
+export async function lookupAttendeeAction(eventId: string, email: string) {
+  try {
+    const { lookupAttendee } = await import('@/data/registration');
+    const result = await lookupAttendee(eventId, email);
+    if (!result) {
+      return { success: false, error: 'No registration found for this email.' };
+    }
+    return { success: true, scanToken: result.scanToken };
+  } catch (err: any) {
+    console.error('Lookup Action Error:', err);
+    return { success: false, error: 'An unexpected error occurred.' };
   }
 }

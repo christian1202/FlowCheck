@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request: req,
   });
@@ -30,9 +30,6 @@ export async function proxy(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
   
-  // Refresh session if expired
-  const { data: { user } } = await supabase.auth.getUser();
-
   // Basic WAF/Rate limiting logic could go here
   
   // Protect /dashboard and /events routes
@@ -42,7 +39,10 @@ export async function proxy(req: NextRequest) {
       return NextResponse.redirect(new URL('/events', req.url));
     }
     
-    // If not authenticated, redirect to login (unless already on a public route)
+    // Lazily evaluate session to prevent blocking non-protected routes
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // If not authenticated, redirect to login
     if (!user) {
       return NextResponse.redirect(new URL('/login', req.url));
     }

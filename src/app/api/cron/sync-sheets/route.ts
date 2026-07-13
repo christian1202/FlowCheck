@@ -30,27 +30,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'No events to sync' }, { status: 200 });
     }
 
-    // 3. Process each event
-    const results = [];
-    for (const eventId of eventIds) {
-      // Get the sheet ID for this event
-      const [event] = await db.select({ googleSheetId: events.googleSheetId })
-        .from(events)
-        .where(eq(events.id, eventId))
-        .limit(1);
+    // 3. Process all events concurrently to eliminate sequential query waterfalls
+    const results = await Promise.all(
+      eventIds.map(async (eventId) => {
+        // Get the sheet ID for this event
+        const [event] = await db.select({ googleSheetId: events.googleSheetId })
+          .from(events)
+          .where(eq(events.id, eventId))
+          .limit(1);
 
-      if (event?.googleSheetId) {
-        try {
-          const rowsSynced = await syncEventToSheet(eventId, event.googleSheetId);
-          results.push({ eventId, status: 'success', rowsSynced });
-        } catch (error: any) {
-          console.error(`Failed to sync event ${eventId}:`, error);
-          results.push({ eventId, status: 'error', error: error.message });
+        if (event?.googleSheetId) {
+          try {
+            const rowsSynced = await syncEventToSheet(eventId, event.googleSheetId);
+            return { eventId, status: 'success', rowsSynced };
+          } catch (error: any) {
+            console.error(`Failed to sync event ${eventId}:`, error);
+            return { eventId, status: 'error', error: error.message };
+          }
+        } else {
+          return { eventId, status: 'skipped', reason: 'No sheet provisioned' };
         }
-      } else {
-        results.push({ eventId, status: 'skipped', reason: 'No sheet provisioned' });
-      }
-    }
+      })
+    );
 
     // 4. Also handle Email Retry Queue here if we implemented it, but right now
     // the Cron handles sheets, and we can add email retries here later.

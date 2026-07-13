@@ -51,8 +51,6 @@ export const attendees = pgTable('attendees', {
   zone: text('zone'),         // e.g., 1, 2, 3
   duty: text('duty'),         // e.g., Volunteer, Staff
   status: attendeeStatusEnum('status').default('registered').notNull(),
-  emailSent: boolean('email_sent').default(false).notNull(),
-  emailSentAt: timestamp('email_sent_at', { withTimezone: true }),
   registeredAt: timestamp('registered_at', { withTimezone: true }).defaultNow().notNull(),
   checkedInAt: timestamp('checked_in_at', { withTimezone: true }),
   checkedInBy: uuid('checked_in_by').references(() => admins.id, { onDelete: 'set null' }),
