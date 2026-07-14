@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
+
 import { createEvent, updateEvent } from '@/data/events';
 import { createEventSchema, updateEventSchema } from '@/lib/validators/events';
 
@@ -14,6 +14,7 @@ async function getAdminId() {
 }
 
 export type CreateEventState = {
+  success?: boolean;
   error?: {
     form?: string[];
     title?: string[];
@@ -25,7 +26,13 @@ export type CreateEventState = {
 };
 
 export async function createEventAction(prevState: CreateEventState | null, formData: FormData): Promise<CreateEventState> {
-  const adminId = await getAdminId();
+  let adminId: string;
+  try {
+    adminId = await getAdminId();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unauthorized';
+    return { error: { form: [message] } };
+  }
   
   // Extract and coerce data
   const rawData = {
@@ -51,7 +58,7 @@ export async function createEventAction(prevState: CreateEventState | null, form
   }
 
   revalidatePath('/events'); // revalidate the dashboard
-  redirect('/events');
+  return { success: true };
 }
 
 export async function updateEventAction(eventId: string, formData: FormData) {

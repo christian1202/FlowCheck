@@ -53,7 +53,7 @@ export const getAdminSessionId = cache(async (): Promise<string | null> => {
     const { error } = await admin.from('admins').upsert({
       id: user.id,
       email: user.email,
-      fullName: user.user_metadata?.full_name || null,
+      full_name: user.user_metadata?.full_name || null,
     }, { onConflict: 'id' });
     if (error) throw error;
   } catch (err) {

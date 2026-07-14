@@ -1,12 +1,20 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { createEventAction } from '@/actions/events';
 import { Calendar, MapPin, Users, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function NewEventPage() {
   const [state, formAction, isPending] = useActionState(createEventAction, null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state?.success) {
+      router.push('/events');
+    }
+  }, [state, router]);
 
   return (
     <div className="max-w-3xl mx-auto">
