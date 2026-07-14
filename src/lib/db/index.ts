@@ -26,7 +26,9 @@ export const getDb = () => {
 
   const client = postgres(connectionString, {
     prepare: false,
-    max: 1
+    max: 1,
+    idle_timeout: 0,
+    max_lifetime: 10 // Force connection refresh every 10 seconds to avoid Cloudflare isolate freeze socket drops
   });
 
   _db = drizzle(client);
