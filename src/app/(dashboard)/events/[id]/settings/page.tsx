@@ -1,11 +1,8 @@
-import { getEventById } from '@/data/events';
+import { getEventById, getEventTeam } from '@/data/events';
 import { getAdminSessionId } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
 import { publishEventAction } from '@/actions/events';
 import Link from 'next/link';
-import { db } from '@/lib/db';
-import { eventAdmins, admins } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
 import TeamManagement, { TeamMember } from '@/components/events/TeamManagement';
 import CopyLinkButton from '@/components/events/CopyLinkButton';
 
@@ -20,15 +17,7 @@ export default async function EventSettingsPage({
 
   const [event, teamRecords] = await Promise.all([
     getEventById(id, adminId),
-    db.select({
-      adminId: eventAdmins.adminId,
-      role: eventAdmins.role,
-      email: admins.email,
-      fullName: admins.fullName,
-    })
-    .from(eventAdmins)
-    .innerJoin(admins, eq(eventAdmins.adminId, admins.id))
-    .where(eq(eventAdmins.eventId, id))
+    getEventTeam(id)
   ]).catch((err) => {
     if (err instanceof Error && err.message === 'Unauthorized') redirect('/events');
     notFound();
@@ -132,4 +121,3 @@ export default async function EventSettingsPage({
     </div>
   );
 }
-

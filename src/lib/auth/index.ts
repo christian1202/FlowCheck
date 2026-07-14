@@ -1,8 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { db } from '@/lib/db';
-import { admins } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -48,13 +46,14 @@ export const getAdminSessionId = cache(async (): Promise<string | null> => {
   
   // Auto-sync user to public.admins table
   try {
-    const existingAdmin = await db.select().from(admins).where(eq(admins.id, user.id));
-    if (existingAdmin.length === 0 && user.email) {
-      await db.insert(admins).values({
+    if (user.email) {
+      const admin = getSupabaseAdmin();
+      const { error } = await admin.from('admins').upsert({
         id: user.id,
         email: user.email,
         fullName: user.user_metadata?.full_name || null,
-      });
+      }, { onConflict: 'id', ignoreDuplicates: true });
+      if (error) throw error;
     }
   } catch (err) {
     console.error("Failed to sync admin user to public schema:", err);

@@ -1,10 +1,5 @@
 import { Hono } from 'hono';
-import { handle } from 'hono/vercel';
-import { db } from '@/lib/db';
-import { events, attendees, scanLogs } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
-
-export const runtime = 'edge';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 
 const app = new Hono().basePath('/api');
 
@@ -14,7 +9,8 @@ const routes = app
   })
   .get('/events', async (c) => {
     try {
-      const allEvents = await db.select().from(events);
+      const { data: allEvents, error } = await getSupabaseAdmin().from('events').select('*');
+      if (error) throw error;
       return c.json(allEvents);
     } catch (e) {
       console.error(e);
@@ -24,7 +20,8 @@ const routes = app
   .get('/events/:id', async (c) => {
     const id = c.req.param('id');
     try {
-      const [event] = await db.select().from(events).where(eq(events.id, id)).limit(1);
+      const { data: event, error } = await getSupabaseAdmin().from('events').select('*').eq('id', id).maybeSingle();
+      if (error) throw error;
       if (!event) return c.json({ error: 'Event not found' }, 404);
       return c.json(event);
     } catch (e) {
@@ -35,10 +32,11 @@ const routes = app
 
 export type AppType = typeof routes;
 
-// Export standard Next.js route handlers mapping to Hono fetch
-export const GET = handle(app);
-export const POST = handle(app);
-export const PUT = handle(app);
-export const DELETE = handle(app);
-export const PATCH = handle(app);
-export const OPTIONS = handle(app);
+// Use the Web-standard Hono handler directly. This avoids the Vercel adapter
+// compatibility layer while remaining portable to the Cloudflare Worker runtime.
+export const GET = (request: Request) => app.fetch(request);
+export const POST = (request: Request) => app.fetch(request);
+export const PUT = (request: Request) => app.fetch(request);
+export const DELETE = (request: Request) => app.fetch(request);
+export const PATCH = (request: Request) => app.fetch(request);
+export const OPTIONS = (request: Request) => app.fetch(request);

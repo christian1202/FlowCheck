@@ -1,7 +1,5 @@
 import { getAdminSessionId } from '@/lib/auth';
-import { db } from '@/lib/db';
-import { admins } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import SettingsForm from '@/components/settings/SettingsForm';
 
@@ -12,8 +10,13 @@ export default async function SettingsPage() {
   }
 
   // Fetch current admin profile from DB
-  const userRecords = await db.select().from(admins).where(eq(admins.id, adminId));
-  const user = userRecords[0];
+  const { data: user, error } = await getSupabaseAdmin()
+    .from('admins')
+    .select('*')
+    .eq('id', adminId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
 
   if (!user) {
     // Failsafe in case of sync issues

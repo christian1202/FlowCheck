@@ -6,6 +6,7 @@ import type { AppType } from '@/app/api/[[...route]]/route';
 const getBaseUrl = () => {
   if (typeof window !== 'undefined') return ''; // browser should use relative url
   if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.NODE_ENV === 'production') return 'https://flowcheck.flowcheck.workers.dev';
   return 'http://localhost:3000';
 };
 
