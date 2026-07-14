@@ -87,7 +87,13 @@ sequenceDiagram
 
 ## Flow 2: Attendee Registration
 
-The registration flow is the most complex path. It validates input, checks capacity and daily email limits, generates a QR code, sends an email, and handles failures gracefully.
+1. **Attendee** scans QR code or clicks link to `/events/[slug]/register`.
+2. **Registration Component** displays form.
+3. Attendee submits form.
+4. **Registration Action** calls **Hono API Gateway**.
+5. **Hono Gateway** checks event capacity and duplicate emails.
+6. If valid, generates a `scan_token` and inserts into `attendees`.
+7. (Async) Triggers `enqueueSheetSync` to sync with Google Sheets via Cloudflare Queues.
 
 ```mermaid
 sequenceDiagram
@@ -184,7 +190,14 @@ sequenceDiagram
 
 ## Flow 3: QR Code Scan (Check-In)
 
-This is the **hot path** — it must complete in under **500ms** to keep the check-in line moving. The scanner is a PWA that works on both phone cameras and laptop webcams.
+1. **Scanner Admin** opens PWA on phone.
+2. Scans Attendee QR Code (`html5-qrcode`).
+3. Sends token to `scanTicketAction`.
+4. Action calls **Hono API Gateway**.
+5. **Hono Gateway** verifies event status, checks attendee status.
+6. If valid, updates attendee `status = 'checked_in'` and `checked_in_at = NOW()`.
+7. Inserts record into `scan_logs`.
+8. Enqueues a sync event to Cloudflare Queues (`SHEETS_QUEUE`).
 
 ```mermaid
 sequenceDiagram

@@ -23,8 +23,8 @@ graph TB
 
     subgraph "Application Layer (Cloudflare Pages / OpenNext)"
         D["Server Components<br/>Dashboard · Event Pages"]
-        E["Server Actions<br/>Create Event · Register · Scan"]
-        F["API Routes<br/>Webhooks · Health"]
+        E["Server Actions<br/>Auth / Server Logic"]
+        F["Hono API Gateway<br/>Edge Functions / DB Access"]
         G["App Middleware<br/>Rate Limiting · Auth Guard"]
     end
 
@@ -77,15 +77,16 @@ graph TB
 
 | Layer | Technology | Free Tier Limit | Rationale |
 |---|---|---|---|
-| Framework | Next.js 15 (App Router) | N/A | Industry standard, highly optimized for modern web apps. |
+| Framework | Next.js 16 (App Router) | N/A | Industry standard, highly optimized for modern web apps. |
 | Language | TypeScript (strict) | N/A | Prevents runtime errors, essential for rapid development. |
 | Styling | Tailwind CSS v4 | N/A | Fast, utility-first styling. |
+| API Gateway | Hono | N/A | Ultralight web framework run in Next.js Edge runtime, enabling fast DB access and type-safe RPC |
 | Database | Supabase (PostgreSQL) | 500MB DB | Elite free tier. Includes Supavisor connection pooling. |
 | ORM | Drizzle ORM | N/A | Lightweight, compiles to pure SQL for edge speeds. |
 | Auth | Supabase Auth (Google OAuth) | 50K MAU | Zero config for Google login. Easy to debug in dashboard. |
 | Email | on-screen QR code | 300 emails/day | 3x more emails than Resend's free tier. |
 | Hosting | Cloudflare Pages (OpenNext) | Unlimited bandwidth, 100K Worker req/day | Zero cold starts, no commercial restrictions, generous free tier. |
-| Background | Vercel Cron Jobs / Serverless Background Tasks | 1M ops/month | Native batching, replaces BullMQ/Redis. |
+| Background | Cloudflare Queues / Cron Triggers | 1M ops/month | Native batching, replaces BullMQ/Redis. |
 | Rate Limiting | Cloudflare WAF + Cache API | 1 WAF rule | Built-in DDoS protection. |
 | Spreadsheets | Google Sheets API v4 | 60 req/min/user | The final ledger for administrative staff. |
 | QR Gen | `qrcode` | N/A | Pure JS, edge-compatible (unlike `sharp`). |
@@ -110,11 +111,11 @@ graph TB
 
 | Workflow | Request Path |
 |---|---|
-| **Event Creation** | Admin Browser → Edge WAF → App Middleware → Server Action → DAL → Supabase (INSERT) |
-| **Event Publish** | Admin Browser → ... → Server Action → DAL → Supabase (UPDATE) + Google Sheets API (Sync) + Drive API (Share) |
-| **Registration** | Attendee Browser → Edge WAF → App Middleware → Server Action → DAL → Daily Cap Check → QR Gen → on-screen QR code API (Sync or Queue) → Supabase (INSERT) |
+| **Event Creation** | Admin Browser → Edge WAF → App Middleware → Hono API Gateway → Supabase (INSERT) |
+| **Event Publish** | Admin Browser → ... → Hono API Gateway → Supabase (UPDATE) + Google Sheets API (Sync) + Drive API (Share) |
+| **Registration** | Attendee Browser → Edge WAF → App Middleware → Hono API Gateway → Daily Cap Check → QR Gen → on-screen QR code API (Sync or Queue) → Supabase (INSERT) |
 | **Email Queue Sync** | Cloudflare Cron Trigger → Supabase (SELECT email_sent = false) → on-screen QR code API (Sync) → Supabase (UPDATE) |
-| **QR Scan** | Admin PWA → Edge WAF → App Middleware → Server Action → DAL → Supabase (UPDATE) + Cloudflare Queue (Publish) |
+| **QR Scan** | Admin PWA → Edge WAF → App Middleware → Hono API Gateway → Supabase (UPDATE) + Cloudflare Queue (Publish) |
 | **Sheets Sync** | Cloudflare Queue Consumer (or Cron) → Supabase (SELECT) → Google Sheets API (Batch Update) |
 
 ## 6. Project Structure
@@ -128,7 +129,8 @@ flowcheck/
 │   ├── app/                   # App Router: Routing & Pages only
 │   │   ├── (public)/          # Unauthenticated (Landing, Registration)
 │   │   ├── (dashboard)/       # Authenticated (Events, Scanner, Settings)
-│   │   ├── api/               # API Routes (Webhooks, Cron triggers)
+│   │   ├── api/               # API Routes
+│   │   │   └── [[...route]]/  # Catch-all Hono sub-router (Edge Runtime)
 │   │   ├── manifest.ts        # PWA manifest
 │   │   ├── sw.ts              # Serwist service worker
 │   │   └── layout.tsx         # Root layout

@@ -7,7 +7,7 @@ import { syncEventToSheet } from '@/lib/google/sheets';
 export async function POST(req: NextRequest) {
   // 1. Verify authorization
   const authHeader = req.headers.get('authorization');
-  const expectedSecret = process.env.SYNC_SECRET;
+  const expectedSecret = process.env.CRON_SECRET;
   
   if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

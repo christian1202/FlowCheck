@@ -1,0 +1,19 @@
+name = "flowcheck"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+main = ".open-next/worker.js"
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+# [[queues.producers]]
+# queue = "sheets-sync"
+# binding = "SHEETS_QUEUE"
+
+# [[queues.consumers]]
+# queue = "sheets-sync"
+# max_batch_size = 50
+# max_batch_timeout = 30
+
+# Crons must be configured via the Cloudflare Dashboard for Pages projects

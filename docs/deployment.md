@@ -3,7 +3,7 @@
 This guide walks through setting up FlowCheck from scratch — every service, every key, every config file. FlowCheck runs entirely on free tiers with **zero monthly cost**.
 
 > [!NOTE]
-> FlowCheck is hosted on **Vercel** (not Vercel). There is no `vercel.json`, no Redis, and no paid infrastructure required.
+> FlowCheck is hosted on **Cloudflare Pages** using OpenNext. The architecture is entirely edge-native and serverless.
 
 ---
 
@@ -168,11 +168,11 @@ Cloudflare hosts the Next.js app via Pages, processes background jobs via Queues
 1. In the Cloudflare dashboard, go to **Workers & Pages** → **Create**
 2. Select **Pages** → **Connect to Git**
 3. Authorize GitHub and select the `FlowCheck` repository
-4. Configure build settings:
+4. Configure build settings for OpenNext:
 
    | Setting | Value |
    |---------|-------|
-   | Build command | `next build` |
+   | Build command | `npm run build:cf` |
    | Build output directory | `.open-next` |
    | Root directory | `/` |
    | Node.js version | `20` |

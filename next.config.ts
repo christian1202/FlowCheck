@@ -10,8 +10,6 @@ const withSerwist = withSerwistInit({
 const nextConfig: NextConfig = {
   // Your Next.js config
   reactStrictMode: true,
-  // Ensure standalone output for OpenNext
-  output: 'standalone',
   turbopack: {},
 };
 

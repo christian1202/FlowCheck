@@ -9,9 +9,12 @@ if (connectionString) {
   // Force the use of the transaction pooler (port 6543) instead of direct connection (port 5432)
   connectionString = connectionString.replace(':5432/', ':6543/');
   
-  // Ensure pgbouncer=true is appended for edge compatibility
+  // Ensure pgbouncer=true and sslmode=require are appended for edge compatibility
   if (!connectionString.includes('pgbouncer=true')) {
     connectionString += (connectionString.includes('?') ? '&' : '?') + 'pgbouncer=true';
+  }
+  if (!connectionString.includes('sslmode=require')) {
+    connectionString += '&sslmode=require';
   }
 }
 
@@ -36,3 +39,8 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export const db = drizzle(client, { schema });
+
+// Factory function for lazy initialization if needed
+export function getDb() {
+  return db;
+}

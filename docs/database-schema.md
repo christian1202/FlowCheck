@@ -55,8 +55,6 @@ erDiagram
         text zone
         text duty
         attendee_status status
-        boolean email_sent
-        timestamp email_sent_at
         timestamp registered_at
         timestamp checked_in_at
         uuid checked_in_by FK
