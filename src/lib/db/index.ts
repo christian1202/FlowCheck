@@ -2,10 +2,12 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { cache } from 'react';
 
-// Use React's cache to initialize the database connection exactly once PER REQUEST.
-// This prevents cross-request TCP socket pooling in Cloudflare Workers,
-// which is the root cause of the "Connection closed" exceptions when isolates freeze.
-export const getDb = cache(() => {
+// We initialize this lazily to prevent top-level module evaluation crashes
+let _db: ReturnType<typeof drizzle> | null = null;
+
+export const getDb = () => {
+  if (_db) return _db;
+
   let connectionString = process.env.DATABASE_URL;
   
   if (!connectionString) {
@@ -27,8 +29,9 @@ export const getDb = cache(() => {
     max: 1
   });
 
-  return drizzle(client);
-});
+  _db = drizzle(client);
+  return _db;
+};
 
 // Proxy to allow seamless drop-in replacement for existing `db.select()` calls
 export const db = new Proxy({} as ReturnType<typeof drizzle>, {
