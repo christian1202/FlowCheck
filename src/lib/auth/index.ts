@@ -46,17 +46,19 @@ export const getAdminSessionId = cache(async (): Promise<string | null> => {
   
   // Auto-sync user to public.admins table
   try {
-    if (user.email) {
-      const admin = getSupabaseAdmin();
-      const { error } = await admin.from('admins').upsert({
-        id: user.id,
-        email: user.email,
-        fullName: user.user_metadata?.full_name || null,
-      }, { onConflict: 'id', ignoreDuplicates: true });
-      if (error) throw error;
+    if (!user.email) {
+      throw new Error('User email is missing — cannot sync admin record');
     }
+    const admin = getSupabaseAdmin();
+    const { error } = await admin.from('admins').upsert({
+      id: user.id,
+      email: user.email,
+      fullName: user.user_metadata?.full_name || null,
+    }, { onConflict: 'id' });
+    if (error) throw error;
   } catch (err) {
     console.error("Failed to sync admin user to public schema:", err);
+    throw new Error('Failed to initialize admin account. Please try again.');
   }
   
   return user.id;

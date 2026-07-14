@@ -1,23 +1,12 @@
-import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { db } from '@/lib/db';
+import { events, eventAdmins, admins } from '@/lib/db/schema';
+import { eq, and, desc } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
 import type { CreateEventInput, UpdateEventInput } from '@/lib/validators/events';
 
 type EventRole = 'owner' | 'editor' | 'scanner';
-type EventRecord = Record<string, any>;
-
-function throwIfError(error: { message: string } | null) {
-  if (error) throw new Error(error.message);
-}
-
-function normalizeEvent(event: EventRecord): EventRecord {
-  return {
-    ...event,
-    createdBy: event.created_by,
-    maxAttendees: event.max_attendees,
-    googleSheetId: event.google_sheet_id,
-    googleSheetUrl: event.google_sheet_url,
-    createdAt: event.created_at,
-  };
-}
+type EventRow = InferSelectModel<typeof events>;
+export type EventWithRole = EventRow & { adminRole: EventRole };
 
 /**
  * Generate a unique slug from a title
@@ -31,104 +20,127 @@ function generateSlug(title: string): string {
   return `${base}-${randomStr}`;
 }
 
-export async function createEvent(data: CreateEventInput, adminId: string): Promise<EventRecord> {
-  const admin = getSupabaseAdmin();
+export async function createEvent(data: CreateEventInput, adminId: string): Promise<EventRow> {
   const slug = generateSlug(data.title);
-  const { data: newEvent, error: eventError } = await admin.from('events').insert({
+
+  return await db.transaction(async (tx) => {
+    const [newEvent] = await tx.insert(events).values({
       title: data.title,
       slug,
-      description: data.description,
-      date: data.date,
-      location: data.location,
-      max_attendees: data.maxAttendees,
-      created_by: adminId,
+      description: data.description || null,
+      date: new Date(data.date),
+      location: data.location || null,
+      maxAttendees: data.maxAttendees ?? null,
+      createdBy: adminId,
       status: 'draft',
-    }).select().single();
-  throwIfError(eventError);
+    }).returning();
 
-  const { error: ownerError } = await admin.from('event_admins').insert({
-    event_id: newEvent.id,
-    admin_id: adminId,
-    role: 'owner',
+    await tx.insert(eventAdmins).values({
+      eventId: newEvent.id,
+      adminId: adminId,
+      role: 'owner',
+    });
+
+    return newEvent;
   });
-  if (ownerError) {
-    // Avoid leaving an inaccessible event if the second REST request fails.
-    await admin.from('events').delete().eq('id', newEvent.id);
-    throwIfError(ownerError);
-  }
-
-  return normalizeEvent(newEvent as EventRecord);
 }
 
-export async function getEventsForAdmin(adminId: string): Promise<Array<EventRecord & { adminRole: EventRole }>> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.from('event_admins')
-    .select('role, event:events(*)')
-    .eq('admin_id', adminId)
-    .order('added_at', { ascending: false });
-  throwIfError(error);
+export async function getEventsForAdmin(adminId: string): Promise<EventWithRole[]> {
+  const rows = await db
+    .select({
+      role: eventAdmins.role,
+      event: events,
+    })
+    .from(eventAdmins)
+    .innerJoin(events, eq(eventAdmins.eventId, events.id))
+    .where(eq(eventAdmins.adminId, adminId))
+    .orderBy(desc(eventAdmins.addedAt));
 
-  return ((data ?? []) as Array<{ role: EventRole; event: EventRecord | null }>)
-    .filter((row) => row.event)
-    .map((row) => ({ ...normalizeEvent(row.event!), adminRole: row.role }));
+  return rows.map((row) => ({
+    ...row.event,
+    adminRole: row.role as EventRole,
+  }));
 }
 
-export async function getEventById(eventId: string, adminId: string): Promise<EventRecord & { adminRole: EventRole }> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.from('event_admins')
-    .select('role, event:events(*)')
-    .eq('event_id', eventId)
-    .eq('admin_id', adminId)
-    .maybeSingle();
-  throwIfError(error);
-  const row = data as { role: EventRole; event: EventRecord | null } | null;
-  if (!row?.event) {
+export async function getEventById(eventId: string, adminId: string): Promise<EventWithRole> {
+  const rows = await db
+    .select({
+      role: eventAdmins.role,
+      event: events,
+    })
+    .from(eventAdmins)
+    .innerJoin(events, eq(eventAdmins.eventId, events.id))
+    .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.adminId, adminId)))
+    .limit(1);
+
+  if (rows.length === 0) {
     throw new Error('Unauthorized');
   }
-  return { ...normalizeEvent(row.event), adminRole: row.role };
-}
 
-export async function updateEvent(eventId: string, adminId: string, data: UpdateEventInput): Promise<EventRecord> {
-  const event = await getEventById(eventId, adminId);
-  if (event.adminRole === 'scanner') {
-    throw new Error('Unauthorized');
-  }
-  const admin = getSupabaseAdmin();
-  const update = {
-    ...(data.title !== undefined && { title: data.title }),
-    ...(data.description !== undefined && { description: data.description }),
-    ...(data.date !== undefined && { date: data.date }),
-    ...(data.location !== undefined && { location: data.location }),
-    ...(data.maxAttendees !== undefined && { max_attendees: data.maxAttendees }),
-    ...(data.status !== undefined && { status: data.status }),
+  return {
+    ...rows[0].event,
+    adminRole: rows[0].role as EventRole,
   };
-  const { data: updated, error } = await admin.from('events').update(update).eq('id', eventId).select().single();
-  throwIfError(error);
-  return normalizeEvent(updated as EventRecord);
 }
 
-export async function getEventBySlug(slug: string): Promise<EventRecord | null> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.from('events').select('*').eq('slug', slug).maybeSingle();
-  throwIfError(error);
-  return data ? normalizeEvent(data as EventRecord) : null;
+export async function updateEvent(eventId: string, adminId: string, data: UpdateEventInput): Promise<EventRow> {
+  // Verify access first
+  const access = await db
+    .select({ role: eventAdmins.role })
+    .from(eventAdmins)
+    .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.adminId, adminId)))
+    .limit(1);
+
+  if (access.length === 0) {
+    throw new Error('Unauthorized');
+  }
+  if (access[0].role === 'scanner') {
+    throw new Error('Unauthorized');
+  }
+
+  const update: Partial<typeof events.$inferInsert> = {};
+  if (data.title !== undefined) update.title = data.title;
+  if (data.description !== undefined) update.description = data.description;
+  if (data.date !== undefined) update.date = new Date(data.date);
+  if (data.location !== undefined) update.location = data.location;
+  if (data.maxAttendees !== undefined) update.maxAttendees = data.maxAttendees;
+  if (data.status !== undefined) update.status = data.status;
+
+  const [updated] = await db
+    .update(events)
+    .set(update)
+    .where(eq(events.id, eventId))
+    .returning();
+
+  return updated;
+}
+
+export async function getEventBySlug(slug: string): Promise<EventRow | null> {
+  const [event] = await db
+    .select()
+    .from(events)
+    .where(eq(events.slug, slug))
+    .limit(1);
+
+  return event || null;
 }
 
 export async function getEventTeam(eventId: string) {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.from('event_admins')
-    .select('admin_id, role, admin:admins(email, full_name)')
-    .eq('event_id', eventId);
-  throwIfError(error);
+  const rows = await db
+    .select({
+      adminId: eventAdmins.adminId,
+      role: eventAdmins.role,
+      email: admins.email,
+      fullName: admins.fullName,
+    })
+    .from(eventAdmins)
+    .innerJoin(admins, eq(eventAdmins.adminId, admins.id))
+    .where(eq(eventAdmins.eventId, eventId));
 
-  return ((data ?? []) as unknown as Array<{
-    admin_id: string;
-    role: EventRole;
-    admin: Array<{ email: string; full_name: string | null }> | null;
-  }>).filter((row) => row.admin?.[0]).map((row) => ({
-    adminId: row.admin_id,
-    role: row.role,
-    email: row.admin![0].email,
-    fullName: row.admin![0].full_name,
+  return rows.map((row) => ({
+    adminId: row.adminId,
+    role: row.role as EventRole,
+    email: row.email,
+    fullName: row.fullName,
   }));
 }

@@ -40,10 +40,17 @@ export async function middleware(req: NextRequest) {
     }
     
     // Lazily evaluate session to prevent blocking non-protected routes
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    // If not authenticated, redirect to login
-    if (!user) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // If not authenticated, redirect to login
+      if (!user) {
+        return NextResponse.redirect(new URL('/login', req.url));
+      }
+    } catch {
+      // Auth service unavailable (e.g. misconfigured env vars or network issue)
+      // Redirect to login rather than crashing the entire request
+      console.error('Auth check failed in middleware — redirecting to /login');
       return NextResponse.redirect(new URL('/login', req.url));
     }
   }

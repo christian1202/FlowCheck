@@ -16,4 +16,14 @@ binding = "ASSETS"
 # max_batch_size = 50
 # max_batch_timeout = 30
 
-# Crons must be configured via the Cloudflare Dashboard for Pages projects
+# All environment variables are managed as secrets (not in [vars]):
+#   wrangler secret put NEXT_PUBLIC_SUPABASE_URL
+#   wrangler secret put NEXT_PUBLIC_SUPABASE_ANON_KEY
+#   wrangler secret put NEXT_PUBLIC_APP_URL
+#   wrangler secret put DATABASE_URL
+#   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+#   wrangler secret put CRON_SECRET
+#   wrangler secret put BREVO_API_KEY
+
+[triggers]
+crons = ["*/2 * * * *"]

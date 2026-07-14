@@ -14,7 +14,10 @@ export const db = new Proxy({} as ReturnType<typeof drizzle>, {
       let connectionString = process.env.DATABASE_URL;
       
       if (!connectionString) {
-        throw new Error("DATABASE_URL is not set or was accessed before OpenNext initialized process.env context");
+        throw new Error(
+          "DATABASE_URL is not set. Make sure you've configured it as a Cloudflare secret:\n" +
+          "  wrangler secret put DATABASE_URL"
+        );
       }
 
       // Force the use of the transaction pooler (port 6543) instead of direct connection (port 5432)

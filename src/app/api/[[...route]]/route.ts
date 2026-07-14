@@ -1,16 +1,18 @@
 import { Hono } from 'hono';
-import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { db } from '@/lib/db';
+import { events } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 const app = new Hono().basePath('/api');
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const routes = app
   .get('/hello', (c) => {
     return c.json({ message: 'Hello from Hono Edge!' });
   })
   .get('/events', async (c) => {
     try {
-      const { data: allEvents, error } = await getSupabaseAdmin().from('events').select('*');
-      if (error) throw error;
+      const allEvents = await db.select().from(events);
       return c.json(allEvents);
     } catch (e) {
       console.error(e);
@@ -20,8 +22,7 @@ const routes = app
   .get('/events/:id', async (c) => {
     const id = c.req.param('id');
     try {
-      const { data: event, error } = await getSupabaseAdmin().from('events').select('*').eq('id', id).maybeSingle();
-      if (error) throw error;
+      const [event] = await db.select().from(events).where(eq(events.id, id)).limit(1);
       if (!event) return c.json({ error: 'Event not found' }, 404);
       return c.json(event);
     } catch (e) {

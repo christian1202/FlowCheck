@@ -1,13 +1,15 @@
-import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { db } from '@/lib/db';
+import { events } from '@/lib/db/schema';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
     const start = Date.now();
-    const { data, error } = await getSupabaseAdmin().from('events').select('id').limit(1);
-    if (error) throw error;
+    const data = await db.select({ id: events.id }).from(events).limit(1);
     return NextResponse.json({ success: true, data, time: Date.now() - start });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message, stack: err.stack }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    const stack = err instanceof Error ? err.stack : undefined;
+    return NextResponse.json({ success: false, error: message, stack }, { status: 500 });
   }
 }

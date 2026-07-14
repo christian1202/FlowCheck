@@ -1,5 +1,7 @@
 import { getAdminSessionId } from '@/lib/auth';
-import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { db } from '@/lib/db';
+import { admins } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
 import SettingsForm from '@/components/settings/SettingsForm';
 
@@ -9,14 +11,12 @@ export default async function SettingsPage() {
     redirect('/login');
   }
 
-  // Fetch current admin profile from DB
-  const { data: user, error } = await getSupabaseAdmin()
-    .from('admins')
-    .select('*')
-    .eq('id', adminId)
-    .maybeSingle();
-
-  if (error) throw new Error(error.message);
+  // Fetch current admin profile from DB using Drizzle
+  const [user] = await db
+    .select()
+    .from(admins)
+    .where(eq(admins.id, adminId))
+    .limit(1);
 
   if (!user) {
     // Failsafe in case of sync issues
