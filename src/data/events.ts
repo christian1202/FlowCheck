@@ -1,4 +1,4 @@
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { events, eventAdmins, admins } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
@@ -21,6 +21,7 @@ function generateSlug(title: string): string {
 }
 
 export async function createEvent(data: CreateEventInput, adminId: string): Promise<EventRow> {
+  const db = getDb();
   const slug = generateSlug(data.title);
 
   return await db.transaction(async (tx) => {
@@ -46,6 +47,7 @@ export async function createEvent(data: CreateEventInput, adminId: string): Prom
 }
 
 export async function getEventsForAdmin(adminId: string): Promise<EventWithRole[]> {
+  const db = getDb();
   const rows = await db
     .select({
       role: eventAdmins.role,
@@ -63,6 +65,7 @@ export async function getEventsForAdmin(adminId: string): Promise<EventWithRole[
 }
 
 export async function getEventById(eventId: string, adminId: string): Promise<EventWithRole> {
+  const db = getDb();
   const rows = await db
     .select({
       role: eventAdmins.role,
@@ -84,6 +87,7 @@ export async function getEventById(eventId: string, adminId: string): Promise<Ev
 }
 
 export async function updateEvent(eventId: string, adminId: string, data: UpdateEventInput): Promise<EventRow> {
+  const db = getDb();
   // Verify access first
   const access = await db
     .select({ role: eventAdmins.role })
@@ -116,6 +120,7 @@ export async function updateEvent(eventId: string, adminId: string, data: Update
 }
 
 export async function getEventBySlug(slug: string): Promise<EventRow | null> {
+  const db = getDb();
   const [event] = await db
     .select()
     .from(events)
@@ -126,6 +131,7 @@ export async function getEventBySlug(slug: string): Promise<EventRow | null> {
 }
 
 export async function getEventTeam(eventId: string) {
+  const db = getDb();
   const rows = await db
     .select({
       adminId: eventAdmins.adminId,

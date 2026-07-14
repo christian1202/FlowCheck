@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { events } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { syncEventToSheet } from '@/lib/google/sheets';
 
 export async function POST(req: NextRequest) {
+  const db = getDb();
   // 1. Verify authorization
   const authHeader = req.headers.get('authorization');
   const expectedSecret = process.env.CRON_SECRET;

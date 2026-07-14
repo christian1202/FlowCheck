@@ -24,7 +24,8 @@ export async function GET() {
 
   // Test database connectivity
   try {
-    const { db } = await import('@/lib/db');
+    const { getDb } = await import('@/lib/db');
+    const db = getDb();
     const { events } = await import('@/lib/db/schema');
     const data = await db.select({ id: events.id }).from(events).limit(1);
     results.db = { status: 'ok', rowCount: data.length };

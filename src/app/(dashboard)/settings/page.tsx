@@ -1,11 +1,12 @@
 import { getAdminSessionId } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { admins } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
 import SettingsForm from '@/components/settings/SettingsForm';
 
 export default async function SettingsPage() {
+  const db = getDb();
   const adminId = await getAdminSessionId();
   if (!adminId) {
     redirect('/login');

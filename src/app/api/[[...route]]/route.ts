@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { events } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
@@ -12,6 +12,7 @@ const routes = app
   })
   .get('/events', async (c) => {
     try {
+      const db = getDb();
       const allEvents = await db.select().from(events);
       return c.json(allEvents);
     } catch (e) {
@@ -22,6 +23,7 @@ const routes = app
   .get('/events/:id', async (c) => {
     const id = c.req.param('id');
     try {
+      const db = getDb();
       const [event] = await db.select().from(events).where(eq(events.id, id)).limit(1);
       if (!event) return c.json({ error: 'Event not found' }, 404);
       return c.json(event);

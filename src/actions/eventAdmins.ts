@@ -1,12 +1,13 @@
 'use server';
 
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { admins, eventAdmins } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getAdminSessionId } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
 export async function addEventAdmin(eventId: string, email: string, role: 'editor' | 'scanner') {
+  const db = getDb();
   const adminId = await getAdminSessionId();
   if (!adminId) {
     return { error: 'Unauthorized' };
@@ -56,6 +57,7 @@ export async function addEventAdmin(eventId: string, email: string, role: 'edito
 }
 
 export async function removeEventAdmin(eventId: string, targetAdminId: string) {
+  const db = getDb();
   const adminId = await getAdminSessionId();
   if (!adminId) {
     return { error: 'Unauthorized' };

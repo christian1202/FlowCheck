@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { attendees, events } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
@@ -114,6 +114,7 @@ export async function createEventSheet(eventTitle: string, adminEmails: string[]
  * (Idempotent operation: overwrites all rows below header).
  */
 export async function syncEventToSheet(eventId: string, sheetId: string): Promise<number> {
+  const db = getDb();
   const auth = getGoogleAuth();
 
   // Fetch all attendees for the event

@@ -1,4 +1,4 @@
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { attendees, events, eventAdmins, scanLogs } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { enqueueSheetSync } from '@/lib/queue/producer';
@@ -18,6 +18,7 @@ export async function processScan(
   adminId: string,
   scanToken: string
 ): Promise<ScanResultResponse> {
+  const db = getDb();
   // Use transaction to ensure data integrity
   return await db.transaction(async (tx) => {
     // 1. Verify admin has access to this event (as scanner, editor, or owner)

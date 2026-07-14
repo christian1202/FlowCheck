@@ -1,8 +1,9 @@
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { events } from '@/lib/db/schema';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+  const db = getDb();
   try {
     const start = Date.now();
     const data = await db.select({ id: events.id }).from(events).limit(1);

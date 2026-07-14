@@ -1,4 +1,4 @@
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { attendees, events } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import type { RegistrationInput } from '@/lib/validators/registration';
@@ -12,6 +12,7 @@ export async function registerAttendee(
   data: RegistrationInput, 
   eventId: string
 ): Promise<RegistrationResult> {
+  const db = getDb();
   // Use transaction to ensure consistency
   return await db.transaction(async (tx) => {
     // 1. Check if event is open
@@ -73,6 +74,7 @@ export async function registerAttendee(
 }
 
 export async function lookupAttendee(eventId: string, email: string) {
+  const db = getDb();
   const [attendee] = await db.select({ scanToken: attendees.scanToken })
     .from(attendees)
     .where(and(eq(attendees.eventId, eventId), eq(attendees.email, email)))

@@ -2,12 +2,13 @@
 
 import { createClient } from '@/lib/auth/index';
 import { getAdminSessionId } from '@/lib/auth/index';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { admins } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function updateProfileName(fullName: string) {
+  const db = getDb();
   const adminId = await getAdminSessionId();
   if (!adminId) {
     return { error: 'Unauthorized' };
@@ -43,6 +44,7 @@ export async function updateProfileName(fullName: string) {
 }
 
 export async function updatePassword(password: string) {
+  const db = getDb();
   const adminId = await getAdminSessionId();
   if (!adminId) {
     return { error: 'Unauthorized' };
