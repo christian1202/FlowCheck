@@ -11,7 +11,9 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
   const router = useRouter();
@@ -85,10 +87,18 @@ export default function LoginForm() {
     }
 
     // Strict validation for registration
-    if (!isLogin && passwordStrength < 4) {
-      setMessage({ type: 'error', text: 'Password is too weak. It must be at least 8 characters and include uppercase, lowercase, numbers, and special characters.' });
-      setIsLoading(false);
-      return;
+    if (!isLogin) {
+      if (password !== confirmPassword) {
+        setMessage({ type: 'error', text: 'Passwords do not match.' });
+        setIsLoading(false);
+        return;
+      }
+      
+      if (passwordStrength < 4) {
+        setMessage({ type: 'error', text: 'Password is too weak. It must be at least 8 characters and include uppercase, lowercase, numbers, and special characters.' });
+        setIsLoading(false);
+        return;
+      }
     }
     
     if (isLogin) {
@@ -231,6 +241,39 @@ export default function LoginForm() {
                       Needs uppercase, lowercase, number, and special char.
                     </span>
                   )}
+                </div>
+              </div>
+            )}
+
+            {!isLogin && (
+              <div className="mt-4">
+                <label htmlFor="confirmPassword" className="block text-sm font-label-sm text-on-surface font-semibold">
+                  Confirm Password
+                </label>
+                <div className="mt-2 relative">
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required={!isLogin}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="block w-full rounded-md border border-outline-variant bg-surface py-2.5 pl-3 pr-10 text-on-surface shadow-sm focus:border-primary focus:ring-1 focus:ring-primary font-body-md placeholder:text-on-surface-variant"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-on-surface focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
               </div>
             )}

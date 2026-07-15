@@ -23,6 +23,8 @@ export default function QRScanner({ eventId }: { eventId: string }) {
   const [status, setStatus] = useState<ScannerStatus>('idle');
   const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
   const [currentOverlay, setCurrentOverlay] = useState<'none' | 'success' | 'duplicate' | 'error'>('none');
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const [isMirrored, setIsMirrored] = useState(false);
   
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
@@ -87,14 +89,14 @@ export default function QRScanner({ eventId }: { eventId: string }) {
     }, 2500);
   };
 
-  const startScanner = async () => {
+  const startScanner = async (mode = facingMode) => {
     if (!scannerRef.current) {
       scannerRef.current = new Html5Qrcode('qr-reader');
     }
 
     try {
       await scannerRef.current.start(
-        { facingMode: 'environment' },
+        { facingMode: mode },
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
@@ -119,6 +121,17 @@ export default function QRScanner({ eventId }: { eventId: string }) {
     }
   };
 
+  const toggleCamera = async () => {
+    const newMode = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(newMode);
+    setIsMirrored(newMode === 'user');
+    
+    if (scannerRef.current && scannerRef.current.getState() !== Html5QrcodeScannerState.NOT_STARTED) {
+      await stopScanner();
+      setTimeout(() => startScanner(newMode), 300);
+    }
+  };
+
   useEffect(() => {
     return () => {
       if (scannerRef.current && scannerRef.current.getState() !== Html5QrcodeScannerState.NOT_STARTED) {
@@ -134,16 +147,25 @@ export default function QRScanner({ eventId }: { eventId: string }) {
         
         {/* Top Controls */}
         <div className="absolute top-gutter right-gutter z-20 flex gap-4">
+          <button onClick={() => setIsMirrored(!isMirrored)} className="h-touch-target px-4 rounded-full bg-surface/10 backdrop-blur-md border border-outline-variant/30 text-white font-label-sm text-label-sm hover:bg-surface/20 transition-colors flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm">flip</span>
+            Flip
+          </button>
+          <button onClick={toggleCamera} className="h-touch-target px-4 rounded-full bg-surface/10 backdrop-blur-md border border-outline-variant/30 text-white font-label-sm text-label-sm hover:bg-surface/20 transition-colors flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm">cameraswitch</span>
+            {facingMode === 'environment' ? 'Rear' : 'Front'}
+          </button>
           {status !== 'idle' && (
-             <button onClick={stopScanner} className="h-touch-target px-4 rounded-full bg-surface/10 backdrop-blur-md border border-outline-variant/30 text-white font-label-sm text-label-sm hover:bg-surface/20 transition-colors">
-               Stop Camera
+             <button onClick={stopScanner} className="h-touch-target px-4 rounded-full bg-error/80 backdrop-blur-md border border-error/50 text-white font-label-sm text-label-sm hover:bg-error transition-colors flex items-center gap-2">
+               <span className="material-symbols-outlined text-sm">stop_circle</span>
+               Stop
              </button>
           )}
         </div>
 
         {/* Viewfinder Frame */}
         <div className="relative z-10 w-full max-w-md aspect-square border-2 border-white/20 rounded-xl overflow-hidden shadow-lg backdrop-blur-sm bg-black/50">
-          <div id="qr-reader" className="w-full h-full [&_video]:object-cover [&_video]:w-full [&_video]:h-full"></div>
+          <div id="qr-reader" className={`w-full h-full [&_video]:object-cover [&_video]:w-full [&_video]:h-full ${isMirrored ? '[&_video]:scale-x-[-1]' : ''}`}></div>
           
           {/* Scanning Line */}
           {status === 'scanning' && (
@@ -152,7 +174,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
 
           {status === 'idle' && (
             <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-30">
-               <button onClick={startScanner} className="bg-primary text-on-primary px-8 h-touch-target rounded-full font-label-sm shadow-md hover:scale-105 transition-transform flex items-center gap-2">
+               <button onClick={() => startScanner()} className="bg-primary text-on-primary px-8 h-touch-target rounded-full font-label-sm shadow-md hover:scale-105 transition-transform flex items-center gap-2">
                  <span className="material-symbols-outlined">videocam</span> Start Scanner
                </button>
             </div>

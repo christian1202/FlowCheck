@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function SidebarNav() {
+export default function SidebarNav({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const pathname = usePathname();
 
   const links = [
@@ -53,7 +53,7 @@ export default function SidebarNav() {
             >
               {link.icon}
             </span>
-            {link.label}
+            {!isCollapsed && <span>{link.label}</span>}
           </Link>
         </li>
       ))}

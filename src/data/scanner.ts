@@ -1,6 +1,6 @@
 import { getDb } from '@/lib/db';
 import { attendees, events, eventAdmins, scanLogs } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import { enqueueSheetSync } from '@/lib/queue/producer';
 
 export type ScanResultResponse = {
@@ -119,4 +119,29 @@ export async function processScan(
       }
     };
   });
+}
+
+export async function getTotalScansForAdmin(adminId: string): Promise<number> {
+  const db = getDb();
+  
+  // Find all events this admin manages
+  const adminEvents = await db.select({ eventId: eventAdmins.eventId })
+    .from(eventAdmins)
+    .where(eq(eventAdmins.adminId, adminId));
+
+  if (adminEvents.length === 0) return 0;
+
+  const eventIds = adminEvents.map(e => e.eventId);
+
+  // Count all checked-in attendees for these events
+  const rows = await db.select()
+    .from(attendees)
+    .where(
+      and(
+        inArray(attendees.eventId, eventIds),
+        eq(attendees.status, 'checked_in')
+      )
+    );
+
+  return rows.length;
 }

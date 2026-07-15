@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getEventsForAdmin } from '@/data/events';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { getTotalScansForAdmin } from '@/data/scanner';
 
 export default async function EventsPage() {
   const adminId = await getAdminSessionId();
@@ -9,26 +10,27 @@ export default async function EventsPage() {
     redirect('/login');
   }
   
-  let events: any[] = [];
+  let allEvents: any[] = [];
+  let dashboardEvents: any[] = [];
   let error = null;
+  let totalScans = 0;
   
   try {
-    const allEvents = await getEventsForAdmin(adminId);
+    allEvents = await getEventsForAdmin(adminId);
     
-    // Filter to only show events for today and tomorrow
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2);
+    // Sort events by date (upcoming first)
+    allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
-    events = allEvents.filter(e => {
-      const eventDate = new Date(e.date);
-      return eventDate >= startOfToday && eventDate < endOfTomorrow;
-    });
+    // For the list, just show the top 6 events
+    dashboardEvents = allEvents.slice(0, 6);
+
+    // Get total scans
+    totalScans = await getTotalScansForAdmin(adminId);
   } catch (err: any) {
     error = err.message;
   }
 
-  const activeEvents = events.filter(e => e.status === 'open').length;
+  const activeEvents = allEvents.filter(e => e.status === 'open').length;
 
   return (
     <div className="p-container-margin md:p-section-padding flex-1 fade-in-stagger w-full max-w-7xl mx-auto">
@@ -58,7 +60,7 @@ export default async function EventsPage() {
             <span className="font-label-sm text-label-sm text-on-surface-variant">Total Events</span>
             <span className="material-symbols-outlined text-primary text-opacity-50">calendar_today</span>
           </div>
-          <div className="text-3xl font-bold font-headline-md text-primary mb-2">{events.length}</div>
+          <div className="text-3xl font-bold font-headline-md text-primary mb-2">{allEvents.length}</div>
         </div>
 
         {/* Metric Card 2 */}
@@ -76,8 +78,8 @@ export default async function EventsPage() {
             <span className="font-label-sm text-label-sm text-on-surface-variant">Total Scans</span>
             <span className="material-symbols-outlined text-primary text-opacity-50">qr_code_scanner</span>
           </div>
-          <div className="text-3xl font-bold font-headline-md text-primary mb-2">--</div>
-          <div className="text-sm text-on-surface-variant">Data syncing soon</div>
+          <div className="text-3xl font-bold font-headline-md text-primary mb-2">{totalScans}</div>
+          <div className="text-sm text-on-surface-variant">Across all events</div>
         </div>
 
         {/* Metric Card 4 */}
@@ -103,7 +105,7 @@ export default async function EventsPage() {
             <h3 className="font-headline-md text-headline-md font-bold text-primary">Your Events</h3>
           </div>
 
-          {events.length === 0 && !error ? (
+          {dashboardEvents.length === 0 && !error ? (
             <div className="text-center border-2 border-dashed border-outline-variant rounded-xl p-12">
               <span className="material-symbols-outlined text-4xl text-on-surface-variant mb-4">event_note</span>
               <h3 className="font-label-sm font-bold text-primary">No events</h3>
@@ -118,7 +120,7 @@ export default async function EventsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {events.map((event) => (
+              {dashboardEvents.map((event) => (
                 <Link key={event.id} href={`/events/${event.id}/settings`} className="block group">
                   <div className="bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-surface-container-high overflow-hidden flex flex-col sm:flex-row h-full">
                     <div className="p-6 flex flex-col justify-between flex-1">
