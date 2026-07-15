@@ -22,6 +22,12 @@ export default function SidebarNav({ isCollapsed = false }: { isCollapsed?: bool
       isActive: pathname !== '/events' && pathname?.startsWith('/events') && !pathname.includes('/scanner'),
     },
     {
+      href: '/attendees',
+      label: 'Attendees',
+      icon: 'groups',
+      isActive: pathname?.startsWith('/attendees'),
+    },
+    {
       href: '/scanner',
       label: 'Scanner',
       icon: 'qr_code_scanner',

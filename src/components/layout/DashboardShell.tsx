@@ -90,23 +90,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             >
               <span className="material-symbols-outlined">menu</span>
             </button>
-
-            <div className="flex items-center max-w-md w-full">
-              <div className="relative w-full">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-on-surface-variant">search</span>
-                <input type="text" placeholder="Search events..." className="w-full pl-10 pr-4 py-2 bg-surface-container-highest border-none rounded-full font-body-md text-body-md focus:ring-1 focus:ring-primary focus:bg-surface transition-colors focus:outline-none" />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 ml-4">
-            <button className="text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full transition-colors relative hidden sm:block">
-              <span className="material-symbols-outlined">notifications</span>
-              <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
-            </button>
-            <div className="w-8 h-8 rounded-full border border-outline-variant bg-surface-container-highest flex items-center justify-center overflow-hidden">
-               <span className="material-symbols-outlined text-on-surface-variant text-sm">person</span>
-            </div>
           </div>
         </header>
 
