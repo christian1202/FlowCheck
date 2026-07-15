@@ -1,12 +1,16 @@
 import { getDb } from '@/lib/db';
-import { events, eventAdmins, admins } from '@/lib/db/schema';
-import { eq, and, desc, ilike } from 'drizzle-orm';
+import { events, eventAdmins, admins, attendees } from '@/lib/db/schema';
+import { eq, and, desc, ilike, sql } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 import type { CreateEventInput, UpdateEventInput } from '@/lib/validators/events';
 
 export type EventRole = 'owner' | 'editor' | 'scanner';
 export type EventRow = InferSelectModel<typeof events>;
-export type EventWithRole = EventRow & { adminRole: EventRole };
+export type EventWithRole = EventRow & { 
+  adminRole: EventRole;
+  registeredCount?: number;
+  checkedInCount?: number;
+};
 
 /**
  * Generate a unique slug from a title
@@ -53,6 +57,8 @@ export async function getEventsForAdmin(adminId: string): Promise<EventWithRole[
     .select({
       role: eventAdmins.role,
       event: events,
+      registeredCount: sql<number>`(SELECT count(*) FROM ${attendees} WHERE ${attendees.eventId} = ${events.id})`.mapWith(Number),
+      checkedInCount: sql<number>`(SELECT count(*) FROM ${attendees} WHERE ${attendees.eventId} = ${events.id} AND ${attendees.status} = 'checked_in')`.mapWith(Number),
     })
     .from(eventAdmins)
     .innerJoin(events, eq(eventAdmins.eventId, events.id))
@@ -62,6 +68,8 @@ export async function getEventsForAdmin(adminId: string): Promise<EventWithRole[
   return rows.map((row) => ({
     ...row.event,
     adminRole: row.role as EventRole,
+    registeredCount: row.registeredCount,
+    checkedInCount: row.checkedInCount,
   }));
 }
 
@@ -83,6 +91,8 @@ export async function getEventsPaginated(
     .select({
       role: eventAdmins.role,
       event: events,
+      registeredCount: sql<number>`(SELECT count(*) FROM ${attendees} WHERE ${attendees.eventId} = ${events.id})`.mapWith(Number),
+      checkedInCount: sql<number>`(SELECT count(*) FROM ${attendees} WHERE ${attendees.eventId} = ${events.id} AND ${attendees.status} = 'checked_in')`.mapWith(Number),
     })
     .from(eventAdmins)
     .innerJoin(events, eq(eventAdmins.eventId, events.id))
@@ -94,6 +104,8 @@ export async function getEventsPaginated(
   return rows.map((row) => ({
     ...row.event,
     adminRole: row.role as EventRole,
+    registeredCount: row.registeredCount,
+    checkedInCount: row.checkedInCount,
   }));
 }
 

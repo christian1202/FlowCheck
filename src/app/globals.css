@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --color-tertiary-fixed: #e2e2e2;
   --color-tertiary-container: #1b1b1b;
   --color-error: #ba1a1a;
@@ -49,13 +49,14 @@
   --color-on-tertiary-fixed-variant: #474747;
   --color-surface-dim: #d3daea;
 
-  --font-display-lg: "Geist", sans-serif;
-  --font-display-lg-mobile: "Geist", sans-serif;
-  --font-headline-md: "Geist", sans-serif;
-  --font-body-lg: "Geist", sans-serif;
-  --font-body-md: "Geist", sans-serif;
-  --font-label-sm: "Geist", sans-serif;
-  --font-label-xs: "Geist", sans-serif;
+  --font-display-lg: var(--font-inter), sans-serif;
+  --font-display-lg-mobile: var(--font-inter), sans-serif;
+  --font-headline-md: var(--font-inter), sans-serif;
+  --font-body-lg: var(--font-inter), sans-serif;
+  --font-body-md: var(--font-inter), sans-serif;
+  --font-label-sm: var(--font-inter), sans-serif;
+  --font-label-xs: var(--font-inter), sans-serif;
+  --font-sans: var(--font-inter), sans-serif;
 
   --spacing-touch-target: 44px;
   --spacing-section-padding: 64px;
@@ -136,5 +137,5 @@
 body {
   background-color: var(--color-background);
   color: var(--color-on-background);
-  font-family: var(--font-body-md);
+  font-family: var(--font-sans);
 }

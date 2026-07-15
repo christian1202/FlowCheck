@@ -7,6 +7,7 @@ import TeamManagement, { TeamMember } from '@/components/events/TeamManagement';
 import CopyLinkButton from '@/components/events/CopyLinkButton';
 import DeleteEventButton from '@/components/events/DeleteEventButton';
 import LocalTimeDisplay from '@/components/ui/LocalTimeDisplay';
+import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
 
 export default async function EventSettingsPage({
   params,
@@ -34,8 +35,8 @@ export default async function EventSettingsPage({
   };
 
   const isScanner = event.adminRole === 'scanner';
-  const isClosed = event.closesAt && new Date() > new Date(event.closesAt);
-  const displayStatus = isClosed ? 'closed' : event.status;
+  const displayStatus = getEventDisplayStatus(event.status, event.closesAt);
+  const statusClasses = getEventStatusStyles(displayStatus);
 
   return (
     <div className="p-container-margin md:p-section-padding flex-1 fade-in-stagger w-full max-w-4xl mx-auto space-y-6">
@@ -54,10 +55,7 @@ export default async function EventSettingsPage({
               Manage details and publication status for {event.title}.
             </p>
           </div>
-          <span className={`inline-flex items-center px-3 py-1 rounded-full font-label-xs font-bold uppercase tracking-wider ${
-            displayStatus === 'draft' ? 'bg-surface-container-highest text-on-surface' :
-            displayStatus === 'open' ? 'bg-green-100 text-green-800' : 'bg-error/10 text-error'
-          }`}>
+          <span className={`inline-flex items-center px-3 py-1 rounded-full font-label-xs font-bold uppercase tracking-wider ${statusClasses}`}>
             {displayStatus}
           </span>
         </div>
@@ -115,7 +113,7 @@ export default async function EventSettingsPage({
               </Link>
             )}
             
-            {event.status === 'open' && !isClosed && (
+            {event.status === 'open' && displayStatus !== 'Closed' && (
               <div className="w-full mt-2">
                 <CopyLinkButton slug={event.slug} />
               </div>

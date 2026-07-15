@@ -7,8 +7,9 @@ import { Search, Loader2 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { fetchEventsPage } from '@/app/(dashboard)/events/all/actions';
 import type { EventWithRole } from '@/data/events';
+import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
 
-export default function EventsList({ initialEvents }: { initialEvents: EventWithRole[] }) {
+export default function EventsList({ initialEvents, linkSuffix = '/settings' }: { initialEvents: EventWithRole[], linkSuffix?: string }) {
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   
@@ -16,6 +17,19 @@ export default function EventsList({ initialEvents }: { initialEvents: EventWith
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(initialEvents.length === 20);
   const [isLoading, setIsLoading] = useState(false);
+  const [columns, setColumns] = useState(3);
+
+  // Responsive columns
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) setColumns(3);
+      else if (window.innerWidth >= 768) setColumns(2);
+      else setColumns(1);
+    };
+    handleResize(); // init
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Reload data on search
   useEffect(() => {
@@ -65,18 +79,12 @@ export default function EventsList({ initialEvents }: { initialEvents: EventWith
   // Virtualizer setup
   const parentRef = useRef<HTMLDivElement>(null);
   
-  // Since we display events in a grid on large screens, react-virtual supports grid but it's simpler
-  // to virtualize as a vertical list where each "virtualRow" contains 1 or 2 items (depending on screen width).
-  // For simplicity and responsiveness, we'll keep it as a vertical list of rows. 
-  // We chunk the array into pairs.
-  const isMd = typeof window !== 'undefined' ? window.innerWidth >= 768 : true;
-  const columns = isMd ? 2 : 1;
   const rowCount = Math.ceil((events.length + (hasMore ? 1 : 0)) / columns);
 
   const rowVirtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 160, // estimated height of the card + gap
+    estimateSize: () => 360, // estimated height of the card (h-40 + p-5 content = ~336px) + gap
     overscan: 3,
   });
 
@@ -142,54 +150,105 @@ export default function EventsList({ initialEvents }: { initialEvents: EventWith
                     height: `${virtualRow.size}px`,
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className={`grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 items-start`}
+                  className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6 items-start`}
                 >
                   {isLoader ? (
-                    <div className="col-span-1 md:col-span-2 flex justify-center items-center py-8 text-on-surface-variant">
+                    <div className="col-span-1 md:col-span-2 lg:col-span-3 flex justify-center items-center py-8 text-on-surface-variant">
                       <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading more events...
                     </div>
                   ) : (
-                    rowEvents.map(event => (
-                      <Link key={event.id} href={`/events/${event.id}/settings`} className="block group h-full">
-                        <div className="bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-surface-container-high overflow-hidden flex flex-col sm:flex-row h-full min-h-[140px]">
-                          <div className="p-6 flex flex-col justify-between flex-1">
-                            <div>
-                              <div className="flex justify-between items-start mb-2">
-                                <h4 className="font-headline-md text-headline-md text-primary font-bold group-hover:underline decoration-2 underline-offset-4 truncate pr-2">{event.title}</h4>
-                                <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors transform group-hover:translate-x-1 shrink-0">arrow_forward</span>
-                              </div>
-                              <p className="font-body-md text-body-md text-on-surface-variant mb-4 flex flex-col gap-1 truncate">
-                                <span className="flex items-center gap-2">
-                                  <span className="material-symbols-outlined text-[18px]">location_on</span>
-                                  {event.location || 'No location set'} • {new Date(event.date).toLocaleDateString()}
-                                </span>
-                                {event.closesAt && (
-                                  <span className="flex items-center gap-2 text-xs">
-                                    <span className="material-symbols-outlined text-[14px]">schedule</span>
-                                    Closes: {new Date(event.closesAt).toLocaleString()}
-                                  </span>
-                                )}
-                              </p>
+                    rowEvents.map(event => {
+                      const displayStatus = getEventDisplayStatus(event.status, event.closesAt);
+                      const statusClasses = getEventStatusStyles(displayStatus);
+
+                      return (
+                        <Link key={event.id} href={`/events/${event.id}${linkSuffix}`} className="block group h-full">
+                          <div className="bg-white dark:bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-surface-container-high p-6 flex flex-col h-full min-h-[300px]">
+                            
+                            {/* Top: Pill */}
+                            <div className="mb-4">
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full font-label-xs font-bold uppercase tracking-wider ${statusClasses}`}>
+                                {displayStatus}
+                              </span>
                             </div>
-                            <div className="flex justify-between items-center border-t border-surface-container-highest pt-4 mt-auto">
-                              <div className="flex flex-wrap items-center gap-4">
-                                <div className="flex flex-col">
-                                  <span className="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider">Status</span>
-                                  <span className="font-label-sm text-label-sm text-primary font-bold capitalize">
-                                    {event.closesAt && new Date() > new Date(event.closesAt) ? 'closed' : event.status}
+
+                            {/* Title & Description */}
+                            <div className="mb-6 flex-1">
+                              <h4 className="text-xl font-bold text-on-surface mb-2 line-clamp-2 group-hover:text-primary transition-colors">{event.title}</h4>
+                              {event.description && (
+                                <p className="text-sm text-on-surface-variant line-clamp-2">
+                                  {event.description}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Date & Location */}
+                            <div className="space-y-3 mb-6">
+                              <div className="flex items-center gap-3 text-sm text-on-surface-variant font-medium">
+                                <span className="material-symbols-outlined text-[20px]">calendar_today</span>
+                                <div className="flex flex-col gap-0.5">
+                                  <span>{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                  {event.closesAt && (
+                                    <span className="text-xs text-on-surface-variant/80">Closes: {new Date(event.closesAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3 text-sm text-on-surface-variant font-medium">
+                                <span className="material-symbols-outlined text-[20px]">location_on</span>
+                                <span className="line-clamp-1">{event.location || 'No location set'}</span>
+                              </div>
+                            </div>
+
+                            {/* Divider */}
+                            <div className="h-px w-full bg-surface-container-highest mb-4"></div>
+
+                            {/* Footer */}
+                            {displayStatus === 'Closed' ? (
+                              <div className="flex flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-bold text-on-surface-variant">Final Attendance</span>
+                                  <span className="text-sm font-bold text-on-surface-variant">{event.checkedInCount || 0}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-on-surface-variant">Pre-registered vs Scanned</span>
+                                    <span className="text-xs font-bold text-on-surface-variant">{event.checkedInCount || 0} / {event.registeredCount || 0}</span>
+                                  </div>
+                                  <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-green-500 dark:bg-green-600 rounded-full transition-all duration-500" 
+                                      style={{ width: `${event.registeredCount ? Math.min(100, ((event.checkedInCount || 0) / event.registeredCount) * 100) : 0}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-bold text-on-surface-variant">Capacity</span>
+                                  <span className="text-sm font-bold text-on-surface-variant">
+                                    {event.registeredCount || 0} / {event.maxAttendees ? event.maxAttendees.toLocaleString() : 'Unlimited'}
                                   </span>
                                 </div>
-                                <div className="h-8 w-px bg-surface-container-highest hidden sm:block"></div>
-                                <div className="flex flex-col">
-                                  <span className="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider">Capacity</span>
-                                  <span className="font-label-sm text-label-sm text-primary font-bold">{event.maxAttendees || 'Unlimited'}</span>
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-on-surface-variant">Pre-registered vs Scanned</span>
+                                    <span className="text-xs font-bold text-on-surface-variant">{event.checkedInCount || 0} / {event.registeredCount || 0}</span>
+                                  </div>
+                                  <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-green-500 dark:bg-green-600 rounded-full transition-all duration-500" 
+                                      style={{ width: `${event.registeredCount ? Math.min(100, ((event.checkedInCount || 0) / event.registeredCount) * 100) : 0}%` }}
+                                    ></div>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
+                            )}
+                            
                           </div>
-                        </div>
-                      </Link>
-                    ))
+                        </Link>
+                      );
+                    })
                   )}
                 </div>
               );
