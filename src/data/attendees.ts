@@ -108,6 +108,42 @@ export async function getAttendeesPaginated(
   return rows as AttendeeWithEvent[];
 }
 
+export async function getAllAttendeesForExport(
+  adminId: string,
+  filters: AttendeesFilters = {}
+): Promise<AttendeeWithEvent[]> {
+  const db = getDb();
+  
+  const adminEvents = await db.select({ id: eventAdmins.eventId })
+    .from(eventAdmins)
+    .where(eq(eventAdmins.adminId, adminId));
+
+  const allowedIds = adminEvents.map(e => e.id);
+  if (allowedIds.length === 0) return [];
+
+  const conditions = buildConditions(allowedIds, filters);
+
+  const rows = await db.select({
+    id: attendees.id,
+    eventId: attendees.eventId,
+    eventTitle: events.title,
+    name: attendees.name,
+    email: attendees.email,
+    local: attendees.local,
+    duty: attendees.duty,
+    status: attendees.status,
+    registeredAt: attendees.registeredAt,
+    checkedInAt: attendees.checkedInAt,
+  })
+  .from(attendees)
+  .innerJoin(events, eq(attendees.eventId, events.id))
+  .where(and(...conditions))
+  .orderBy(desc(attendees.registeredAt))
+  .limit(10000); // Sensible limit to prevent memory overflow
+
+  return rows as AttendeeWithEvent[];
+}
+
 export async function getUniqueEventsForAdmin(adminId: string) {
   const db = getDb();
   const adminEventsList = await db.select({ id: events.id, title: events.title })

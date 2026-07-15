@@ -14,7 +14,9 @@ export default async function RegisterPage({
     notFound();
   }
 
-  if (event.status !== 'open') {
+  const isClosed = event.closesAt && new Date() > new Date(event.closesAt);
+
+  if (event.status !== 'open' || isClosed) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center py-section-padding px-gutter">
         <div className="bg-surface-container-lowest rounded-xl shadow-md p-10 text-center max-w-md">

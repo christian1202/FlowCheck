@@ -5,9 +5,9 @@ import type { AttendeeWithEvent } from '@/data/attendees';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend
 } from 'recharts';
-import { Search, Filter, Loader2 } from 'lucide-react';
+import { Search, Filter, Loader2, Download } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { fetchAttendeesPage, fetchAttendeesStats } from '@/app/(dashboard)/attendees/actions';
+import { fetchAttendeesPage, fetchAttendeesStats, fetchAllAttendeesForExport } from '@/app/(dashboard)/attendees/actions';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 export default function AttendeesDashboard({ 
@@ -31,6 +31,8 @@ export default function AttendeesDashboard({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(initialAttendees.length === 50);
   const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   
   // Reload data when filters change
   useEffect(() => {
@@ -118,6 +120,54 @@ export default function AttendeesDashboard({
     { name: 'Pending', value: stats.registered, color: '#facc15' },
   ];
 
+  const handleExportClick = () => {
+    setShowExportModal(true);
+  };
+
+  const handleExportCSV = async () => {
+    setShowExportModal(false);
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      const filters = { search: debouncedSearchTerm, eventId: eventFilter, status: statusFilter };
+      const allData = await fetchAllAttendeesForExport(filters);
+      
+      // Convert to CSV
+      const headers = ['Name', 'Email', 'Event', 'Local', 'Duty', 'Status', 'Registered At', 'Checked In At'];
+      const csvRows = [headers.join(',')];
+      
+      for (const row of allData) {
+        const values = [
+          `"${(row.name || '').replace(/"/g, '""')}"`,
+          `"${(row.email || '').replace(/"/g, '""')}"`,
+          `"${(row.eventTitle || '').replace(/"/g, '""')}"`,
+          `"${(row.local || '').replace(/"/g, '""')}"`,
+          `"${(row.duty || '').replace(/"/g, '""')}"`,
+          `"${row.status}"`,
+          `"${row.registeredAt ? new Date(row.registeredAt).toISOString() : ''}"`,
+          `"${row.checkedInAt ? new Date(row.checkedInAt).toISOString() : ''}"`
+        ];
+        csvRows.push(values.join(','));
+      }
+      
+      const csvString = csvRows.join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `attendees_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Failed to export CSV', err);
+      alert('Failed to export CSV. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col space-y-6">
       
@@ -159,6 +209,15 @@ export default function AttendeesDashboard({
             <option value="checked_in">Checked In</option>
             <option value="registered">Pending</option>
           </select>
+          
+          <button
+            onClick={handleExportClick}
+            disabled={isExporting}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-body-sm text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 shrink-0"
+          >
+            {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            <span className="hidden md:inline">Export</span>
+          </button>
         </div>
       </div>
 
@@ -293,6 +352,31 @@ export default function AttendeesDashboard({
         </div>
       </div>
       
+      {/* Export Confirmation Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-surface rounded-2xl max-w-md w-full p-6 shadow-xl border border-surface-container-high">
+            <h3 className="font-headline-sm text-xl text-on-surface mb-2">Confirm Export</h3>
+            <p className="font-body-md text-on-surface-variant mb-6">
+              Are you sure you want to export attendees for <strong>{eventFilter === 'all' ? 'all events' : uniqueEvents.find(e => e.id === eventFilter)?.title}</strong>?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="px-4 py-2 font-body-sm font-semibold rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExportCSV}
+                className="px-4 py-2 font-body-sm font-semibold rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors"
+              >
+                Confirm Export
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

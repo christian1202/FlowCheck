@@ -30,7 +30,10 @@ export default async function EventsPage() {
     error = err.message;
   }
 
-  const activeEvents = allEvents.filter(e => e.status === 'open').length;
+  const activeEvents = allEvents.filter(e => {
+    const isClosed = e.closesAt && new Date() > new Date(e.closesAt);
+    return e.status === 'open' && !isClosed;
+  }).length;
 
   return (
     <div className="p-container-margin md:p-section-padding flex-1 fade-in-stagger w-full max-w-7xl mx-auto">
@@ -138,7 +141,9 @@ export default async function EventsPage() {
                         <div className="flex flex-wrap items-center gap-4">
                           <div className="flex flex-col">
                             <span className="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider">Status</span>
-                            <span className="font-label-sm text-label-sm text-primary font-bold capitalize">{event.status}</span>
+                            <span className="font-label-sm text-label-sm text-primary font-bold capitalize">
+                              {event.closesAt && new Date() > new Date(event.closesAt) ? 'closed' : event.status}
+                            </span>
                           </div>
                           <div className="h-8 w-px bg-surface-container-highest hidden sm:block"></div>
                           <div className="flex flex-col">

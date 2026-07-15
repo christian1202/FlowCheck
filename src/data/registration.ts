@@ -19,7 +19,8 @@ export async function registerAttendee(
     const [event] = await tx.select({ 
       title: events.title,
       status: events.status, 
-      maxAttendees: events.maxAttendees 
+      maxAttendees: events.maxAttendees,
+      closesAt: events.closesAt
     })
     .from(events)
     .where(eq(events.id, eventId))
@@ -30,6 +31,9 @@ export async function registerAttendee(
     }
     if (event.status !== 'open') {
       return { success: false, error: 'Event is not accepting registrations' };
+    }
+    if (event.closesAt && new Date() > new Date(event.closesAt)) {
+      return { success: false, error: 'Event registration has closed' };
     }
 
     // 2. Check for duplicate registration (same email + eventId)

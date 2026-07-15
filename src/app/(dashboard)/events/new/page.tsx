@@ -16,6 +16,19 @@ export default function NewEventPage() {
     }
   }, [state, router]);
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const dateStr = formData.get('date') as string;
+    if (dateStr) formData.set('date', new Date(dateStr).toISOString());
+    
+    const closesAtStr = formData.get('closesAt') as string;
+    if (closesAtStr) formData.set('closesAt', new Date(closesAtStr).toISOString());
+    
+    formAction(formData);
+  };
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
@@ -38,7 +51,7 @@ export default function NewEventPage() {
             </div>
           )}
 
-          <form action={formAction} className="mt-6 space-y-6">
+          <form onSubmit={handleSubmit} className="mt-6 space-y-6">
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-700">Event Title <span className="text-red-500">*</span></label>
               <div className="mt-1">
