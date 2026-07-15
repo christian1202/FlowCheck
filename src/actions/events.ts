@@ -63,7 +63,9 @@ export async function createEventAction(prevState: CreateEventState | null, form
   return { success: true };
 }
 
-export async function updateEventAction(eventId: string, prevState: any, formData: FormData) {
+export type UpdateEventState = CreateEventState;
+
+export async function updateEventAction(eventId: string, prevState: any, formData: FormData): Promise<UpdateEventState> {
   const adminId = await getAdminId();
   
   const rawData = {
