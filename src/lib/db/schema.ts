@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, boolean, pgEnum, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, integer, boolean, pgEnum, primaryKey, uniqueIndex, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Enums
@@ -29,7 +29,9 @@ export const events = pgTable('events', {
   googleSheetId: text('google_sheet_id'),
   googleSheetUrl: text('google_sheet_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+}, (t) => ({
+  idxTitle: index('idx_event_title').on(t.title),
+}));
 
 export const eventAdmins = pgTable('event_admins', {
   eventId: uuid('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
@@ -56,6 +58,9 @@ export const attendees = pgTable('attendees', {
   checkedInBy: uuid('checked_in_by').references(() => admins.id, { onDelete: 'set null' }),
 }, (t) => ({
   unqEventEmail: uniqueIndex('unq_event_email').on(t.eventId, t.email),
+  idxName: index('idx_attendee_name').on(t.name),
+  idxEmail: index('idx_attendee_email').on(t.email),
+  idxEvent: index('idx_attendee_event').on(t.eventId),
 }));
 
 export const scanLogs = pgTable('scan_logs', {

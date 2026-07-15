@@ -1,55 +1,121 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { AttendeeWithEvent } from '@/data/attendees';
 import { 
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid 
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend
 } from 'recharts';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Loader2 } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
+import { fetchAttendeesPage, fetchAttendeesStats } from '@/app/(dashboard)/attendees/actions';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 export default function AttendeesDashboard({ 
-  initialAttendees 
+  initialAttendees,
+  initialStats,
+  uniqueEvents
 }: { 
-  initialAttendees: AttendeeWithEvent[] 
+  initialAttendees: AttendeeWithEvent[],
+  initialStats: { total: number; checkedIn: number; registered: number },
+  uniqueEvents: { id: string; title: string }[]
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  
   const [statusFilter, setStatusFilter] = useState<'all' | 'registered' | 'checked_in'>('all');
   const [eventFilter, setEventFilter] = useState<string>('all');
-
-  // Unique events for the filter dropdown
-  const uniqueEvents = useMemo(() => {
-    const eventsMap = new Map<string, string>();
-    initialAttendees.forEach(a => {
-      eventsMap.set(a.eventId, a.eventTitle);
-    });
-    return Array.from(eventsMap.entries()).map(([id, title]) => ({ id, title }));
-  }, [initialAttendees]);
-
-  // Filtered attendees based on search and filters
-  const filteredAttendees = useMemo(() => {
-    return initialAttendees.filter(attendee => {
-      const matchesSearch = 
-        attendee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        attendee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (attendee.local && attendee.local.toLowerCase().includes(searchTerm.toLowerCase()));
+  
+  const [attendees, setAttendees] = useState<AttendeeWithEvent[]>(initialAttendees);
+  const [stats, setStats] = useState(initialStats);
+  
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(initialAttendees.length === 50);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Reload data when filters change
+  useEffect(() => {
+    let isMounted = true;
+    const loadNewFilters = async () => {
+      setIsLoading(true);
+      try {
+        const filters = {
+          search: debouncedSearchTerm,
+          eventId: eventFilter,
+          status: statusFilter
+        };
+        const [newStats, newAttendees] = await Promise.all([
+          fetchAttendeesStats(filters),
+          fetchAttendeesPage(filters, 1)
+        ]);
+        
+        if (isMounted) {
+          setStats(newStats);
+          setAttendees(newAttendees);
+          setPage(1);
+          setHasMore(newAttendees.length === 50);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    
+    // We only skip if everything is exact initial state, but it's safer to just fetch if filters change.
+    // However, on first mount with no filters, we already have initial data.
+    if (debouncedSearchTerm === '' && statusFilter === 'all' && eventFilter === 'all' && page === 1 && attendees === initialAttendees) {
+      return;
+    }
+    
+    loadNewFilters();
+    
+    return () => { isMounted = false; };
+  }, [debouncedSearchTerm, statusFilter, eventFilter]);
+  
+  // Load next page
+  const loadMore = useCallback(async () => {
+    if (isLoading || !hasMore) return;
+    setIsLoading(true);
+    try {
+      const nextPage = page + 1;
+      const filters = { search: debouncedSearchTerm, eventId: eventFilter, status: statusFilter };
+      const newAttendees = await fetchAttendeesPage(filters, nextPage);
       
-      const matchesStatus = statusFilter === 'all' || attendee.status === statusFilter;
-      const matchesEvent = eventFilter === 'all' || attendee.eventId === eventFilter;
-
-      return matchesSearch && matchesStatus && matchesEvent;
-    });
-  }, [initialAttendees, searchTerm, statusFilter, eventFilter]);
-
-  // Metrics calculation
-  const totalAttendees = filteredAttendees.length;
-  const checkedIn = filteredAttendees.filter(a => a.status === 'checked_in').length;
-  const preRegistered = totalAttendees - checkedIn;
-
+      setAttendees(prev => [...prev, ...newAttendees]);
+      setPage(nextPage);
+      setHasMore(newAttendees.length === 50);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading, hasMore, page, debouncedSearchTerm, eventFilter, statusFilter]);
+  
+  // Virtualizer setup
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: hasMore ? attendees.length + 1 : attendees.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 73, // estimated height of a row
+    overscan: 5,
+  });
+  
+  // Trigger loadMore when scrolling to bottom
+  const virtualItems = rowVirtualizer.getVirtualItems();
+  const lastItem = virtualItems[virtualItems.length - 1];
+  
+  useEffect(() => {
+    if (!lastItem) return;
+    
+    if (lastItem.index >= attendees.length - 1 && hasMore && !isLoading) {
+      loadMore();
+    }
+  }, [lastItem?.index, attendees.length, hasMore, isLoading, loadMore]);
+  
   // Chart data
   const pieData = [
-    { name: 'Checked In', value: checkedIn, color: '#4ade80' }, // green-400
-    { name: 'Pending', value: preRegistered, color: '#facc15' }, // yellow-400
+    { name: 'Checked In', value: stats.checkedIn, color: '#4ade80' },
+    { name: 'Pending', value: stats.registered, color: '#facc15' },
   ];
 
   return (
@@ -98,99 +164,132 @@ export default function AttendeesDashboard({
 
       {/* Metrics & Charts */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* KPI Cards */}
         <div className="flex flex-col gap-4">
           <div className="bg-surface-container-lowest p-6 rounded-xl border border-surface-container-high shadow-sm">
             <h3 className="font-label-sm text-on-surface-variant mb-2">Total Attendees</h3>
-            <p className="font-headline-lg text-3xl font-bold text-primary">{totalAttendees}</p>
+            <p className="font-headline-lg text-3xl font-bold text-primary">{stats.total}</p>
           </div>
           <div className="bg-surface-container-lowest p-6 rounded-xl border border-surface-container-high shadow-sm">
             <h3 className="font-label-sm text-on-surface-variant mb-2">Checked In</h3>
-            <p className="font-headline-lg text-3xl font-bold text-green-600">{checkedIn}</p>
+            <p className="font-headline-lg text-3xl font-bold text-green-600">{stats.checkedIn}</p>
           </div>
         </div>
 
-        {/* Donut Chart */}
         <div className="bg-surface-container-lowest p-4 rounded-xl border border-surface-container-high shadow-sm md:col-span-2 h-64 flex flex-col">
           <h3 className="font-label-sm font-bold text-on-surface mb-2">Registration Status Overview</h3>
           <div className="flex-1 w-full min-h-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                />
-                <Legend verticalAlign="bottom" height={36}/>
-              </PieChart>
-            </ResponsiveContainer>
+            {stats.total === 0 ? (
+              <div className="w-full h-full flex items-center justify-center text-on-surface-variant font-body-sm">
+                No data available
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Legend verticalAlign="bottom" height={36}/>
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Attendees Table */}
-      <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm font-body-sm">
-            <thead className="bg-surface-container-low text-on-surface-variant border-b border-surface-container-high">
-              <tr>
-                <th className="px-6 py-4 font-semibold">Name / Email</th>
-                <th className="px-6 py-4 font-semibold">Event</th>
-                <th className="px-6 py-4 font-semibold">Local / Duty</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold">Check-in Time</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-container-high">
-              {filteredAttendees.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-on-surface-variant">
-                    No attendees found matching your criteria.
-                  </td>
-                </tr>
-              ) : (
-                filteredAttendees.map(attendee => (
-                  <tr key={attendee.id} className="hover:bg-surface-container-low transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-on-surface">{attendee.name}</div>
-                      <div className="text-on-surface-variant text-xs">{attendee.email}</div>
-                    </td>
-                    <td className="px-6 py-4 text-on-surface-variant">
-                      {attendee.eventTitle}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-on-surface">{attendee.local || '-'}</div>
-                      <div className="text-on-surface-variant text-xs">{attendee.duty || '-'}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        attendee.status === 'checked_in' 
-                          ? 'bg-green-100 text-green-700 border border-green-200' 
-                          : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
-                      }`}>
-                        {attendee.status === 'checked_in' ? 'Checked In' : 'Pending'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-on-surface-variant text-xs">
-                      {attendee.checkedInAt ? new Date(attendee.checkedInAt).toLocaleString() : '-'}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {/* Virtualized Attendees Table */}
+      <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high shadow-sm overflow-hidden flex flex-col h-[500px]">
+        {/* Table Header */}
+        <div className="bg-surface-container-low text-on-surface-variant border-b border-surface-container-high grid grid-cols-12 gap-4 px-6 py-4 font-semibold text-sm font-body-sm">
+          <div className="col-span-4 md:col-span-3">Name / Email</div>
+          <div className="col-span-3 md:col-span-3 hidden md:block">Event</div>
+          <div className="col-span-4 md:col-span-2">Local / Duty</div>
+          <div className="col-span-4 md:col-span-2">Status</div>
+          <div className="hidden md:block md:col-span-2">Check-in Time</div>
+        </div>
+        
+        {/* Virtualized Body */}
+        <div 
+          ref={parentRef}
+          className="flex-1 overflow-auto"
+        >
+          {attendees.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-on-surface-variant p-6">
+              {isLoading ? 'Loading...' : 'No attendees found matching your criteria.'}
+            </div>
+          ) : (
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              {virtualItems.map((virtualRow) => {
+                const isLoaderRow = virtualRow.index > attendees.length - 1;
+                const attendee = attendees[virtualRow.index];
+
+                return (
+                  <div
+                    key={virtualRow.index}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                    className="grid grid-cols-12 gap-4 px-6 items-center border-b border-surface-container-high hover:bg-surface-container-low transition-colors text-sm font-body-sm"
+                  >
+                    {isLoaderRow ? (
+                      <div className="col-span-12 flex justify-center py-4 text-on-surface-variant">
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading more...
+                      </div>
+                    ) : (
+                      <>
+                        <div className="col-span-4 md:col-span-3 py-2">
+                          <div className="font-semibold text-on-surface truncate">{attendee.name}</div>
+                          <div className="text-on-surface-variant text-xs truncate">{attendee.email}</div>
+                        </div>
+                        <div className="col-span-3 md:col-span-3 py-2 hidden md:block text-on-surface-variant truncate">
+                          {attendee.eventTitle}
+                        </div>
+                        <div className="col-span-4 md:col-span-2 py-2">
+                          <div className="text-on-surface truncate">{attendee.local || '-'}</div>
+                          <div className="text-on-surface-variant text-xs truncate">{attendee.duty || '-'}</div>
+                        </div>
+                        <div className="col-span-4 md:col-span-2 py-2">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap ${
+                            attendee.status === 'checked_in' 
+                              ? 'bg-green-100 text-green-700 border border-green-200' 
+                              : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                          }`}>
+                            {attendee.status === 'checked_in' ? 'Checked In' : 'Pending'}
+                          </span>
+                        </div>
+                        <div className="hidden md:block md:col-span-2 py-2 text-on-surface-variant text-xs truncate">
+                          {attendee.checkedInAt ? new Date(attendee.checkedInAt).toLocaleString() : '-'}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
       

@@ -1,6 +1,6 @@
 import { getDb } from '@/lib/db';
 import { events, eventAdmins, admins } from '@/lib/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, ilike } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 import type { CreateEventInput, UpdateEventInput } from '@/lib/validators/events';
 
@@ -57,6 +57,38 @@ export async function getEventsForAdmin(adminId: string): Promise<EventWithRole[
     .innerJoin(events, eq(eventAdmins.eventId, events.id))
     .where(eq(eventAdmins.adminId, adminId))
     .orderBy(desc(eventAdmins.addedAt));
+
+  return rows.map((row) => ({
+    ...row.event,
+    adminRole: row.role as EventRole,
+  }));
+}
+
+export async function getEventsPaginated(
+  adminId: string, 
+  page: number = 1, 
+  limit: number = 20, 
+  search?: string
+): Promise<EventWithRole[]> {
+  const db = getDb();
+  const offset = (page - 1) * limit;
+
+  let conditions = eq(eventAdmins.adminId, adminId);
+  if (search) {
+    conditions = and(conditions, ilike(events.title, `%${search}%`)) as any;
+  }
+
+  const rows = await db
+    .select({
+      role: eventAdmins.role,
+      event: events,
+    })
+    .from(eventAdmins)
+    .innerJoin(events, eq(eventAdmins.eventId, events.id))
+    .where(conditions)
+    .orderBy(desc(events.createdAt))
+    .limit(limit)
+    .offset(offset);
 
   return rows.map((row) => ({
     ...row.event,

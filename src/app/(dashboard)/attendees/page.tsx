@@ -1,6 +1,6 @@
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getAttendeesForAdmin } from '@/data/attendees';
+import { getAttendeesPaginated, getAttendeesStats, getUniqueEventsForAdmin } from '@/data/attendees';
 import AttendeesDashboard from '@/components/attendees/AttendeesDashboard';
 
 export default async function AttendeesPage() {
@@ -9,11 +9,15 @@ export default async function AttendeesPage() {
     redirect('/login');
   }
   
-  let attendees: any[] = [];
+  let initialAttendees: any[] = [];
+  let initialStats = { total: 0, checkedIn: 0, registered: 0 };
+  let uniqueEvents: any[] = [];
   let error = null;
   
   try {
-    attendees = await getAttendeesForAdmin(adminId);
+    initialAttendees = await getAttendeesPaginated(adminId, {}, 1, 50);
+    initialStats = await getAttendeesStats(adminId, {});
+    uniqueEvents = await getUniqueEventsForAdmin(adminId);
   } catch (err: any) {
     error = err.message;
   }
@@ -37,7 +41,11 @@ export default async function AttendeesPage() {
           Could not load attendees: {error}
         </div>
       ) : (
-        <AttendeesDashboard initialAttendees={attendees} />
+        <AttendeesDashboard 
+          initialAttendees={initialAttendees} 
+          initialStats={initialStats} 
+          uniqueEvents={uniqueEvents} 
+        />
       )}
     </div>
   );
