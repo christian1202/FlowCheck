@@ -11,6 +11,7 @@ export const createEventSchema = z.object({
     error: 'Invalid date format',
   }),
   location: z.string().max(200, 'Location is too long').optional(),
+  mapLink: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   maxAttendees: z.coerce.number().int().positive('Must be a positive number').optional().nullable(),
   closesAt: z.coerce.date({
     error: 'Invalid closing date format',

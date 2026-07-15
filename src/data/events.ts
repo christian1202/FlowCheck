@@ -35,6 +35,7 @@ export async function createEvent(data: CreateEventInput, adminId: string): Prom
       description: data.description || null,
       date: new Date(data.date),
       location: data.location || null,
+      mapLink: data.mapLink || null,
       maxAttendees: data.maxAttendees ?? null,
       closesAt: data.closesAt ? new Date(data.closesAt) : null,
       createdBy: adminId,
@@ -149,6 +150,7 @@ export async function updateEvent(eventId: string, adminId: string, data: Update
   if (data.description !== undefined) update.description = data.description;
   if (data.date !== undefined) update.date = new Date(data.date);
   if (data.location !== undefined) update.location = data.location;
+  if (data.mapLink !== undefined) update.mapLink = data.mapLink;
   if (data.maxAttendees !== undefined) update.maxAttendees = data.maxAttendees;
   if (data.closesAt !== undefined) update.closesAt = data.closesAt ? new Date(data.closesAt) : null;
   if (data.status !== undefined) update.status = data.status;

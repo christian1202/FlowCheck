@@ -72,7 +72,20 @@ export default async function EventSettingsPage({
             </div>
             <div className="sm:col-span-1">
               <dt className="text-sm font-medium text-on-surface-variant">Location</dt>
-              <dd className="mt-1 text-sm text-on-surface">{event.location || 'N/A'}</dd>
+              <dd className="mt-1 text-sm text-on-surface flex items-center">
+                {event.location || 'N/A'}
+                {event.mapLink && (
+                  <a 
+                    href={event.mapLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-primary hover:text-blue-500 flex items-center ml-2" 
+                    title="View on Google Maps"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">map</span>
+                  </a>
+                )}
+              </dd>
             </div>
             <div className="sm:col-span-1">
               <dt className="text-sm font-medium text-on-surface-variant">Capacity</dt>

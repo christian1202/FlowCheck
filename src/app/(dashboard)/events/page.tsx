@@ -158,6 +158,18 @@ export default async function EventsPage() {
                         <div className="flex items-center gap-3 text-sm text-on-surface-variant font-medium">
                           <span className="material-symbols-outlined text-[20px]">location_on</span>
                           <span className="line-clamp-1">{event.location || 'No location set'}</span>
+                          {event.mapLink && (
+                            <a 
+                              href={event.mapLink} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              onClick={(e) => e.stopPropagation()} 
+                              className="text-primary hover:text-blue-500 flex items-center" 
+                              title="View on Google Maps"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">map</span>
+                            </a>
+                          )}
                         </div>
                       </div>
 

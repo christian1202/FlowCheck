@@ -1,8 +1,8 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useState, startTransition } from 'react';
 import { updateEventAction } from '@/actions/events';
-import { Calendar, MapPin, Users, Clock } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, Map } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { EventRow } from '@/data/events';
 
@@ -39,7 +39,9 @@ export default function EditEventForm({ event }: { event: EventRow }) {
     const closesAtStr = formData.get('closesAt') as string;
     if (closesAtStr) formData.set('closesAt', new Date(closesAtStr).toISOString());
     
-    formAction(formData);
+    startTransition(() => {
+      formAction(formData);
+    });
   };
 
   return (
@@ -181,6 +183,32 @@ export default function EditEventForm({ event }: { event: EventRow }) {
               />
             </div>
             {state?.error?.location && <p className="mt-1 text-sm text-red-600">{state.error.location[0]}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="mapLink" className="block text-sm font-medium text-gray-700">
+              <span className="flex items-center justify-between">
+                <span className="flex items-center">
+                  <Map className="mr-1.5 h-4 w-4 text-gray-400" />
+                  Google Maps Link
+                </span>
+                <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-500 flex items-center" title="Open Google Maps to find the location">
+                  <span className="material-symbols-outlined text-[16px] mr-1">open_in_new</span>
+                  Find in Maps
+                </a>
+              </span>
+            </label>
+            <div className="mt-1">
+              <input
+                type="url"
+                name="mapLink"
+                id="mapLink"
+                defaultValue={event.mapLink || ''}
+                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md py-2 px-3"
+                placeholder="https://maps.app.goo.gl/..."
+              />
+            </div>
+            {state?.error?.mapLink && <p className="mt-1 text-sm text-red-600">{state.error.mapLink[0]}</p>}
           </div>
 
           <div className="pt-5 flex justify-end">

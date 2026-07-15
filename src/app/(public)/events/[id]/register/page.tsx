@@ -53,6 +53,17 @@ export default async function RegisterPage({
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px]">location_on</span>
               <span>{event.location}</span>
+              {event.mapLink && (
+                <a 
+                  href={event.mapLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-primary hover:text-blue-500 flex items-center ml-2" 
+                  title="View on Google Maps"
+                >
+                  <span className="material-symbols-outlined text-[18px]">map</span>
+                </a>
+              )}
             </div>
           )}
         </div>

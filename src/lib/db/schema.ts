@@ -24,6 +24,7 @@ export const events = pgTable('events', {
   description: text('description'),
   date: timestamp('date', { withTimezone: true }).notNull(),
   location: text('location'),
+  mapLink: text('map_link'),
   maxAttendees: integer('max_attendees'),
   status: eventStatusEnum('status').default('draft').notNull(),
   googleSheetId: text('google_sheet_id'),

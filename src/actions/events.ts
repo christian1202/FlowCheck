@@ -21,6 +21,7 @@ export type CreateEventState = {
     description?: string[];
     date?: string[];
     location?: string[];
+    mapLink?: string[];
     maxAttendees?: string[];
     closesAt?: string[];
   };
@@ -41,6 +42,7 @@ export async function createEventAction(prevState: CreateEventState | null, form
     description: formData.get('description'),
     date: formData.get('date'),
     location: formData.get('location'),
+    mapLink: formData.get('mapLink'),
     maxAttendees: formData.get('maxAttendees') ? Number(formData.get('maxAttendees')) : null,
     closesAt: formData.get('closesAt') || null,
   };
@@ -73,6 +75,7 @@ export async function updateEventAction(eventId: string, prevState: any, formDat
     description: formData.get('description') || undefined,
     date: formData.get('date') || undefined,
     location: formData.get('location') || undefined,
+    mapLink: formData.get('mapLink') || undefined,
     maxAttendees: formData.get('maxAttendees') ? Number(formData.get('maxAttendees')) : undefined,
     closesAt: formData.get('closesAt') || undefined,
   };

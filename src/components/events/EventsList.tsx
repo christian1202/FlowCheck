@@ -196,6 +196,20 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
                               <div className="flex items-center gap-3 text-sm text-on-surface-variant font-medium">
                                 <span className="material-symbols-outlined text-[20px]">location_on</span>
                                 <span className="line-clamp-1">{event.location || 'No location set'}</span>
+                                {event.mapLink && (
+                                  <button 
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      window.open(event.mapLink, '_blank', 'noopener,noreferrer');
+                                    }} 
+                                    className="text-primary hover:text-blue-500 flex items-center cursor-pointer" 
+                                    title="View on Google Maps"
+                                  >
+                                    <span className="material-symbols-outlined text-[16px]">map</span>
+                                  </button>
+                                )}
                               </div>
                             </div>
 

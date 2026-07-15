@@ -7,8 +7,8 @@ async function migrate() {
   const sql = postgres(connectionString);
 
   try {
-    console.log('Adding closes_at column to events table...');
-    await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS closes_at TIMESTAMP WITH TIME ZONE;`;
+    console.log('Adding map_link column to events table...');
+    await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS map_link TEXT;`;
     console.log('Migration successful!');
   } catch (err) {
     console.error('Migration failed:', err);
