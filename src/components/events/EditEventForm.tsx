@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { updateEventAction } from '@/actions/events';
 import { Calendar, MapPin, Users, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -17,6 +17,11 @@ const formatDateForInput = (dateStr: Date | null) => {
 export default function EditEventForm({ event }: { event: EventRow }) {
   const [state, formAction, isPending] = useActionState(updateEventAction.bind(null, event.id), null);
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (state?.success) {
@@ -90,14 +95,22 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                 </span>
               </label>
               <div className="mt-1">
-                <input
-                  type="datetime-local"
-                  name="date"
-                  id="date"
-                  required
-                  defaultValue={formatDateForInput(event.date)}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md py-2 px-3"
-                />
+                {mounted ? (
+                  <input
+                    type="datetime-local"
+                    name="date"
+                    id="date"
+                    required
+                    defaultValue={formatDateForInput(event.date)}
+                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md py-2 px-3"
+                  />
+                ) : (
+                  <input
+                    type="datetime-local"
+                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md py-2 px-3"
+                    disabled
+                  />
+                )}
               </div>
               {state?.error?.date && <p className="mt-1 text-sm text-red-600">{state.error.date[0]}</p>}
             </div>
@@ -131,13 +144,21 @@ export default function EditEventForm({ event }: { event: EventRow }) {
               </label>
               <p className="text-xs text-gray-500 mb-1">If set, the event will automatically close and block scanners after this time.</p>
               <div className="mt-1">
-                <input
-                  type="datetime-local"
-                  name="closesAt"
-                  id="closesAt"
-                  defaultValue={formatDateForInput(event.closesAt)}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md py-2 px-3"
-                />
+                {mounted ? (
+                  <input
+                    type="datetime-local"
+                    name="closesAt"
+                    id="closesAt"
+                    defaultValue={formatDateForInput(event.closesAt)}
+                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md py-2 px-3"
+                  />
+                ) : (
+                  <input
+                    type="datetime-local"
+                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md py-2 px-3"
+                    disabled
+                  />
+                )}
               </div>
               {state?.error?.closesAt && <p className="mt-1 text-sm text-red-600">{state.error.closesAt[0]}</p>}
             </div>

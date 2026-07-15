@@ -6,6 +6,7 @@ import Link from 'next/link';
 import TeamManagement, { TeamMember } from '@/components/events/TeamManagement';
 import CopyLinkButton from '@/components/events/CopyLinkButton';
 import DeleteEventButton from '@/components/events/DeleteEventButton';
+import LocalTimeDisplay from '@/components/ui/LocalTimeDisplay';
 
 export default async function EventSettingsPage({
   params,
@@ -69,7 +70,7 @@ export default async function EventSettingsPage({
             </div>
             <div className="sm:col-span-1">
               <dt className="text-sm font-medium text-on-surface-variant">Date</dt>
-              <dd className="mt-1 text-sm text-on-surface">{new Date(event.date).toLocaleString()}</dd>
+              <dd className="mt-1 text-sm text-on-surface"><LocalTimeDisplay date={event.date} /></dd>
             </div>
             <div className="sm:col-span-1">
               <dt className="text-sm font-medium text-on-surface-variant">Location</dt>
@@ -86,7 +87,7 @@ export default async function EventSettingsPage({
             {event.closesAt && (
               <div className="sm:col-span-2">
                 <dt className="text-sm font-medium text-on-surface-variant">Auto-Closes At</dt>
-                <dd className="mt-1 text-sm text-on-surface">{new Date(event.closesAt).toLocaleString()}</dd>
+                <dd className="mt-1 text-sm text-on-surface"><LocalTimeDisplay date={event.closesAt} /></dd>
               </div>
             )}
           </dl>
