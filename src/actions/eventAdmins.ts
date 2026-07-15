@@ -2,7 +2,7 @@
 
 import { getDb } from '@/lib/db';
 import { admins, eventAdmins } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or, ilike } from 'drizzle-orm';
 import { getAdminSessionId } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
@@ -107,5 +107,57 @@ export async function removeEventAdmin(eventId: string, targetAdminId: string) {
   } catch (err) {
     console.error('Error removing event admin:', err);
     return { error: 'Failed to remove team member.' };
+  }
+}
+
+export async function searchAdmins(query: string, eventId: string) {
+  const adminId = await getAdminSessionId();
+  if (!adminId) {
+    return { error: 'Unauthorized', data: [] };
+  }
+
+  if (!query || query.trim().length < 2) {
+    return { data: [] };
+  }
+
+  const db = getDb();
+  const searchTerm = `%${query.trim()}%`;
+
+  try {
+    // We want to find admins that match the query, but EXCLUDE those already in the event
+    // To do this efficiently, we can use a left join or a subquery. 
+    // Here we fetch matching admins and just filter them out if they are already in the team.
+    
+    const existingTeamMembers = await db
+      .select({ adminId: eventAdmins.adminId })
+      .from(eventAdmins)
+      .where(eq(eventAdmins.eventId, eventId));
+      
+    const existingIds = new Set(existingTeamMembers.map(m => m.adminId));
+
+    const results = await db
+      .select({
+        id: admins.id,
+        email: admins.email,
+        fullName: admins.fullName,
+      })
+      .from(admins)
+      .where(
+        or(
+          ilike(admins.email, searchTerm),
+          ilike(admins.fullName, searchTerm)
+        )
+      )
+      .limit(5);
+
+    // Filter out users already on the team and the current user
+    const filteredResults = results.filter(
+      (user) => !existingIds.has(user.id) && user.id !== adminId
+    );
+
+    return { data: filteredResults };
+  } catch (err) {
+    console.error('Error searching admins:', err);
+    return { error: 'Failed to search users', data: [] };
   }
 }

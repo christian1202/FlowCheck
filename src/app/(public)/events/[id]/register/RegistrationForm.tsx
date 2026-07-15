@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { submitRegistrationAction } from '@/actions/registration';
+import { useState, useRef } from 'react';
+import { submitRegistrationAction, lookupAttendeeAction } from '@/actions/registration';
 import QRCode from 'qrcode';
 import SystemInfoModal from '@/components/layout/SystemInfoModal';
 
@@ -25,6 +25,9 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
   const [lookupEmail, setLookupEmail] = useState('');
   const [lookupError, setLookupError] = useState('');
   const [isLookingUp, setIsLookingUp] = useState(false);
+  
+  // Cache for instantaneous lookups if the user tries again
+  const lookupCache = useRef<Record<string, any>>({});
 
   const handleSubmit = async (formData: FormData) => {
     setIsPending(true);
@@ -262,13 +265,30 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
                 type="button" 
                 onClick={async () => {
                   if (!lookupEmail) return setLookupError('Please enter an email address');
+                  
+                  // Check cache first for 0ms response time
+                  const emailKey = lookupEmail.toLowerCase().trim();
+                  if (lookupCache.current[emailKey]) {
+                    setScanToken(lookupCache.current[emailKey]);
+                    try {
+                      const url = await QRCode.toDataURL(lookupCache.current[emailKey], {
+                        errorCorrectionLevel: 'H', margin: 2, width: 300, color: { dark: '#000000', light: '#ffffff' }
+                      });
+                      setQrCodeDataUrl(url);
+                    } catch (err) {}
+                    setStep(3);
+                    return;
+                  }
+
                   setIsLookingUp(true);
                   setLookupError('');
-                  const { lookupAttendeeAction } = await import('@/actions/registration');
+                  
                   const result = await lookupAttendeeAction(eventId, lookupEmail);
                   setIsLookingUp(false);
                   
                   if (result.success && result.scanToken) {
+                    // Cache successful results
+                    lookupCache.current[emailKey] = result.scanToken;
                     setScanToken(result.scanToken);
                     try {
                       const url = await QRCode.toDataURL(result.scanToken, {

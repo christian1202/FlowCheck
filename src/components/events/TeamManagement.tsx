@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { addEventAdmin, removeEventAdmin } from '@/actions/eventAdmins';
-import { UserPlus, Trash2, Shield, Eye, QrCode } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { addEventAdmin, removeEventAdmin, searchAdmins } from '@/actions/eventAdmins';
+import { UserPlus, Trash2, Shield, Eye, QrCode, Loader2, Search } from 'lucide-react';
 
 export type TeamMember = {
   adminId: string;
@@ -24,12 +24,68 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Autocomplete state
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [cache, setCache] = useState<Record<string, any[]>>({});
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const canManage = currentUserRole === 'owner' || currentUserRole === 'editor';
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Debounced Search
+  useEffect(() => {
+    if (!email || email.trim().length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    const query = email.trim();
+    
+    // Check cache
+    if (cache[query]) {
+      setSearchResults(cache[query]);
+      setShowDropdown(true);
+      return;
+    }
+
+    setIsSearching(true);
+    setShowDropdown(true);
+
+    const debounceTimer = setTimeout(async () => {
+      const result = await searchAdmins(query, eventId);
+      if (result.data) {
+        setSearchResults(result.data);
+        setCache(prev => ({ ...prev, [query]: result.data }));
+      }
+      setIsSearching(false);
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [email, eventId, cache]);
+
+  const handleSelectUser = (selectedEmail: string) => {
+    setEmail(selectedEmail);
+    setShowDropdown(false);
+  };
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
+    setShowDropdown(false);
     setIsSubmitting(true);
     setMessage(null);
 
@@ -79,19 +135,55 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
       <div className="p-4 sm:p-6 space-y-6">
         {/* Invite Form */}
         {canManage && (
-          <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-4 items-end bg-surface-container p-4 rounded-lg">
-            <div className="flex-1 w-full">
+          <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-4 items-end bg-surface-container p-4 rounded-lg overflow-visible">
+            <div className="flex-1 w-full relative" ref={dropdownRef}>
               <label htmlFor="invite-email" className="block text-sm font-medium text-on-surface mb-1">Email Address</label>
-              <input
-                id="invite-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="colleague@example.com"
-                required
-                className="w-full px-3 py-2 bg-surface border border-outline-variant rounded-md focus:ring-1 focus:ring-primary focus:border-primary text-on-surface"
-              />
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+                <input
+                  id="invite-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => { if (email.length >= 2) setShowDropdown(true); }}
+                  placeholder="Search by name or email..."
+                  required
+                  autoComplete="off"
+                  className="w-full pl-9 pr-3 py-2 bg-surface border border-outline-variant rounded-md focus:ring-1 focus:ring-primary focus:border-primary text-on-surface"
+                />
+              </div>
+
+              {/* Autocomplete Dropdown */}
+              {showDropdown && (
+                <div className="absolute z-50 w-full mt-1 bg-surface border border-surface-container-highest rounded-md shadow-lg max-h-60 overflow-y-auto">
+                  {isSearching ? (
+                    <div className="p-4 flex items-center justify-center space-x-2 text-on-surface-variant">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">Searching...</span>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <ul className="py-1">
+                      {searchResults.map((user) => (
+                        <li 
+                          key={user.id}
+                          onClick={() => handleSelectUser(user.email)}
+                          className="px-4 py-2 hover:bg-surface-container cursor-pointer flex flex-col"
+                        >
+                          <span className="text-sm font-medium text-on-surface">{user.fullName || 'No name'}</span>
+                          <span className="text-xs text-on-surface-variant">{user.email}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : email.length >= 2 ? (
+                    <div className="p-4 text-sm text-on-surface-variant text-center">
+                      No matching users found.<br/>
+                      <span className="text-xs">They must create an account first.</span>
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
+            
             <div className="w-full sm:w-48">
               <label htmlFor="invite-role" className="block text-sm font-medium text-on-surface mb-1">Role</label>
               <select

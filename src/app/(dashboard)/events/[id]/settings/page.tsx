@@ -112,48 +112,54 @@ export default async function EventSettingsPage({
             )}
           </dl>
           
-          <div className="border-t border-outline-variant/30 pt-6 flex flex-col sm:flex-row flex-wrap gap-3 items-center">
-            {event.status === 'draft' && (
-              <form action={publishAction} className="w-full sm:w-auto">
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto inline-flex justify-center items-center py-2 px-4 shadow-sm text-sm font-label-sm font-bold rounded-xl text-white bg-primary hover:bg-tertiary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all active-scale"
-                >
-                  <span className="material-symbols-outlined mr-2 text-[20px]">public</span>
-                  Publish Event
-                </button>
-              </form>
-            )}
+          <div className="border-t border-outline-variant/30 pt-6">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-center">
+              {event.status === 'draft' && (
+                <form action={publishAction} className="w-full sm:w-auto">
+                  <button
+                    type="submit"
+                    className="w-full sm:w-auto inline-flex justify-center items-center py-2 px-4 shadow-sm text-sm font-label-sm font-bold rounded-xl text-white bg-primary hover:bg-tertiary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all active-scale"
+                  >
+                    <span className="material-symbols-outlined mr-2 text-[20px]">public</span>
+                    Publish Event
+                  </button>
+                </form>
+              )}
+              
+              {event.status === 'open' && displayStatus !== 'Closed' && (
+                <div className="w-full mt-3 sm:mt-0 sm:w-auto flex-1">
+                  <CopyLinkButton slug={event.slug} />
+                </div>
+              )}
+            </div>
             
-            {event.status === 'open' && (
-              <Link
-                href={`/events/${event.id}/scanner`}
-                className="w-full sm:w-auto inline-flex justify-center items-center py-2 px-4 shadow-sm text-sm font-label-sm font-bold rounded-xl text-white bg-green-600 hover:bg-green-700 focus:outline-none transition-all active-scale"
-              >
-                <span className="material-symbols-outlined mr-2 text-[20px]">qr_code_scanner</span>
-                Open Scanner
-              </Link>
-            )}
-            
-            {event.status === 'open' && displayStatus !== 'Closed' && (
-              <div className="w-full mt-3 sm:mt-0 sm:w-auto flex-1">
-                <CopyLinkButton slug={event.slug} />
-              </div>
-            )}
-            
-            {!isScanner && (
-              <div className="w-full mt-6 pt-6 border-t border-outline-variant/30 flex flex-col sm:flex-row gap-3">
+            <div className="w-full mt-6 pt-6 border-t border-outline-variant/30 flex flex-col sm:flex-row gap-3">
+              {!isScanner && (
                 <Link
                   href={`/events/${event.id}/edit`}
-                  className="w-full sm:w-auto inline-flex justify-center items-center py-2 px-4 border border-outline-variant/50 shadow-sm text-sm font-label-sm font-bold rounded-xl text-on-surface bg-surface hover:bg-surface-container-highest focus:outline-none transition-all active-scale"
+                  className="w-full sm:w-[160px] inline-flex justify-center items-center py-2.5 px-5 border border-outline-variant/50 shadow-sm text-sm font-label-sm font-bold rounded-xl text-on-surface bg-surface hover:bg-surface-container-highest focus:outline-none transition-all active-scale"
                 >
                   <span className="material-symbols-outlined mr-2 text-[20px]">edit</span>
                   Edit Event
                 </Link>
-                
+              )}
+              
+              {event.status === 'open' && (
+                <Link
+                  href={`/events/${event.id}/scanner`}
+                  className="w-full sm:w-[160px] inline-flex justify-center items-center py-2.5 px-5 border border-transparent shadow-sm text-sm font-label-sm font-bold rounded-xl text-white bg-green-600 hover:bg-green-700 focus:outline-none transition-all active-scale"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[20px]">qr_code_scanner</span>
+                  Open Scanner
+                </Link>
+              )}
+              
+              <div className="hidden sm:block flex-1"></div>
+
+              {!isScanner && (
                 <DeleteEventButton eventId={event.id} />
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
