@@ -230,7 +230,7 @@ max_batch_size = 50
 max_batch_timeout = 30
 
 [triggers]
-crons = ["*/2 * * * *"]
+crons = ["59 23 * * *"]
 ```
 
 > [!NOTE]

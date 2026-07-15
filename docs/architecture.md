@@ -42,7 +42,7 @@ graph TB
 
     subgraph "Worker Layer (Vercel Serverless Functions)"
         K["Queue Consumer Worker<br/>Batch Sheets Sync"]
-        L["Cron Trigger Worker<br/>Catch-up Sync (*/2 * * * *)"]
+        L["Cron Trigger Worker<br/>Catch-up Sync (59 23 * * *)"]
         P["Cron Trigger Worker<br/>Email Queue Processor"]
     end
 

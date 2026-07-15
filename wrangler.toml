@@ -26,4 +26,4 @@ binding = "ASSETS"
 #   wrangler secret put BREVO_API_KEY
 
 [triggers]
-crons = ["*/2 * * * *"]
+crons = ["59 23 * * *"]
