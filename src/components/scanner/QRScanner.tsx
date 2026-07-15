@@ -10,7 +10,7 @@ type ScannerStatus = 'idle' | 'scanning' | 'processing' | 'result';
 type RecentScan = {
   id: string;
   timestamp: Date;
-  result: 'success' | 'duplicate' | 'error';
+  result: 'success' | 'duplicate' | 'error' | 'event_closed';
   message: string;
   attendee?: {
     name: string;
@@ -61,9 +61,9 @@ export default function QRScanner({ eventId }: { eventId: string }) {
       playSound('error');
       setCurrentOverlay('error');
     } else if (res.data) {
-      newScan.result = res.data.result === 'success' ? 'success' : res.data.result === 'duplicate' ? 'duplicate' : 'error';
+      newScan.result = res.data.result === 'success' ? 'success' : res.data.result === 'duplicate' ? 'duplicate' : res.data.result === 'event_closed' ? 'event_closed' : 'error';
       newScan.attendee = res.data.attendee;
-      newScan.message = res.data.result === 'success' ? 'Access Granted' : res.data.result === 'duplicate' ? 'Already Scanned' : 'Invalid Ticket';
+      newScan.message = res.data.result === 'success' ? 'Access Granted' : res.data.result === 'duplicate' ? 'Already Scanned' : res.data.result === 'event_closed' ? 'Event is Closed' : 'Invalid Ticket';
       
       if (res.data.result === 'success') {
         playSound('success');
@@ -250,7 +250,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
                   'bg-error-container text-on-error-container'
                 }`}>
                   <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    {scan.result === 'success' ? 'person' : scan.result === 'duplicate' ? 'info' : 'error'}
+                    {scan.result === 'success' ? 'person' : scan.result === 'duplicate' ? 'info' : scan.result === 'event_closed' ? 'lock' : 'error'}
                   </span>
                 </div>
                 

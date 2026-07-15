@@ -32,6 +32,7 @@ export async function createEvent(data: CreateEventInput, adminId: string): Prom
       date: new Date(data.date),
       location: data.location || null,
       maxAttendees: data.maxAttendees ?? null,
+      closesAt: data.closesAt ? new Date(data.closesAt) : null,
       createdBy: adminId,
       status: 'draft',
     }).returning();
@@ -127,10 +128,7 @@ export async function updateEvent(eventId: string, adminId: string, data: Update
     .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.adminId, adminId)))
     .limit(1);
 
-  if (access.length === 0) {
-    throw new Error('Unauthorized');
-  }
-  if (access[0].role === 'scanner') {
+  if (access.length === 0 || access[0].role === 'scanner') {
     throw new Error('Unauthorized');
   }
 
@@ -140,6 +138,7 @@ export async function updateEvent(eventId: string, adminId: string, data: Update
   if (data.date !== undefined) update.date = new Date(data.date);
   if (data.location !== undefined) update.location = data.location;
   if (data.maxAttendees !== undefined) update.maxAttendees = data.maxAttendees;
+  if (data.closesAt !== undefined) update.closesAt = data.closesAt ? new Date(data.closesAt) : null;
   if (data.status !== undefined) update.status = data.status;
 
   const [updated] = await db
@@ -149,6 +148,21 @@ export async function updateEvent(eventId: string, adminId: string, data: Update
     .returning();
 
   return updated;
+}
+
+export async function deleteEvent(eventId: string, adminId: string): Promise<void> {
+  const db = getDb();
+  const access = await db
+    .select({ role: eventAdmins.role })
+    .from(eventAdmins)
+    .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.adminId, adminId)))
+    .limit(1);
+
+  if (access.length === 0 || access[0].role === 'scanner') {
+    throw new Error('Unauthorized');
+  }
+
+  await db.delete(events).where(eq(events.id, eventId));
 }
 
 export async function getEventBySlug(slug: string): Promise<EventRow | null> {

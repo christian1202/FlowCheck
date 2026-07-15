@@ -4,7 +4,7 @@ import { eq, and, inArray } from 'drizzle-orm';
 import { enqueueSheetSync } from '@/lib/queue/producer';
 
 export type ScanResultResponse = {
-  result: 'success' | 'duplicate' | 'invalid_event' | 'invalid_ticket' | 'unauthorized';
+  result: 'success' | 'duplicate' | 'invalid_event' | 'event_closed' | 'invalid_ticket' | 'unauthorized';
   attendee?: {
     name: string;
     local: string | null;
@@ -32,14 +32,18 @@ export async function processScan(
     }
 
     // 2. Check if event is open (cannot scan if draft/archived)
-    const [event] = await tx.select({ status: events.status })
+    const [event] = await tx.select({ status: events.status, closesAt: events.closesAt })
       .from(events)
       .where(eq(events.id, eventId))
       .limit(1);
 
-    if (!event || event.status !== 'open' && event.status !== 'closed') {
-      // Allow scanning for 'closed' events just in case people are still at the door when it closes
+    if (!event || event.status === 'draft' || event.status === 'archived') {
       return { result: 'invalid_event' };
+    }
+
+    if (event.closesAt && new Date() > new Date(event.closesAt)) {
+      // Event timer has expired
+      return { result: 'event_closed' };
     }
 
     // 3. Find attendee by scanToken

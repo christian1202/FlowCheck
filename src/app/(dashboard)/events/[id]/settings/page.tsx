@@ -5,6 +5,7 @@ import { publishEventAction } from '@/actions/events';
 import Link from 'next/link';
 import TeamManagement, { TeamMember } from '@/components/events/TeamManagement';
 import CopyLinkButton from '@/components/events/CopyLinkButton';
+import DeleteEventButton from '@/components/events/DeleteEventButton';
 
 export default async function EventSettingsPage({
   params,
@@ -31,6 +32,10 @@ export default async function EventSettingsPage({
     await publishEventAction(id);
   };
 
+  const isScanner = event.adminRole === 'scanner';
+  const isClosed = event.closesAt && new Date() > new Date(event.closesAt);
+  const displayStatus = isClosed ? 'closed' : event.status;
+
   return (
     <div className="p-container-margin md:p-section-padding flex-1 fade-in-stagger w-full max-w-4xl mx-auto space-y-6">
       <div className="mb-2">
@@ -49,10 +54,10 @@ export default async function EventSettingsPage({
             </p>
           </div>
           <span className={`inline-flex items-center px-3 py-1 rounded-full font-label-xs font-bold uppercase tracking-wider ${
-            event.status === 'draft' ? 'bg-surface-container-highest text-on-surface' :
-            event.status === 'open' ? 'bg-green-100 text-green-800' : 'bg-error/10 text-error'
+            displayStatus === 'draft' ? 'bg-surface-container-highest text-on-surface' :
+            displayStatus === 'open' ? 'bg-green-100 text-green-800' : 'bg-error/10 text-error'
           }`}>
-            {event.status}
+            {displayStatus}
           </span>
         </div>
         
@@ -78,6 +83,12 @@ export default async function EventSettingsPage({
               <dt className="text-sm font-medium text-on-surface-variant">Description</dt>
               <dd className="mt-1 text-sm text-on-surface">{event.description || 'No description provided.'}</dd>
             </div>
+            {event.closesAt && (
+              <div className="sm:col-span-2">
+                <dt className="text-sm font-medium text-on-surface-variant">Auto-Closes At</dt>
+                <dd className="mt-1 text-sm text-on-surface">{new Date(event.closesAt).toLocaleString()}</dd>
+              </div>
+            )}
           </dl>
           
           <div className="border-t border-surface-container-highest pt-6 flex flex-wrap gap-4">
@@ -103,9 +114,23 @@ export default async function EventSettingsPage({
               </Link>
             )}
             
-            {event.status === 'open' && (
+            {event.status === 'open' && !isClosed && (
               <div className="w-full mt-2">
                 <CopyLinkButton slug={event.slug} />
+              </div>
+            )}
+            
+            {!isScanner && (
+              <div className="w-full mt-6 pt-6 border-t border-surface-container-highest flex gap-4">
+                <Link
+                  href={`/events/${event.id}/edit`}
+                  className="inline-flex justify-center items-center py-2 px-4 border border-outline-variant shadow-sm text-sm font-medium rounded-md text-on-surface bg-surface hover:bg-surface-container focus:outline-none transition-colors"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[20px]">edit</span>
+                  Edit Event
+                </Link>
+                
+                <DeleteEventButton eventId={event.id} />
               </div>
             )}
           </div>

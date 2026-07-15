@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { createEvent, updateEvent } from '@/data/events';
+import { createEvent, updateEvent, deleteEvent } from '@/data/events';
 import { createEventSchema, updateEventSchema } from '@/lib/validators/events';
 
 import { getAdminSessionId } from '@/lib/auth';
@@ -22,6 +22,7 @@ export type CreateEventState = {
     date?: string[];
     location?: string[];
     maxAttendees?: string[];
+    closesAt?: string[];
   };
 };
 
@@ -41,6 +42,7 @@ export async function createEventAction(prevState: CreateEventState | null, form
     date: formData.get('date'),
     location: formData.get('location'),
     maxAttendees: formData.get('maxAttendees') ? Number(formData.get('maxAttendees')) : null,
+    closesAt: formData.get('closesAt') || null,
   };
 
   const validated = createEventSchema.safeParse(rawData);
@@ -70,6 +72,7 @@ export async function updateEventAction(eventId: string, formData: FormData) {
     date: formData.get('date') || undefined,
     location: formData.get('location') || undefined,
     maxAttendees: formData.get('maxAttendees') ? Number(formData.get('maxAttendees')) : undefined,
+    closesAt: formData.get('closesAt') || undefined,
   };
 
   // Filter out undefined values to allow partial updates
@@ -101,5 +104,16 @@ export async function publishEventAction(eventId: string, formData?: FormData) {
     return { success: true };
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Failed to publish event' };
+  }
+}
+
+export async function deleteEventAction(eventId: string) {
+  const adminId = await getAdminId();
+  try {
+    await deleteEvent(eventId, adminId);
+    revalidatePath('/events');
+    return { success: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Failed to delete event' };
   }
 }

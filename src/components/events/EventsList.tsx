@@ -158,16 +158,26 @@ export default function EventsList({ initialEvents }: { initialEvents: EventWith
                                 <h4 className="font-headline-md text-headline-md text-primary font-bold group-hover:underline decoration-2 underline-offset-4 truncate pr-2">{event.title}</h4>
                                 <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors transform group-hover:translate-x-1 shrink-0">arrow_forward</span>
                               </div>
-                              <p className="font-body-md text-body-md text-on-surface-variant mb-4 flex items-center gap-2 truncate">
-                                <span className="material-symbols-outlined text-[18px]">location_on</span>
-                                {event.location || 'No location set'} • {new Date(event.date).toLocaleDateString()}
+                              <p className="font-body-md text-body-md text-on-surface-variant mb-4 flex flex-col gap-1 truncate">
+                                <span className="flex items-center gap-2">
+                                  <span className="material-symbols-outlined text-[18px]">location_on</span>
+                                  {event.location || 'No location set'} • {new Date(event.date).toLocaleDateString()}
+                                </span>
+                                {event.closesAt && (
+                                  <span className="flex items-center gap-2 text-xs">
+                                    <span className="material-symbols-outlined text-[14px]">schedule</span>
+                                    Closes: {new Date(event.closesAt).toLocaleString()}
+                                  </span>
+                                )}
                               </p>
                             </div>
                             <div className="flex justify-between items-center border-t border-surface-container-highest pt-4 mt-auto">
                               <div className="flex flex-wrap items-center gap-4">
                                 <div className="flex flex-col">
                                   <span className="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider">Status</span>
-                                  <span className="font-label-sm text-label-sm text-primary font-bold capitalize">{event.status}</span>
+                                  <span className="font-label-sm text-label-sm text-primary font-bold capitalize">
+                                    {event.closesAt && new Date() > new Date(event.closesAt) ? 'closed' : event.status}
+                                  </span>
                                 </div>
                                 <div className="h-8 w-px bg-surface-container-highest hidden sm:block"></div>
                                 <div className="flex flex-col">

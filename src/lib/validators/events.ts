@@ -12,6 +12,9 @@ export const createEventSchema = z.object({
   }),
   location: z.string().max(200, 'Location is too long').optional(),
   maxAttendees: z.coerce.number().int().positive('Must be a positive number').optional().nullable(),
+  closesAt: z.coerce.date({
+    error: 'Invalid closing date format',
+  }).optional().nullable(),
 });
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;

@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect } from 'react';
 import { createEventAction } from '@/actions/events';
-import { Calendar, MapPin, Users, ArrowLeft } from 'lucide-react';
+import { Calendar, MapPin, Users, ArrowLeft, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -106,6 +106,25 @@ export default function NewEventPage() {
                   />
                 </div>
                 {state?.error?.maxAttendees && <p className="mt-1 text-sm text-red-600">{state.error.maxAttendees[0]}</p>}
+              </div>
+
+              <div className="sm:col-span-2">
+                <label htmlFor="closesAt" className="block text-sm font-medium text-gray-700">
+                  <span className="flex items-center">
+                    <Clock className="mr-1.5 h-4 w-4 text-gray-400" />
+                    Auto-Close Time (Optional)
+                  </span>
+                </label>
+                <p className="text-xs text-gray-500 mb-1">If set, the event will automatically close and block scanners after this time.</p>
+                <div className="mt-1">
+                  <input
+                    type="datetime-local"
+                    name="closesAt"
+                    id="closesAt"
+                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md py-2 px-3"
+                  />
+                </div>
+                {state?.error?.closesAt && <p className="mt-1 text-sm text-red-600">{state.error.closesAt[0]}</p>}
               </div>
             </div>
 

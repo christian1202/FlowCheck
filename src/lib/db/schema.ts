@@ -28,6 +28,7 @@ export const events = pgTable('events', {
   status: eventStatusEnum('status').default('draft').notNull(),
   googleSheetId: text('google_sheet_id'),
   googleSheetUrl: text('google_sheet_url'),
+  closesAt: timestamp('closes_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (t) => ({
   idxTitle: index('idx_event_title').on(t.title),
