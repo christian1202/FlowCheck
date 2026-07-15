@@ -4,8 +4,8 @@ import { eq, and, desc, ilike } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 import type { CreateEventInput, UpdateEventInput } from '@/lib/validators/events';
 
-type EventRole = 'owner' | 'editor' | 'scanner';
-type EventRow = InferSelectModel<typeof events>;
+export type EventRole = 'owner' | 'editor' | 'scanner';
+export type EventRow = InferSelectModel<typeof events>;
 export type EventWithRole = EventRow & { adminRole: EventRole };
 
 /**
