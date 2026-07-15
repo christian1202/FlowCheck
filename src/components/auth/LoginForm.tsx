@@ -40,7 +40,7 @@ export default function LoginForm() {
   // Map score to color
   const getStrengthColor = () => {
     if (passwordStrength === 0) return 'bg-surface-container-highest';
-    if (passwordStrength <= 2) return 'bg-error';
+    if (passwordStrength <= 2) return 'bg-red-500';
     if (passwordStrength === 3) return 'bg-yellow-500';
     if (passwordStrength === 4) return 'bg-green-400';
     return 'bg-green-600';
@@ -133,13 +133,14 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex flex-col space-y-6">
-      <div className="flex bg-surface-container-highest rounded-lg p-1 shadow-inner">
+    <div className="flex flex-col space-y-8">
+      {/* Tab Switcher */}
+      <div className="flex bg-surface-container-high/50 p-1 rounded-xl shadow-inner relative z-10 backdrop-blur-sm">
         <button
           type="button"
           onClick={() => resetState(true)}
-          className={`flex-1 py-2 text-sm font-label-sm rounded-md transition-all ${
-            isLogin && !isForgotPassword ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+          className={`flex-1 py-2.5 text-sm font-label-sm rounded-lg transition-all active-scale duration-300 ${
+            isLogin && !isForgotPassword ? 'bg-surface text-primary shadow-sm font-semibold' : 'text-on-surface-variant hover:text-on-surface'
           }`}
         >
           Sign In
@@ -147,8 +148,8 @@ export default function LoginForm() {
         <button
           type="button"
           onClick={() => resetState(false)}
-          className={`flex-1 py-2 text-sm font-label-sm rounded-md transition-all ${
-            !isLogin && !isForgotPassword ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+          className={`flex-1 py-2.5 text-sm font-label-sm rounded-lg transition-all active-scale duration-300 ${
+            !isLogin && !isForgotPassword ? 'bg-surface text-primary shadow-sm font-semibold' : 'text-on-surface-variant hover:text-on-surface'
           }`}
         >
           Register
@@ -156,101 +157,101 @@ export default function LoginForm() {
       </div>
 
       {message && (
-        <div className={`p-4 rounded-md text-sm font-body-sm ${message.type === 'success' ? 'bg-[#e7f5e8] text-[#1e4620] border border-[#a3d9a5]' : 'bg-error-container text-on-error-container border border-[#ffb4ab]'}`}>
+        <div className={`p-4 rounded-xl text-sm font-body-sm shadow-sm ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
           {message.text}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="email" className="block text-sm font-label-sm text-on-surface font-semibold">
+          <label htmlFor="email" className="block text-sm font-label-sm text-on-surface font-semibold mb-2">
             Email address
           </label>
-          <div className="mt-2">
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="block w-full rounded-md border border-outline-variant bg-surface py-2.5 px-3 text-on-surface shadow-sm focus:border-primary focus:ring-1 focus:ring-primary font-body-md placeholder:text-on-surface-variant"
-              placeholder="admin@example.com"
-            />
-          </div>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="block w-full rounded-xl border border-outline-variant bg-surface/50 py-3 px-4 text-on-surface shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-surface transition-all font-body-md placeholder:text-on-surface-variant/70"
+            placeholder="admin@example.com"
+          />
         </div>
 
         {!isForgotPassword && (
-          <div>
-            <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-sm font-label-sm text-on-surface font-semibold">
-                Password
-              </label>
-              {isLogin && (
+          <div className="space-y-5">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="password" className="block text-sm font-label-sm text-on-surface font-semibold">
+                  Password
+                </label>
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => { setIsForgotPassword(true); setMessage(null); }}
+                    className="text-xs font-label-xs text-primary hover:text-blue-600 transition-colors focus:outline-none"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete={isLogin ? 'current-password' : 'new-password'}
+                  required={!isForgotPassword}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full rounded-xl border border-outline-variant bg-surface/50 py-3 pl-4 pr-12 text-on-surface shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-surface transition-all font-body-md placeholder:text-on-surface-variant/70"
+                  placeholder="••••••••"
+                />
                 <button
                   type="button"
-                  onClick={() => { setIsForgotPassword(true); setMessage(null); }}
-                  className="text-sm font-label-sm text-primary hover:underline focus:outline-none"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-on-surface-variant hover:text-primary transition-colors focus:outline-none"
+                  tabIndex={-1}
                 >
-                  Forgot password?
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
+              </div>
+              
+              {/* Password Strength Indicator */}
+              {!isLogin && password.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-500 ease-out ${getStrengthColor()}`}
+                      style={{ width: `${(passwordStrength / 5) * 100}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className={`text-xs font-bold uppercase tracking-widest ${passwordStrength < 4 ? 'text-red-500' : 'text-green-600'}`}>
+                      {getStrengthText()}
+                    </span>
+                    {passwordStrength < 4 && (
+                      <span className="text-on-surface-variant text-[10px]">
+                        Needs uppercase, lowercase, number, and special char.
+                      </span>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
-            <div className="mt-2 relative">
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete={isLogin ? 'current-password' : 'new-password'}
-                required={!isForgotPassword}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-md border border-outline-variant bg-surface py-2.5 pl-3 pr-10 text-on-surface shadow-sm focus:border-primary focus:ring-1 focus:ring-primary font-body-md placeholder:text-on-surface-variant"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-on-surface focus:outline-none"
-                tabIndex={-1}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            
-            {/* Password Strength Indicator (only show during registration if they typed something) */}
-            {!isLogin && password.length > 0 && (
-              <div className="mt-2 space-y-1">
-                <div className="flex h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full transition-all duration-300 ${getStrengthColor()}`}
-                    style={{ width: `${(passwordStrength / 5) * 100}%` }}
-                  />
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className={`font-semibold ${passwordStrength < 4 ? 'text-error' : 'text-green-600'}`}>
-                    {getStrengthText()}
-                  </span>
-                  {passwordStrength < 4 && (
-                    <span className="text-on-surface-variant text-[10px]">
-                      Needs uppercase, lowercase, number, and special char.
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
 
             {!isLogin && (
-              <div className="mt-4">
-                <label htmlFor="confirmPassword" className="block text-sm font-label-sm text-on-surface font-semibold">
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-label-sm text-on-surface font-semibold mb-2">
                   Confirm Password
                 </label>
-                <div className="mt-2 relative">
+                <div className="relative">
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
@@ -259,19 +260,19 @@ export default function LoginForm() {
                     required={!isLogin}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="block w-full rounded-md border border-outline-variant bg-surface py-2.5 pl-3 pr-10 text-on-surface shadow-sm focus:border-primary focus:ring-1 focus:ring-primary font-body-md placeholder:text-on-surface-variant"
+                    className="block w-full rounded-xl border border-outline-variant bg-surface/50 py-3 pl-4 pr-12 text-on-surface shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-surface transition-all font-body-md placeholder:text-on-surface-variant/70"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-on-surface focus:outline-none"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-on-surface-variant hover:text-primary transition-colors focus:outline-none"
                     tabIndex={-1}
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
+                      <EyeOff className="h-5 w-5" />
                     ) : (
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-5 w-5" />
                     )}
                   </button>
                 </div>
@@ -283,24 +284,24 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-6 flex w-full justify-center items-center rounded-md bg-primary px-3 py-3 text-sm font-label-sm text-on-primary shadow-sm hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 transition-opacity"
+          className="mt-8 flex w-full justify-center items-center rounded-xl bg-primary px-4 py-4 text-base font-label-sm text-on-primary shadow-lg hover-lift active-scale disabled:opacity-50 disabled:hover:transform-none disabled:hover:box-shadow-none transition-all"
         >
           {isLoading ? (
             isForgotPassword ? 'Sending link...' : (isLogin ? 'Signing in...' : 'Registering...')
           ) : (
             <>
-              {isForgotPassword ? <KeyRound className="w-4 h-4 mr-2" /> : (isLogin ? <LogIn className="w-4 h-4 mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />)}
-              {isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Account')}
+              {isForgotPassword ? <KeyRound className="w-5 h-5 mr-2" /> : (isLogin ? <LogIn className="w-5 h-5 mr-2" /> : <UserPlus className="w-5 h-5 mr-2" />)}
+              <span className="font-semibold">{isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Account')}</span>
             </>
           )}
         </button>
         
         {isForgotPassword && (
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-center">
             <button
               type="button"
               onClick={() => setIsForgotPassword(false)}
-              className="text-sm font-label-sm text-on-surface-variant hover:text-on-surface"
+              className="text-sm font-label-sm text-on-surface-variant hover:text-primary transition-colors font-medium"
             >
               Back to sign in
             </button>

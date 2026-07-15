@@ -4,97 +4,85 @@ import { useState } from 'react';
 import Link from 'next/link';
 import LogoutButton from '@/components/auth/LogoutButton';
 import SidebarNav from '@/components/layout/SidebarNav';
+import SystemInfoModal from '@/components/layout/SystemInfoModal';
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
-    <div className="bg-background text-on-background min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+    <div className="bg-background text-on-background min-h-screen flex overflow-x-hidden">
       
-      {/* Mobile Overlay */}
-      {isMobileOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-20 md:hidden"
-          onClick={() => setIsMobileOpen(false)}
-        />
-      )}
-
-      {/* SideNavBar */}
+      {/* Desktop/Tablet Sidebar */}
       <nav 
         className={`
-          flex flex-col h-full bg-surface-container-lowest py-container-margin space-y-4 
-          fixed left-0 top-0 border-r border-outline-variant z-30 transition-all duration-300
-          ${isCollapsed ? 'md:w-20' : 'md:w-64'} 
-          ${isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'}
+          hidden md:flex flex-col h-full bg-surface-container-lowest py-container-margin space-y-4 
+          fixed left-0 top-0 border-r border-outline-variant z-30 transition-all duration-300 glass-sidebar
+          ${isCollapsed ? 'w-20' : 'w-64'} 
         `}
       >
         <div className={`px-gutter mb-6 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           {!isCollapsed && (
-            <div>
-              <h1 className="font-headline-md text-headline-md text-primary font-bold">FlowCheck</h1>
-              <p className="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider">Event Management</p>
+            <div className="flex flex-col">
+              <h1 className="font-display-lg-mobile text-2xl text-primary font-bold tracking-tight">FlowCheck</h1>
+              <p className="font-label-xs text-[10px] text-on-surface-variant uppercase tracking-wider">Event Management</p>
             </div>
           )}
           
-          {/* Collapse Toggle (Desktop) */}
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden md:flex text-on-surface-variant hover:bg-surface-container-high p-1.5 rounded-full transition-colors"
+            className="text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full transition-colors active-scale"
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <span className="material-symbols-outlined text-lg">
-              {isCollapsed ? 'menu_open' : 'menu'}
+            <span className="material-symbols-outlined text-xl">
+              {isCollapsed ? 'menu_open' : 'menu_open'}
             </span>
-          </button>
-
-          {/* Close Mobile Menu */}
-          <button 
-            onClick={() => setIsMobileOpen(false)}
-            className="md:hidden text-on-surface-variant hover:bg-surface-container-high p-1.5 rounded-full transition-colors ml-auto"
-          >
-            <span className="material-symbols-outlined text-lg">close</span>
           </button>
         </div>
         
         <div className="px-gutter">
-          <Link href="/events/new" className={`w-full bg-primary text-on-primary font-label-sm text-label-sm py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-tertiary-container transition-colors shadow-sm hover:shadow-md h-touch-target ${isCollapsed ? 'px-0' : 'px-4'}`}>
+          <Link href="/events/new" className={`w-full bg-primary text-on-primary font-label-sm py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-on-surface transition-all shadow-sm hover-lift ${isCollapsed ? 'px-0' : 'px-4'}`}>
             <span className="material-symbols-outlined">add</span>
-            {!isCollapsed && <span>New Event</span>}
+            {!isCollapsed && <span className="font-semibold">New Event</span>}
           </Link>
         </div>
         
-        <div className="flex-1 mt-6">
+        <div className="flex-1 mt-6 overflow-y-auto hide-scrollbar">
           <div data-collapsed={isCollapsed ? "true" : undefined} className="sidebar-nav-wrapper">
              <SidebarNav isCollapsed={isCollapsed} />
           </div>
         </div>
         
-        <div className="px-4 mt-auto space-y-2">
-          <div className={isCollapsed ? '[&_span:not(.material-symbols-outlined)]:hidden [&_button]:justify-center' : ''}>
+        <div className="px-4 mt-auto mb-4 space-y-2">
+          <div className={isCollapsed ? '[&_span:not(.material-symbols-outlined)]:hidden [&_button]:justify-center [&_svg]:mx-auto' : ''}>
+             <SystemInfoModal isCollapsed={isCollapsed} />
              <LogoutButton />
           </div>
         </div>
       </nav>
 
       {/* Main Content Area */}
-      <main className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
-        {/* TopNavBar */}
-        <header className="bg-surface shadow-sm docked full-width top-0 z-10 sticky flex justify-between items-center w-full px-gutter h-touch-target">
-          
-          <div className="flex items-center gap-4 flex-1">
-            {/* Mobile Hamburger */}
-            <button 
-              onClick={() => setIsMobileOpen(true)}
-              className="md:hidden text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full transition-colors flex items-center justify-center"
-            >
-              <span className="material-symbols-outlined">menu</span>
-            </button>
+      <main className={`flex-1 flex flex-col min-h-screen transition-all duration-300 pb-20 md:pb-0 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+        
+        {/* Mobile Top Header (hidden on desktop) */}
+        <header className="md:hidden glass-nav sticky top-0 z-20 flex justify-between items-center w-full px-4 h-14">
+          <h1 className="font-display-lg-mobile text-xl text-primary font-bold tracking-tight">FlowCheck</h1>
+          <div className="flex items-center gap-1">
+            <SystemInfoModal isCollapsed={true} />
+            <Link href="/events/new" className="text-primary hover:bg-surface-container-high p-2 rounded-full transition-colors active-scale flex items-center justify-center">
+              <span className="material-symbols-outlined text-2xl">add_circle</span>
+            </Link>
+            <LogoutButton iconOnly={true} className="text-error hover:bg-error/10 p-2 rounded-full transition-colors active-scale flex items-center justify-center" />
           </div>
         </header>
 
         {children}
       </main>
+
+      {/* Mobile Bottom Navigation (hidden on desktop) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 glass-nav h-touch-target pb-safe flex items-center">
+        <SidebarNav isHorizontal={true} />
+      </nav>
+
     </div>
   );
 }

@@ -25,15 +25,17 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="p-container-margin md:p-section-padding flex-1 fade-in-stagger w-full max-w-5xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-display-md text-primary font-bold tracking-tight">Account Settings</h1>
-        <p className="mt-2 text-on-surface-variant font-body-lg">
+    <div className="p-4 md:p-8 lg:p-12 flex-1 fade-in-stagger w-full max-w-5xl mx-auto">
+      <div className="mb-10">
+        <h1 className="font-display-lg-mobile md:font-display-lg text-primary tracking-tight">Account Settings</h1>
+        <p className="font-body-lg text-on-surface-variant mt-2 max-w-2xl">
           Update your personal details and security preferences.
         </p>
       </div>
 
-      <SettingsForm initialName={user.fullName || ''} email={user.email} />
+      <div className="glass-panel p-6 md:p-8 rounded-3xl">
+        <SettingsForm initialName={user.fullName || ''} email={user.email} />
+      </div>
     </div>
   );
 }

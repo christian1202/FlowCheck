@@ -100,30 +100,33 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
   }, [lastItem?.index, rowCount, hasMore, isLoading, loadMore]);
 
   return (
-    <div className="flex flex-col space-y-6">
-      <div className="bg-surface-container-lowest p-4 rounded-xl border border-surface-container-high shadow-sm">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-on-surface-variant w-4 h-4" />
+    <div className="flex flex-col space-y-6 md:space-y-8">
+      {/* Search Bar */}
+      <div className="glass-panel p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-sm">
+        <div className="relative w-full max-w-2xl mx-auto">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant w-5 h-5" />
           <input 
             type="text" 
             placeholder="Search events by title..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-surface border border-outline-variant rounded-lg font-body-sm text-sm focus:ring-1 focus:ring-primary focus:outline-none"
+            className="w-full pl-12 pr-4 py-3.5 bg-surface/50 border border-outline-variant/50 rounded-xl font-body-md focus:bg-surface focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all shadow-inner"
           />
         </div>
       </div>
 
       <div 
         ref={parentRef}
-        className="overflow-auto h-[600px] w-full"
+        className="overflow-auto h-[600px] md:h-[700px] w-full hide-scrollbar"
       >
         {events.length === 0 ? (
-          <div className="text-center border-2 border-dashed border-outline-variant rounded-xl p-12 mt-4">
-            <span className="material-symbols-outlined text-4xl text-on-surface-variant mb-4">event_note</span>
-            <h3 className="font-label-sm font-bold text-primary">No events found</h3>
-            <p className="mt-1 font-body-md text-on-surface-variant mb-6">
-              {searchTerm ? 'Try adjusting your search criteria.' : "You haven't created any events yet."}
+          <div className="text-center glass-panel rounded-3xl p-12 mt-4 flex flex-col items-center">
+            <div className="h-20 w-20 bg-surface-container-high rounded-full flex items-center justify-center mb-6">
+              <span className="material-symbols-outlined text-4xl text-on-surface-variant">search_off</span>
+            </div>
+            <h3 className="text-xl font-bold text-primary mb-2">No events found</h3>
+            <p className="font-body-md text-on-surface-variant max-w-sm">
+              {searchTerm ? `We couldn't find any events matching "${searchTerm}".` : "You haven't created any events yet."}
             </p>
           </div>
         ) : (
@@ -142,19 +145,21 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
               return (
                 <div
                   key={virtualRow.index}
+                  data-index={virtualRow.index}
+                  ref={rowVirtualizer.measureElement}
                   style={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     width: '100%',
-                    height: `${virtualRow.size}px`,
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6 items-start`}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6 items-stretch px-1"
                 >
                   {isLoader ? (
                     <div className="col-span-1 md:col-span-2 lg:col-span-3 flex justify-center items-center py-8 text-on-surface-variant">
-                      <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading more events...
+                      <Loader2 className="w-6 h-6 animate-spin mr-3 text-primary" /> 
+                      <span className="font-medium tracking-wide">Loading more events...</span>
                     </div>
                   ) : (
                     rowEvents.map(event => {
@@ -162,49 +167,58 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
                       const statusClasses = getEventStatusStyles(displayStatus);
 
                       return (
-                        <Link key={event.id} href={`/events/${event.id}${linkSuffix}`} className="block group h-full">
-                          <div className="bg-white dark:bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-surface-container-high p-6 flex flex-col h-full min-h-[300px]">
+                        <div key={event.id} className="block group h-full fade-in-stagger relative">
+                          <div className="glass-panel rounded-3xl hover-lift p-6 flex flex-col h-full min-h-[280px] transition-all duration-300 relative overflow-hidden">
                             
+                            {/* Full card clickable link */}
+                            <Link href={`/events/${event.id}${linkSuffix}`} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></Link>
+
+                            <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
+
                             {/* Top: Pill */}
-                            <div className="mb-4">
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full font-label-xs font-bold uppercase tracking-wider ${statusClasses}`}>
+                            <div className="mb-6 relative z-10">
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-sm ${statusClasses}`}>
                                 {displayStatus}
                               </span>
                             </div>
 
                             {/* Title & Description */}
-                            <div className="mb-6 flex-1">
-                              <h4 className="text-xl font-bold text-on-surface mb-2 line-clamp-2 group-hover:text-primary transition-colors">{event.title}</h4>
+                            <div className="mb-6 flex-1 relative z-10">
+                              <h4 className="font-headline-md text-on-surface mb-2 line-clamp-2 group-hover:text-primary transition-colors">{event.title}</h4>
                               {event.description && (
-                                <p className="text-sm text-on-surface-variant line-clamp-2">
+                                <p className="font-body-md text-sm text-on-surface-variant line-clamp-2">
                                   {event.description}
                                 </p>
                               )}
                             </div>
 
                             {/* Date & Location */}
-                            <div className="space-y-3 mb-6">
-                              <div className="flex items-center gap-3 text-sm text-on-surface-variant font-medium">
-                                <span className="material-symbols-outlined text-[20px]">calendar_today</span>
+                            <div className="space-y-3 mb-8 relative z-10">
+                              <div className="flex items-center gap-3 text-sm text-on-surface-variant">
+                                <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center">
+                                  <span className="material-symbols-outlined text-[16px]">calendar_today</span>
+                                </div>
                                 <div className="flex flex-col gap-0.5">
-                                  <span>{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                  <span className="font-medium">{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                   {event.closesAt && (
                                     <span className="text-xs text-on-surface-variant/80">Closes: {new Date(event.closesAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                                   )}
                                 </div>
                               </div>
-                              <div className="flex items-center gap-3 text-sm text-on-surface-variant font-medium">
-                                <span className="material-symbols-outlined text-[20px]">location_on</span>
-                                <span className="line-clamp-1">{event.location || 'No location set'}</span>
+                              <div className="flex items-center gap-3 text-sm text-on-surface-variant">
+                                <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center">
+                                  <span className="material-symbols-outlined text-[16px]">location_on</span>
+                                </div>
+                                <span className="line-clamp-1 font-medium">{event.location || 'No location set'}</span>
                                 {event.mapLink && (
                                   <button 
                                     type="button"
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      window.open(event.mapLink, '_blank', 'noopener,noreferrer');
+                                      window.open(event.mapLink as string, '_blank', 'noopener,noreferrer');
                                     }} 
-                                    className="text-primary hover:text-blue-500 flex items-center cursor-pointer" 
+                                    className="relative z-20 ml-auto w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors cursor-pointer" 
                                     title="View on Google Maps"
                                   >
                                     <span className="material-symbols-outlined text-[16px]">map</span>
@@ -213,54 +227,53 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
                               </div>
                             </div>
 
-                            {/* Divider */}
-                            <div className="h-px w-full bg-surface-container-highest mb-4"></div>
-
                             {/* Footer */}
-                            {displayStatus === 'Closed' ? (
-                              <div className="flex flex-col gap-3">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm font-bold text-on-surface-variant">Final Attendance</span>
-                                  <span className="text-sm font-bold text-on-surface-variant">{event.checkedInCount || 0}</span>
-                                </div>
-                                <div className="flex flex-col gap-1">
+                            <div className="pt-4 border-t border-outline-variant/30 relative z-10">
+                              {displayStatus === 'Closed' ? (
+                                <div className="flex flex-col gap-3">
                                   <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-on-surface-variant">Pre-registered vs Scanned</span>
-                                    <span className="text-xs font-bold text-on-surface-variant">{event.checkedInCount || 0} / {event.registeredCount || 0}</span>
+                                    <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Final Attendance</span>
+                                    <span className="text-sm font-bold text-on-surface">{event.checkedInCount || 0}</span>
                                   </div>
-                                  <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-                                    <div 
-                                      className="h-full bg-green-500 dark:bg-green-600 rounded-full transition-all duration-500" 
-                                      style={{ width: `${event.registeredCount ? Math.min(100, ((event.checkedInCount || 0) / event.registeredCount) * 100) : 0}%` }}
-                                    ></div>
+                                  <div className="flex flex-col gap-1.5">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-widest">Pre-registered vs Scanned</span>
+                                      <span className="text-[10px] font-bold text-on-surface">{event.checkedInCount || 0} / {event.registeredCount || 0}</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+                                      <div 
+                                        className="h-full bg-green-500 rounded-full transition-all duration-1000 ease-out" 
+                                        style={{ width: `${event.registeredCount ? Math.min(100, ((event.checkedInCount || 0) / event.registeredCount) * 100) : 0}%` }}
+                                      ></div>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col gap-3">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm font-bold text-on-surface-variant">Capacity</span>
-                                  <span className="text-sm font-bold text-on-surface-variant">
-                                    {event.registeredCount || 0} / {event.maxAttendees ? event.maxAttendees.toLocaleString() : 'Unlimited'}
-                                  </span>
-                                </div>
-                                <div className="flex flex-col gap-1">
+                              ) : (
+                                <div className="flex flex-col gap-3">
                                   <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-on-surface-variant">Pre-registered vs Scanned</span>
-                                    <span className="text-xs font-bold text-on-surface-variant">{event.checkedInCount || 0} / {event.registeredCount || 0}</span>
+                                    <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Capacity</span>
+                                    <span className="text-sm font-bold text-on-surface">
+                                      {event.registeredCount || 0} / {event.maxAttendees ? event.maxAttendees.toLocaleString() : 'Unlimited'}
+                                    </span>
                                   </div>
-                                  <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-                                    <div 
-                                      className="h-full bg-green-500 dark:bg-green-600 rounded-full transition-all duration-500" 
-                                      style={{ width: `${event.registeredCount ? Math.min(100, ((event.checkedInCount || 0) / event.registeredCount) * 100) : 0}%` }}
-                                    ></div>
+                                  <div className="flex flex-col gap-1.5">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-widest">Pre-registered vs Scanned</span>
+                                      <span className="text-[10px] font-bold text-on-surface">{event.checkedInCount || 0} / {event.registeredCount || 0}</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+                                      <div 
+                                        className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out" 
+                                        style={{ width: `${event.registeredCount ? Math.min(100, ((event.checkedInCount || 0) / event.registeredCount) * 100) : 0}%` }}
+                                      ></div>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
                             
                           </div>
-                        </Link>
+                        </div>
                       );
                     })
                   )}

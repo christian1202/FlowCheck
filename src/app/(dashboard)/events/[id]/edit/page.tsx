@@ -29,9 +29,9 @@ export default async function EditEventPage({
   return (
     <div className="max-w-3xl mx-auto p-container-margin md:p-section-padding">
       <div className="mb-6">
-        <Link href={`/events/${id}/settings`} className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500">
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back to Event Settings
+        <Link href="/events/all" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-highest/50 border border-outline-variant/30 text-sm font-label-sm font-bold text-on-surface-variant hover:text-primary hover:bg-surface-container-high hover:border-primary/30 transition-all active-scale">
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          Back to All Events
         </Link>
       </div>
 

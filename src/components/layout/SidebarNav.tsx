@@ -3,7 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function SidebarNav({ isCollapsed = false }: { isCollapsed?: boolean }) {
+interface SidebarNavProps {
+  isCollapsed?: boolean;
+  isHorizontal?: boolean;
+}
+
+export default function SidebarNav({ isCollapsed = false, isHorizontal = false }: SidebarNavProps) {
   const pathname = usePathname();
 
   const links = [
@@ -18,7 +23,6 @@ export default function SidebarNav({ isCollapsed = false }: { isCollapsed?: bool
       href: '/events/all',
       label: 'Events',
       icon: 'event',
-      // Events is active for /events/all, but not for /events/123/scanner or /scanner
       isActive: pathname !== '/events' && pathname?.startsWith('/events') && !pathname.includes('/scanner'),
     },
     {
@@ -41,16 +45,45 @@ export default function SidebarNav({ isCollapsed = false }: { isCollapsed?: bool
     },
   ];
 
+  if (isHorizontal) {
+    return (
+      <ul className="flex items-center justify-around w-full px-2">
+        {links.map((link) => (
+          <li key={link.href} className="flex-1">
+            <Link
+              href={link.href}
+              className={`flex flex-col items-center justify-center gap-1 py-2 w-full rounded-xl active-scale transition-colors ${
+                link.isActive
+                  ? 'text-primary'
+                  : 'text-on-surface-variant hover:bg-surface-container-high'
+              }`}
+            >
+              <div className={`relative flex items-center justify-center w-14 h-8 rounded-full transition-all duration-300 ${link.isActive ? 'bg-primary text-on-primary' : ''}`}>
+                <span
+                  className="material-symbols-outlined text-[22px]"
+                  style={link.isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                >
+                  {link.icon}
+                </span>
+              </div>
+              <span className={`text-[10px] font-semibold tracking-wide ${link.isActive ? 'text-primary' : 'text-on-surface-variant'}`}>{link.label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
   return (
-    <ul className="space-y-2 px-4">
+    <ul className="space-y-1.5 px-3">
       {links.map((link) => (
         <li key={link.href}>
           <Link
             href={link.href}
-            className={`flex items-center gap-3 px-4 py-2 rounded-md font-label-sm text-label-sm transition-all duration-200 ${
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-label-sm transition-all duration-200 active-scale ${
               link.isActive
-                ? 'text-primary font-bold border-r-4 border-primary bg-surface-container-low hover:bg-surface-container-high'
-                : 'text-on-surface-variant hover:bg-surface-container-high'
+                ? 'text-primary font-bold bg-surface-container-high'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
             }`}
           >
             <span

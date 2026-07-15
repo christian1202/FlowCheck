@@ -23,21 +23,21 @@ export default async function AttendeesPage() {
   }
 
   return (
-    <div className="p-container-margin md:p-section-padding flex-1 fade-in-stagger w-full max-w-7xl mx-auto">
+    <div className="p-4 md:p-8 lg:p-12 flex-1 fade-in-stagger w-full max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-          <h2 className="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary tracking-tight">
+          <h2 className="font-display-lg-mobile md:font-display-lg text-primary tracking-tight">
             Attendees
           </h2>
-          <p className="font-body-lg text-body-lg text-on-surface-variant mt-2">
+          <p className="font-body-lg text-on-surface-variant mt-2 max-w-2xl">
             View and manage all attendees across your events.
           </p>
         </div>
       </div>
 
       {error ? (
-        <div className="bg-error-container text-on-error-container p-4 rounded-xl mb-8 font-body-md text-sm">
+        <div className="bg-error-container text-on-error-container p-4 rounded-2xl mb-8 font-body-md text-sm border border-red-200">
           Could not load attendees: {error}
         </div>
       ) : (

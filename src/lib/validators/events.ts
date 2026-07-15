@@ -6,16 +6,16 @@ const eventStatuses = eventStatusEnum.enumValues;
 
 export const createEventSchema = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters').max(100, 'Title is too long'),
-  description: z.string().max(500, 'Description is too long').optional(),
+  description: z.string().min(1, 'Description is required').max(500, 'Description is too long'),
   date: z.coerce.date({
     error: 'Invalid date format',
   }),
-  location: z.string().max(200, 'Location is too long').optional(),
-  mapLink: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  location: z.string().min(1, 'Location is required').max(200, 'Location is too long'),
+  mapLink: z.string().url('Must be a valid URL'),
   maxAttendees: z.coerce.number().int().positive('Must be a positive number').optional().nullable(),
   closesAt: z.coerce.date({
     error: 'Invalid closing date format',
-  }).optional().nullable(),
+  }),
 });
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -10,57 +11,56 @@
   --color-inverse-on-surface: #ebf1ff;
   --color-surface-tint: #5e5e5e;
   --color-inverse-primary: #c6c6c6;
-  --color-surface-container-low: #f0f3ff;
+  --color-surface-container-low: #f8fafc; /* Smoother light gray */
   --color-primary-fixed-dim: #c6c6c6;
   --color-on-secondary-fixed-variant: #404758;
   --color-primary-fixed: #e2e2e2;
   --color-on-secondary-container: #5c6274;
-  --color-on-surface-variant: #4c4546;
+  --color-on-surface-variant: #64748b; /* Slate 500 */
   --color-on-primary-container: #848484;
-  --color-background: #f9f9ff;
+  --color-background: #f1f5f9; /* Slate 100 for premium light feel */
   --color-on-primary-fixed-variant: #474747;
   --color-on-tertiary-container: #848484;
-  --color-surface-container-high: #e2e8f8;
-  --color-secondary: #575e70;
-  --color-surface-variant: #dce2f3;
-  --color-on-surface: #151c27;
+  --color-surface-container-high: #e2e8f0; /* Slate 200 */
+  --color-secondary: #475569; /* Slate 600 */
+  --color-surface-variant: #f1f5f9;
+  --color-on-surface: #0f172a; /* Slate 900 */
   --color-primary-container: #1b1b1b;
-  --color-on-background: #151c27;
-  --color-primary: #000000;
+  --color-on-background: #0f172a;
+  --color-primary: #0f172a; /* Deep slate as primary instead of pure black */
   --color-secondary-fixed: #dce2f7;
   --color-tertiary-fixed-dim: #c6c6c6;
-  --color-surface-container: #e7eefe;
-  --color-error-container: #ffdad6;
+  --color-surface-container: #ffffff;
+  --color-error-container: #fee2e2; /* Red 100 */
   --color-on-primary-fixed: #1b1b1b;
   --color-on-secondary: #ffffff;
   --color-on-primary: #ffffff;
-  --color-surface-bright: #f9f9ff;
-  --color-tertiary: #000000;
-  --color-surface: #f9f9ff;
+  --color-surface-bright: #ffffff;
+  --color-tertiary: #3b82f6; /* Blue 500 accent */
+  --color-surface: #ffffff;
   --color-on-tertiary: #ffffff;
   --color-secondary-fixed-dim: #c0c6db;
   --color-surface-container-lowest: #ffffff;
-  --color-outline-variant: #cfc4c5;
+  --color-outline-variant: #cbd5e1; /* Slate 300 */
   --color-on-secondary-fixed: #141b2b;
   --color-on-tertiary-fixed: #1b1b1b;
-  --color-outline: #7e7576;
+  --color-outline: #94a3b8; /* Slate 400 */
   --color-on-error: #ffffff;
-  --color-surface-container-highest: #dce2f3;
-  --color-on-tertiary-fixed-variant: #474747;
-  --color-surface-dim: #d3daea;
+  --color-surface-container-highest: #e2e8f0;
+  --color-surface-dim: #e2e8f0;
 
-  --font-display-lg: var(--font-inter), sans-serif;
-  --font-display-lg-mobile: var(--font-inter), sans-serif;
-  --font-headline-md: var(--font-inter), sans-serif;
-  --font-body-lg: var(--font-inter), sans-serif;
-  --font-body-md: var(--font-inter), sans-serif;
-  --font-label-sm: var(--font-inter), sans-serif;
-  --font-label-xs: var(--font-inter), sans-serif;
-  --font-sans: var(--font-inter), sans-serif;
+  --font-display-lg: 'Outfit', sans-serif;
+  --font-display-lg-mobile: 'Outfit', sans-serif;
+  --font-headline-md: 'Outfit', sans-serif;
+  --font-body-lg: 'Inter', sans-serif;
+  --font-body-md: 'Inter', sans-serif;
+  --font-label-sm: 'Outfit', sans-serif;
+  --font-label-xs: 'Outfit', sans-serif;
+  --font-sans: 'Inter', sans-serif;
 
-  --spacing-touch-target: 44px;
+  --spacing-touch-target: 48px; /* Increased for better touch on mobile/tablet */
   --spacing-section-padding: 64px;
-  --spacing-gutter: 16px;
+  --spacing-gutter: 20px; /* Wider gutter for tablet/desktop */
   --spacing-container-margin: 24px;
 }
 
@@ -117,20 +117,70 @@
 }
 
 @layer utilities {
-  .fade-in-stagger > * {
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeIn 0.4s ease-out forwards;
+  /* Glassmorphism Utilities */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
   }
   
-  .fade-in-stagger > *:nth-child(1) { animation-delay: 0.1s; }
-  .fade-in-stagger > *:nth-child(2) { animation-delay: 0.2s; }
-  .fade-in-stagger > *:nth-child(3) { animation-delay: 0.3s; }
-  .fade-in-stagger > *:nth-child(4) { animation-delay: 0.4s; }
-  .fade-in-stagger > *:nth-child(5) { animation-delay: 0.5s; }
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.02);
+  }
+
+  .glass-sidebar {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-right: 1px solid rgba(255, 255, 255, 0.6);
+  }
+
+  /* Animations */
+  .fade-in-stagger > * {
+    opacity: 0;
+    transform: translateY(15px);
+    animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .fade-in-stagger > *:nth-child(1) { animation-delay: 0.05s; }
+  .fade-in-stagger > *:nth-child(2) { animation-delay: 0.1s; }
+  .fade-in-stagger > *:nth-child(3) { animation-delay: 0.15s; }
+  .fade-in-stagger > *:nth-child(4) { animation-delay: 0.2s; }
+  .fade-in-stagger > *:nth-child(5) { animation-delay: 0.25s; }
+  .fade-in-stagger > *:nth-child(6) { animation-delay: 0.3s; }
 
   @keyframes fadeIn {
       to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hover-lift {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .active-scale {
+    transition: transform 0.15s ease;
+  }
+  .active-scale:active {
+    transform: scale(0.96);
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
@@ -138,4 +188,6 @@ body {
   background-color: var(--color-background);
   color: var(--color-on-background);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
