@@ -55,6 +55,18 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Prevent logged in users from seeing the login page
+  if (pathname === '/login') {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        return NextResponse.redirect(new URL('/events', req.url));
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
   return supabaseResponse;
 }
 

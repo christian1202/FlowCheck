@@ -1,12 +1,6 @@
 import LoginForm from '@/components/auth/LoginForm';
-import { getAdminSessionId } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 
-export default async function LoginPage() {
-  const adminId = await getAdminSessionId();
-  if (adminId) {
-    redirect('/events');
-  }
+export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-background text-on-background">
