@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const postgres = require('postgres');
 require('dotenv').config({ path: '.env' });
 require('dotenv').config({ path: '.env.local' });
