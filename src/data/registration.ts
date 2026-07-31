@@ -3,6 +3,7 @@ import { attendees, events } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import type { RegistrationInput } from '@/lib/validators/registration';
 import { enqueueSheetSync } from '@/lib/queue/producer';
+import { generateHmacToken } from '@/lib/auth/tokens';
 
 export type RegistrationResult = 
   | { success: true; scanToken: string }
@@ -35,12 +36,16 @@ export async function registerAttendee(
     return { success: false, error: 'Event is full, closed, or does not exist.' };
   }
 
-  // 2. Insert Attendee into attendees table
+  // 2. Generate zero-latency HMAC token for QR code
+  const scanToken = await generateHmacToken(eventId, data.email);
+
+  // 3. Insert Attendee into attendees table
   try {
     const [newAttendee] = await db
       .insert(attendees)
       .values({
         eventId,
+        scanToken,
         name: data.name,
         email: data.email,
         local: data.local,
@@ -51,7 +56,7 @@ export async function registerAttendee(
       })
       .returning();
 
-    // 3. Enqueue Google Sheets sync
+    // 4. Enqueue Google Sheets sync
     await enqueueSheetSync(eventId);
 
     return { success: true, scanToken: newAttendee.scanToken };
