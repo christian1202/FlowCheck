@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Info, X, Code2, Database, Layout, Server, Sparkles } from 'lucide-react';
 
 interface SystemInfoModalProps {
@@ -62,9 +63,15 @@ export default function SystemInfoModal({ isCollapsed, className, iconOnly }: Sy
                 <h3 className="text-sm font-label-sm uppercase tracking-wider text-on-surface-variant mb-3 flex items-center gap-2">
                   <Sparkles className="w-4 h-4" /> About FlowCheck
                 </h3>
-                <p className="text-body-md text-on-surface leading-relaxed bg-surface-container-highest/50 p-4 rounded-2xl border border-outline-variant/30">
-                  FlowCheck is a open source project, secure event management and attendee QR scanning platform. It is designed to provide organizers with real-time insights and a seamless check-in experience across desktop, tablet, and mobile devices.
-                </p>
+                <div className="bg-surface-container-highest/50 p-4 rounded-2xl border border-outline-variant/30">
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <Image src="/images/flowcheck_logo_v2.png" alt="FlowCheck" width={32} height={32} className="h-7 w-7" />
+                    <span className="font-display-lg-mobile text-lg text-primary font-bold tracking-tight">FlowCheck</span>
+                  </div>
+                  <p className="text-body-md text-on-surface leading-relaxed">
+                    FlowCheck is a open source project, secure event management and attendee QR scanning platform. It is designed to provide organizers with real-time insights and a seamless check-in experience across desktop, tablet, and mobile devices.
+                  </p>
+                </div>
               </section>
 
               {/* Tech Stack */}

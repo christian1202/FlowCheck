@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import LogoutButton from '@/components/auth/LogoutButton';
 import SidebarNav from '@/components/layout/SidebarNav';
 import SystemInfoModal from '@/components/layout/SystemInfoModal';
@@ -21,12 +22,15 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         `}
       >
         <div className={`px-gutter mb-6 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-          {!isCollapsed && (
-            <div className="flex flex-col">
-              <h1 className="font-display-lg-mobile text-2xl text-primary font-bold tracking-tight">FlowCheck</h1>
-              <p className="font-label-xs text-[10px] text-on-surface-variant uppercase tracking-wider">Event Management</p>
-            </div>
-          )}
+          <div className="flex items-center gap-2.5">
+            <Image src="/images/flowcheck_logo_v2.png" alt="FlowCheck" width={36} height={36} className="h-8 w-8" priority />
+            {!isCollapsed && (
+              <div className="flex flex-col">
+                <h1 className="font-display-lg-mobile text-xl text-primary font-bold tracking-tight leading-none">FlowCheck</h1>
+                <p className="font-label-xs text-[10px] text-on-surface-variant uppercase tracking-wider">Event Management</p>
+              </div>
+            )}
+          </div>
           
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -65,7 +69,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         
         {/* Mobile Top Header (hidden on desktop) */}
         <header className="md:hidden glass-nav sticky top-0 z-20 flex justify-between items-center w-full px-4 h-14">
-          <h1 className="font-display-lg-mobile text-xl text-primary font-bold tracking-tight">FlowCheck</h1>
+          <div className="flex items-center gap-2">
+            <Image src="/images/flowcheck_logo_v2.png" alt="FlowCheck" width={32} height={32} className="h-7 w-7" priority />
+            <h1 className="font-display-lg-mobile text-lg text-primary font-bold tracking-tight">FlowCheck</h1>
+          </div>
           <div className="flex items-center gap-1">
             <SystemInfoModal isCollapsed={true} />
             <Link href="/events/new" className="text-primary hover:bg-surface-container-high p-2 rounded-full transition-colors active-scale flex items-center justify-center">

@@ -1,4 +1,5 @@
 import LoginForm from '@/components/auth/LoginForm';
+import Image from 'next/image';
 
 export default function LoginPage() {
 
@@ -9,9 +10,7 @@ export default function LoginPage() {
       <div className="absolute top-1/2 -right-40 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center relative z-10 fade-in-stagger">
-        <div className="mx-auto w-20 h-20 bg-surface-container-high rounded-3xl flex items-center justify-center mb-6 shadow-sm">
-          <span className="material-symbols-outlined text-4xl text-primary">event_available</span>
-        </div>
+        <Image src="/images/flowcheck_logo_v2.png" alt="FlowCheck" width={64} height={64} className="mx-auto h-16 w-16 mb-6" priority />
         <h2 className="font-display-lg-mobile md:font-display-lg text-primary tracking-tight">
           FlowCheck
         </h2>

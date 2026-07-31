@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getEventBySlug } from '@/data/events';
 import RegistrationForm from './RegistrationForm';
+import Image from 'next/image';
 
 export default async function RegisterPage({
   params,
@@ -41,9 +42,7 @@ export default async function RegisterPage({
 
       {/* Minimal Header for Transactional Flow */}
       <header className="mb-8 flex flex-col items-center gap-3 relative z-10 fade-in-stagger w-full max-w-2xl">
-        <div className="mx-auto w-16 h-16 bg-surface-container-high rounded-2xl flex items-center justify-center shadow-sm">
-          <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>qr_code_scanner</span>
-        </div>
+        <Image src="/images/flowcheck_logo_v2.png" alt="FlowCheck" width={56} height={56} className="h-14 w-14" priority />
         <h1 className="font-headline-md text-xl text-primary tracking-tight">FlowCheck Registration</h1>
       </header>
       

@@ -30,11 +30,51 @@ export default function QRScanner({ eventId }: { eventId: string }) {
 
   const playSound = (type: 'success' | 'error' | 'warning') => {
     try {
-      const audio = new Audio(`/sounds/${type}.mp3`);
-      audio.volume = 0.5;
-      audio.play().catch(() => {});
-    } catch (e) {
-      // Ignore audio errors
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const gainNode = ctx.createGain();
+      gainNode.connect(ctx.destination);
+      gainNode.gain.value = 0.3;
+
+      if (type === 'success') {
+        // Pleasant two-tone chime
+        const osc1 = ctx.createOscillator();
+        osc1.type = 'sine';
+        osc1.frequency.value = 880;
+        osc1.connect(gainNode);
+        osc1.start(ctx.currentTime);
+        osc1.stop(ctx.currentTime + 0.15);
+
+        const osc2 = ctx.createOscillator();
+        osc2.type = 'sine';
+        osc2.frequency.value = 1174.66;
+        osc2.connect(gainNode);
+        osc2.start(ctx.currentTime + 0.15);
+        osc2.stop(ctx.currentTime + 0.3);
+      } else if (type === 'warning') {
+        // Double beep
+        for (let i = 0; i < 2; i++) {
+          const osc = ctx.createOscillator();
+          osc.type = 'square';
+          osc.frequency.value = 660;
+          osc.connect(gainNode);
+          osc.start(ctx.currentTime + i * 0.2);
+          osc.stop(ctx.currentTime + i * 0.2 + 0.1);
+        }
+      } else {
+        // Low descending tone
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(220, ctx.currentTime + 0.3);
+        osc.connect(gainNode);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+      }
+
+      // Clean up the AudioContext after sounds finish
+      setTimeout(() => ctx.close().catch(() => {}), 1000);
+    } catch {
+      // Ignore audio errors (e.g. user hasn't interacted yet)
     }
   };
 

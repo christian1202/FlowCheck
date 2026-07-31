@@ -1,30 +1,50 @@
 # FlowCheck
 
-**Zero-config event attendance, powered by QR codes and Google Sheets.**
+<p align="center">
+  <img src="public/images/flowcheck_logo_v2.png" alt="FlowCheck Logo" width="180"/>
+</p>
 
-FlowCheck is an open-source event check-in system that lets organizers create events, register attendees via email with QR codes, and scan them in with any camera — all synced live to Google Sheets. It runs entirely on free-tier cloud services at **$0/month**.
+<p align="center">
+  <b>Modern, edge-native event attendance & pre-registration system powered by QR codes.</b>
+</p>
+
+<p align="center">
+  <a href="#key-features">Key Features</a> •
+  <a href="#how-it-works">How It Works</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#running-locally">Running Locally</a> •
+  <a href="#documentation">Documentation</a>
+</p>
+
+---
+
+## Overview
+
+**FlowCheck** is an open-source, zero-configuration event pre-registration and QR check-in platform. Public attendees can pre-register for events without creating an account and instantly receive a downloadable QR ticket. Door staff can scan attendees using any smartphone or camera via an installable PWA with synthesized Web Audio sound feedback and real-time dashboard analytics.
+
+FlowCheck is designed to run on a **$0/month free-forever stack** using serverless edge deployment with Cloudflare Pages/Workers and Supabase PostgreSQL.
 
 ---
 
 ## Key Features
 
-- 📋 **Create events** with a single form — name, date, capacity, done
-- 📱 **QR code registration** — attendees receive a unique QR code via email
-- 📷 **Scan with any camera** — phone or laptop webcam, works as a PWA
-- 📊 **Auto-sync to Google Sheets** — live attendance data, shareable with your team
-- 👥 **Multi-admin collaboration** — invite co-admins who get editor access to the sheet
-- 🔐 **Secure one-time-use tokens** — each QR code is a unique UUID, not reusable
-- 📍 **Location & Role tracking** — track attendees by Local, District, Zone, and Duty (tungkulin)
-- 💸 **100% free hosting** — $0/month, forever, no credit card required
+- 🌐 **Public Pre-Registration**: Anyone can pre-register for open events using a direct shareable link without creating an account.
+- 🎟️ **Instant QR Ticket Generation**: On-screen QR ticket generation upon pre-registration with one-click PNG download and email lookup retrieval.
+- 📱 **Camera QR Scanner PWA**: Fast, responsive in-browser camera scanner supporting rear phone cameras and webcams.
+- 🔊 **Web Audio API Feedback**: Instant synthesized audio chimes for valid check-ins, duplicate scan warnings, and error alerts—no sound files required.
+- 👥 **Multi-Admin Team Roles**: Assign team members as **Owner**, **Editor**, or **Scanner** with granular permissions.
+- 🔒 **Secure Opaque Tokens**: QR codes store cryptographically random UUID v4 tokens to protect attendee personal information.
+- 📊 **Real-Time Attendee Dashboard**: Filter, search, and monitor attendee check-in counts and timeline stats live.
+- ⚡ **Edge-Native Deployment**: Built on Next.js 16 (App Router) and deployed serverless via OpenNext to Cloudflare Pages/Workers.
 
 ---
 
 ## How It Works
 
-1. **Create an event** — set the name, date, venue, and max capacity
-2. **Share the registration link** — attendees sign up with name, email, location, and duty
-3. **Attendees receive a QR code** — delivered to their inbox with event details
-4. **Scan at the door** — open the scanner PWA, point your camera, done in under a second
+1. **Create an Event**: Admins define event details, venue, date, capacity (`max_attendees`), and registration closure date.
+2. **Share Registration Link**: Public attendees register via `/events/[slug]/register` with their Name, Email, Local Congregation, District, Zone, and Duty.
+3. **Instant Ticket & Download**: Attendees receive an immediate QR code ticket rendered on-screen, ready to save or screenshot.
+4. **Scan at the Door**: Door staff open the Scanner PWA, point the camera, and receive instant visual and sound feedback upon scan.
 
 ---
 
@@ -32,42 +52,31 @@ FlowCheck is an open-source event check-in system that lets organizers create ev
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| Framework | Next.js 15 + TypeScript | Full-stack React with Server Actions |
-| Styling | Tailwind CSS | Utility-first CSS |
-| Database | Supabase (PostgreSQL) | Data persistence + connection pooling |
-| Auth | Supabase Auth (Google OAuth) | Admin login |
-| ORM | Drizzle ORM | Type-safe queries + migrations |
-| Hosting | Cloudflare Pages | Edge deployment via OpenNext adapter |
-| Background Jobs | Cloudflare Queues + Cron Triggers | Batched Sheets sync + email retries |
-| Email | Brevo (REST API) | Transactional emails with QR attachments |
-| Spreadsheets | Google Sheets API v4 + Drive API v3 | Live attendance export |
-| QR Codes | `qrcode` (pure JS) | QR generation, no native dependencies |
-| Scanner | `html5-qrcode` | Camera-based QR scanning (phone + laptop) |
-| PWA | Serwist | Offline support + install prompt |
-
----
-
-## Free Tier Stack
-
-Every service FlowCheck uses has a generous free tier. Combined cost: **$0/month**.
-
-| Service | What It Provides | Free Limit |
-|---------|-----------------|-----------|
-| Cloudflare Pages | Hosting + CDN + edge compute | Unlimited bandwidth, 100K req/day |
-| Cloudflare Queues | Background job processing | 1M operations/month |
-| Supabase | PostgreSQL + Auth + pooling | 500MB DB, 50K MAU |
-| Brevo | Transactional email | 300 emails/day |
-| Google Sheets API | Live attendance spreadsheet | 60 req/min |
+| **Framework** | Next.js 16 (App Router) + React 19 | Server Components & Server Actions |
+| **Language** | TypeScript (Strict) | End-to-end type safety |
+| **Styling** | Tailwind CSS v4 | Responsive utility styling |
+| **Database** | Supabase (PostgreSQL) | Relational persistence & connection pooling |
+| **Auth** | Supabase Auth (`@supabase/ssr`) | Google OAuth for event administrators |
+| **ORM** | Drizzle ORM | Type-safe SQL builder & migrations |
+| **Hosting** | Cloudflare Pages / Workers | Edge deployment via `@opennextjs/cloudflare` |
+| **Audio** | Browser Web Audio API | Zero-asset tone synthesis for scanner feedback |
+| **QR Code** | `qrcode` | Pure JavaScript canvas/PNG QR generation |
+| **Scanner** | `html5-qrcode` | In-browser webcam QR scanning |
+| **PWA** | Serwist | Progressive Web App manifest & service worker |
 
 ---
 
 ## Running Locally
 
-To run FlowCheck locally, you'll need [Node.js](https://nodejs.org/) (v18+) and [Docker](https://www.docker.com/) installed.
+### Prerequisites
+- **Node.js** v20.0.0+
+- **Docker** (for local PostgreSQL database)
+
+### Steps
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/FlowCheck.git
+   git clone https://github.com/christian1202/FlowCheck.git
    cd FlowCheck
    ```
 
@@ -80,44 +89,37 @@ To run FlowCheck locally, you'll need [Node.js](https://nodejs.org/) (v18+) and 
    ```bash
    cp .env.example .env.local
    ```
-   *Edit `.env.local` to include your Supabase, Brevo, and Google Service Account credentials.*
+   *Edit `.env.local` with your Supabase credentials.*
 
-4. **Start the local PostgreSQL database:**
+4. **Start local PostgreSQL (Docker):**
    ```bash
    docker-compose up -d
    ```
-   *This starts a local PostgreSQL instance on port 5432 using the credentials from your `.env.local`.*
 
-5. **Run Database Migrations:**
+5. **Apply Database Migrations:**
    ```bash
-   npx drizzle-kit generate
-   npx drizzle-kit push
+   npm run db:push
    ```
 
-6. **Start the Next.js development server:**
+6. **Start Development Server:**
    ```bash
    npm run dev
    ```
-
-7. **Access the application:**
    Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-> [!NOTE]
-> For email delivery and Google Sheets syncing to work locally, you must provide valid API keys in your `.env.local` file. See the [Deployment Guide](docs/deployment.md) for instructions on acquiring these keys.
 
 ---
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Architecture](docs/architecture.md) | System design, component diagram, tech decisions |
-| [Features](docs/features.md) | Detailed feature specifications |
-| [Database Schema](docs/database-schema.md) | Tables, relationships, indexes, RLS policies |
-| [Data Flows](docs/data-flows.md) | Sequence diagrams for all 5 critical paths |
-| [Security](docs/security.md) | Auth, rate limiting, input validation, OWASP |
-| [Deployment](docs/deployment.md) | Full setup guide for all services |
-| [Project Phases](docs/project-phases.md) | Step-by-step implementation checklist |
+| Guide | Content |
+|-------|---------|
+| 📐 [Architecture](docs/architecture.md) | Edge system design, component diagram, tech choices |
+| 🔄 [Data Flows](docs/data-flows.md) | Pre-registration flow & QR scanning sequence diagrams |
+| 🗄️ [Database Schema](docs/database-schema.md) | PostgreSQL tables, Drizzle schema, indexes |
+| 🚀 [Deployment Guide](docs/deployment.md) | Cloudflare Pages & OpenNext build setup |
+| ✨ [Features Specifications](docs/features.md) | Detailed feature breakdown and user roles |
+| 🛡️ [Security Architecture](docs/security.md) | Route access controls, token security & validation |
+| 📋 [Project Roadmap](docs/project-phases.md) | Phase checklist and progress tracking |
 
 ---
 

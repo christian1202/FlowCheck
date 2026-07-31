@@ -32,8 +32,12 @@ export async function middleware(req: NextRequest) {
   
   // Basic WAF/Rate limiting logic could go here
   
-  // Protect /dashboard and /events routes
-  if (pathname.startsWith('/dashboard') || pathname.startsWith('/events') || pathname === '/') {
+  // Allow public registration routes without authentication
+  // Matches: /events/{slug}/register
+  const isPublicRegistration = /^\/events\/[^/]+\/register\/?$/.test(pathname);
+
+  // Protect /dashboard and /events routes (except public registration)
+  if (!isPublicRegistration && (pathname.startsWith('/dashboard') || pathname.startsWith('/events') || pathname === '/')) {
     // If accessing root, redirect to events
     if (pathname === '/') {
       return NextResponse.redirect(new URL('/events', req.url));
