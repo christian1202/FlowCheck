@@ -44,3 +44,14 @@ graph TD
 - **Opaque Scan Tokens**: QR codes store a cryptographically random UUID v4 token (`scan_token`), not personal information (PII).
 - **One-Time Check-In Enforcement**: Scan tokens change attendee status from `registered` to `checked_in`. Attempting to scan a token twice triggers a `duplicate` scan log result and warning overlay.
 - **Audit Logging**: Scan attempts (whether successful, duplicate, invalid, or closed) are logged to `scan_logs` with timestamps and administrative account IDs.
+
+---
+
+## 4. Rate Limiting & Volumetric Protection (Cloudflare WAF)
+
+To protect public pre-registration routes (`/events/[slug]/register`) from bot abuse and volumetric capacity exhaustion, Cloudflare WAF Rate Limiting is enforced at the edge:
+
+- **Target Route**: `POST /events/*/register`
+- **Threshold**: 5 requests per 1 minute per IP address (`ip.src`)
+- **Action**: `Block` (HTTP 429)
+
