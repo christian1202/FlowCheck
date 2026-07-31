@@ -1,9 +1,9 @@
-import { google } from 'googleapis';
+import { JWT } from 'google-auth-library';
 import { getDb } from '@/lib/db';
 import { attendees } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
-// Setup Google Auth
+// Setup Google Auth using lightweight google-auth-library
 const getGoogleAuth = () => {
   const credentials = {
     client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -11,7 +11,7 @@ const getGoogleAuth = () => {
     private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
   };
 
-  return new google.auth.JWT({
+  return new JWT({
     email: credentials.client_email,
     key: credentials.private_key,
     scopes: [
@@ -21,19 +21,21 @@ const getGoogleAuth = () => {
   });
 };
 
-const sheets = google.sheets('v4');
-const drive = google.drive('v3');
-
 /**
  * Provisions a new Google Sheet for an event and returns its ID and URL.
  */
 export async function createEventSheet(eventTitle: string, adminEmails: string[]): Promise<{ id: string, url: string }> {
   const auth = getGoogleAuth();
   
-  // 1. Create the spreadsheet
-  const spreadsheet = await sheets.spreadsheets.create({
-    auth,
-    requestBody: {
+  // 1. Create the spreadsheet via Google Sheets REST API v4
+  const spreadsheetRes = await auth.request<{
+    spreadsheetId: string;
+    spreadsheetUrl: string;
+    sheets: { properties: { sheetId: number } }[];
+  }>({
+    url: 'https://sheets.googleapis.com/v4/spreadsheets',
+    method: 'POST',
+    data: {
       properties: {
         title: `FlowCheck: ${eventTitle} Attendance`,
       },
@@ -50,30 +52,29 @@ export async function createEventSheet(eventTitle: string, adminEmails: string[]
     },
   });
 
-  const sheetId = spreadsheet.data.spreadsheetId!;
-  const sheetUrl = spreadsheet.data.spreadsheetUrl!;
+  const sheetId = spreadsheetRes.data.spreadsheetId;
+  const sheetUrl = spreadsheetRes.data.spreadsheetUrl;
+  const gridSheetId = spreadsheetRes.data.sheets?.[0]?.properties?.sheetId ?? 0;
 
   // 2. Set up headers
-  await sheets.spreadsheets.values.update({
-    auth,
-    spreadsheetId: sheetId,
-    range: 'Attendance!A1:H1',
-    valueInputOption: 'USER_ENTERED',
-    requestBody: {
+  await auth.request({
+    url: `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Attendance!A1:H1?valueInputOption=USER_ENTERED`,
+    method: 'PUT',
+    data: {
       values: [['#', 'Name', 'Email', 'Local', 'District', 'Zone', 'Status', 'Checked In At']],
     },
   });
 
   // 3. Format header row (bold, background color)
-  await sheets.spreadsheets.batchUpdate({
-    auth,
-    spreadsheetId: sheetId,
-    requestBody: {
+  await auth.request({
+    url: `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}:batchUpdate`,
+    method: 'POST',
+    data: {
       requests: [
         {
           repeatCell: {
             range: {
-              sheetId: spreadsheet.data.sheets![0].properties!.sheetId,
+              sheetId: gridSheetId,
               startRowIndex: 0,
               endRowIndex: 1,
             },
@@ -90,19 +91,22 @@ export async function createEventSheet(eventTitle: string, adminEmails: string[]
     },
   });
 
-  // 4. Share with admins
+  // 4. Share with admins via Google Drive REST API v3
   for (const email of adminEmails) {
     if (email) {
-      await drive.permissions.create({
-        auth,
-        fileId: sheetId,
-        sendNotificationEmail: false,
-        requestBody: {
-          type: 'user',
-          role: 'writer',
-          emailAddress: email,
-        },
-      });
+      try {
+        await auth.request({
+          url: `https://www.googleapis.com/drive/v3/files/${sheetId}/permissions?sendNotificationEmail=false`,
+          method: 'POST',
+          data: {
+            type: 'user',
+            role: 'writer',
+            emailAddress: email,
+          },
+        });
+      } catch (err) {
+        console.error(`Failed to share Google Sheet with ${email}:`, err);
+      }
     }
   }
 
@@ -140,19 +144,16 @@ export async function syncEventToSheet(eventId: string, sheetId: string): Promis
   ]);
 
   // Clear existing data (except header) before appending to ensure clean state
-  await sheets.spreadsheets.values.clear({
-    auth,
-    spreadsheetId: sheetId,
-    range: 'Attendance!A2:H',
+  await auth.request({
+    url: `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Attendance!A2:H:clear`,
+    method: 'POST',
   });
 
   // Append new data
-  await sheets.spreadsheets.values.update({
-    auth,
-    spreadsheetId: sheetId,
-    range: 'Attendance!A2',
-    valueInputOption: 'USER_ENTERED',
-    requestBody: {
+  await auth.request({
+    url: `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Attendance!A2?valueInputOption=USER_ENTERED`,
+    method: 'PUT',
+    data: {
       values,
     },
   });

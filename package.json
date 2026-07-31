@@ -18,7 +18,7 @@
     "@supabase/supabase-js": "^2.110.2",
     "@tanstack/react-virtual": "^3.14.6",
     "drizzle-orm": "^0.45.2",
-    "googleapis": "^173.0.0",
+    "google-auth-library": "^11.0.0",
     "hono": "^4.12.30",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^1.24.0",
