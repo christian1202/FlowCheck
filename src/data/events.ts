@@ -65,7 +65,8 @@ export async function getEventsForAdmin(adminId: string): Promise<EventWithRole[
     .from(eventAdmins)
     .innerJoin(events, eq(eventAdmins.eventId, events.id))
     .where(eq(eventAdmins.adminId, adminId))
-    .orderBy(desc(eventAdmins.addedAt));
+    .orderBy(desc(eventAdmins.addedAt))
+    .limit(100);
 
   return rows.map((row) => ({
     ...row.event,

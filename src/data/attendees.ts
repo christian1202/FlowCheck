@@ -142,7 +142,7 @@ export async function getAllAttendeesForExport(
   .innerJoin(events, eq(attendees.eventId, events.id))
   .where(and(...conditions))
   .orderBy(desc(attendees.registeredAt))
-  .limit(10000); // Sensible limit to prevent memory overflow
+  .limit(1000); // Cloudflare Workers CPU safeguard: never pull more than 1000 rows
 
   return rows as AttendeeWithEvent[];
 }
@@ -153,7 +153,8 @@ export async function getUniqueEventsForAdmin(adminId: string) {
     .from(events)
     .innerJoin(eventAdmins, eq(events.id, eventAdmins.eventId))
     .where(eq(eventAdmins.adminId, adminId))
-    .orderBy(desc(events.createdAt));
+    .orderBy(desc(events.createdAt))
+    .limit(200);
     
   return adminEventsList;
 }

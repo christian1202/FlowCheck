@@ -1,6 +1,6 @@
 import { getDb } from '@/lib/db';
 import { attendees, events, eventAdmins, scanLogs } from '@/lib/db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 import { enqueueSheetSync } from '@/lib/queue/producer';
 
 export type ScanResultResponse = {
@@ -137,8 +137,10 @@ export async function getTotalScansForAdmin(adminId: string): Promise<number> {
 
   const eventIds = adminEvents.map(e => e.eventId);
 
-  // Count all checked-in attendees for these events
-  const rows = await db.select()
+  // Architectural safeguard: use SQL count(*) instead of fetching all rows
+  const [{ count }] = await db.select({
+    count: sql<number>`count(*)`
+  })
     .from(attendees)
     .where(
       and(
@@ -147,5 +149,5 @@ export async function getTotalScansForAdmin(adminId: string): Promise<number> {
       )
     );
 
-  return rows.length;
+  return Number(count || 0);
 }
