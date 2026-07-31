@@ -25,7 +25,6 @@ export default function LoginForm() {
     setMessage(null);
   };
 
-  // Calculate password strength (0 to 5)
   const passwordStrength = useMemo(() => {
     let score = 0;
     if (!password) return score;
@@ -37,16 +36,14 @@ export default function LoginForm() {
     return Math.min(score, 5);
   }, [password]);
 
-  // Map score to color
   const getStrengthColor = () => {
-    if (passwordStrength === 0) return 'bg-surface-container-highest';
+    if (passwordStrength === 0) return 'bg-slate-800';
     if (passwordStrength <= 2) return 'bg-red-500';
-    if (passwordStrength === 3) return 'bg-yellow-500';
-    if (passwordStrength === 4) return 'bg-green-400';
-    return 'bg-green-600';
+    if (passwordStrength === 3) return 'bg-amber-500';
+    if (passwordStrength === 4) return 'bg-emerald-400';
+    return 'bg-emerald-500';
   };
 
-  // Map score to text
   const getStrengthText = () => {
     if (passwordStrength === 0) return '';
     if (passwordStrength <= 2) return 'Weak';
@@ -86,7 +83,6 @@ export default function LoginForm() {
       return;
     }
 
-    // Strict validation for registration
     if (!isLogin) {
       if (password !== confirmPassword) {
         setMessage({ type: 'error', text: 'Passwords do not match.' });
@@ -133,14 +129,16 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex flex-col space-y-8">
+    <div className="flex flex-col space-y-6 text-slate-100">
       {/* Tab Switcher */}
-      <div className="flex bg-surface-container-high/50 p-1 rounded-xl shadow-inner relative z-10 backdrop-blur-sm">
+      <div className="flex bg-slate-950/80 p-1 rounded-xl border border-white/10 relative z-10 backdrop-blur-md">
         <button
           type="button"
           onClick={() => resetState(true)}
-          className={`flex-1 py-2.5 text-sm font-label-sm rounded-lg transition-all active-scale duration-300 ${
-            isLogin && !isForgotPassword ? 'bg-surface text-primary shadow-sm font-semibold' : 'text-on-surface-variant hover:text-on-surface'
+          className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-all active-scale ${
+            isLogin && !isForgotPassword 
+              ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
+              : 'text-slate-400 hover:text-white'
           }`}
         >
           Sign In
@@ -148,8 +146,10 @@ export default function LoginForm() {
         <button
           type="button"
           onClick={() => resetState(false)}
-          className={`flex-1 py-2.5 text-sm font-label-sm rounded-lg transition-all active-scale duration-300 ${
-            !isLogin && !isForgotPassword ? 'bg-surface text-primary shadow-sm font-semibold' : 'text-on-surface-variant hover:text-on-surface'
+          className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-all active-scale ${
+            !isLogin && !isForgotPassword 
+              ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
+              : 'text-slate-400 hover:text-white'
           }`}
         >
           Register
@@ -157,14 +157,16 @@ export default function LoginForm() {
       </div>
 
       {message && (
-        <div className={`p-4 rounded-xl text-sm font-body-sm shadow-sm ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+        <div className={`p-4 rounded-2xl text-xs font-mono border backdrop-blur-md ${
+          message.type === 'success' ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/30' : 'bg-red-950/60 text-red-300 border-red-500/30'
+        }`}>
           {message.text}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-label-sm text-on-surface font-semibold mb-2">
+          <label htmlFor="email" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">
             Email address
           </label>
           <input
@@ -175,23 +177,23 @@ export default function LoginForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="block w-full rounded-xl border border-outline-variant bg-surface/50 py-3 px-4 text-on-surface shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-surface transition-all font-body-md placeholder:text-on-surface-variant/70"
+            className="block w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 px-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
             placeholder="admin@example.com"
           />
         </div>
 
         {!isForgotPassword && (
-          <div className="space-y-5">
+          <div className="space-y-4">
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label htmlFor="password" className="block text-sm font-label-sm text-on-surface font-semibold">
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="block text-xs font-mono uppercase tracking-widest text-slate-400">
                   Password
                 </label>
                 {isLogin && (
                   <button
                     type="button"
                     onClick={() => { setIsForgotPassword(true); setMessage(null); }}
-                    className="text-xs font-label-xs text-primary hover:text-blue-600 transition-colors focus:outline-none"
+                    className="text-[11px] font-mono text-amber-400 hover:text-amber-300 transition-colors"
                   >
                     Forgot password?
                   </button>
@@ -206,39 +208,38 @@ export default function LoginForm() {
                   required={!isForgotPassword}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-xl border border-outline-variant bg-surface/50 py-3 pl-4 pr-12 text-on-surface shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-surface transition-all font-body-md placeholder:text-on-surface-variant/70"
+                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 pl-4 pr-10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-on-surface-variant hover:text-primary transition-colors focus:outline-none"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <Eye className="h-5 w-5" />
+                    <Eye className="h-4 w-4" />
                   )}
                 </button>
               </div>
               
-              {/* Password Strength Indicator */}
               {!isLogin && password.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  <div className="flex h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                <div className="mt-2.5 space-y-1.5">
+                  <div className="flex h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
                     <div 
                       className={`h-full transition-all duration-500 ease-out ${getStrengthColor()}`}
                       style={{ width: `${(passwordStrength / 5) * 100}%` }}
                     />
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className={`text-xs font-bold uppercase tracking-widest ${passwordStrength < 4 ? 'text-red-500' : 'text-green-600'}`}>
+                  <div className="flex justify-between items-center text-[10px] font-mono">
+                    <span className={`font-bold uppercase tracking-wider ${passwordStrength < 4 ? 'text-red-400' : 'text-emerald-400'}`}>
                       {getStrengthText()}
                     </span>
                     {passwordStrength < 4 && (
-                      <span className="text-on-surface-variant text-[10px]">
-                        Needs uppercase, lowercase, number, and special char.
+                      <span className="text-slate-500">
+                        Include uppercase, lowercase, numbers & special symbols.
                       </span>
                     )}
                   </div>
@@ -248,7 +249,7 @@ export default function LoginForm() {
 
             {!isLogin && (
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-label-sm text-on-surface font-semibold mb-2">
+                <label htmlFor="confirmPassword" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -260,19 +261,19 @@ export default function LoginForm() {
                     required={!isLogin}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="block w-full rounded-xl border border-outline-variant bg-surface/50 py-3 pl-4 pr-12 text-on-surface shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-surface transition-all font-body-md placeholder:text-on-surface-variant/70"
+                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 pl-4 pr-10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-on-surface-variant hover:text-primary transition-colors focus:outline-none"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white transition-colors"
                     tabIndex={-1}
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5" />
+                      <EyeOff className="h-4 w-4" />
                     ) : (
-                      <Eye className="h-5 w-5" />
+                      <Eye className="h-4 w-4" />
                     )}
                   </button>
                 </div>
@@ -284,24 +285,24 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-8 flex w-full justify-center items-center rounded-xl bg-primary px-4 py-4 text-base font-label-sm text-on-primary shadow-lg hover-lift active-scale disabled:opacity-50 disabled:hover:transform-none disabled:hover:box-shadow-none transition-all"
+          className="mt-6 flex w-full justify-center items-center rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-4 py-3 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.25)] active-scale disabled:opacity-50 transition-all"
         >
           {isLoading ? (
             isForgotPassword ? 'Sending link...' : (isLogin ? 'Signing in...' : 'Registering...')
           ) : (
             <>
-              {isForgotPassword ? <KeyRound className="w-5 h-5 mr-2" /> : (isLogin ? <LogIn className="w-5 h-5 mr-2" /> : <UserPlus className="w-5 h-5 mr-2" />)}
-              <span className="font-semibold">{isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Account')}</span>
+              {isForgotPassword ? <KeyRound className="w-4 h-4 mr-2" /> : (isLogin ? <LogIn className="w-4 h-4 mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />)}
+              <span>{isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Account')}</span>
             </>
           )}
         </button>
         
         {isForgotPassword && (
-          <div className="mt-6 text-center">
+          <div className="mt-4 text-center">
             <button
               type="button"
               onClick={() => setIsForgotPassword(false)}
-              className="text-sm font-label-sm text-on-surface-variant hover:text-primary transition-colors font-medium"
+              className="text-xs font-mono text-slate-400 hover:text-white transition-colors"
             >
               Back to sign in
             </button>

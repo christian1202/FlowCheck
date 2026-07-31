@@ -45,36 +45,34 @@ export default function EditEventForm({ event }: { event: EventRow }) {
   };
 
   return (
-    <div className="glass-panel p-6 sm:p-10 rounded-3xl relative overflow-hidden fade-in-stagger">
-      {/* Decorative background blob */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
-
+    <div className="claude-card p-6 sm:p-8 rounded-3xl relative overflow-hidden fade-in-stagger text-slate-100 border border-white/10 bg-slate-950/70 backdrop-blur-xl shadow-2xl">
+      
       <div className="relative z-10">
-        <div className="mb-8 border-b border-outline-variant/30 pb-6">
-          <h3 className="text-2xl font-display-md font-bold text-primary tracking-tight">Edit Event</h3>
-          <p className="mt-2 text-sm font-body-md text-on-surface-variant max-w-2xl">
-            Update the details for {event.title}.
+        <div className="mb-6 border-b border-white/10 pb-4">
+          <h3 className="text-xl font-bold text-white tracking-tight gradient-text">Edit Event Settings</h3>
+          <p className="mt-1 text-xs text-slate-400 max-w-2xl font-sans">
+            Update the operational configurations and metadata for <span className="font-semibold text-slate-200">{event.title}</span>.
           </p>
         </div>
         
         {state?.error?.form && (
-          <div className="mb-6 bg-error/10 border border-error/20 p-4 rounded-2xl flex items-start gap-3 text-error">
-            <span className="material-symbols-outlined shrink-0">error</span>
-            <p className="text-sm font-medium">{state.error.form[0]}</p>
+          <div className="mb-6 bg-red-950/60 border border-red-500/30 p-4 rounded-2xl flex items-start gap-3 text-red-300 text-xs font-mono">
+            <span className="material-symbols-outlined shrink-0 text-red-400">error</span>
+            <p>{state.error.form[0]}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-5">
             
             {/* Title */}
             <div>
-              <label htmlFor="title" className="block text-sm font-label-sm uppercase tracking-wider text-on-surface-variant mb-2">
-                Event Title <span className="text-error">*</span>
+              <label htmlFor="title" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">
+                Event Title <span className="text-amber-400">*</span>
               </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-on-surface-variant">
-                  <span className="material-symbols-outlined">title</span>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <span className="material-symbols-outlined text-lg">title</span>
                 </div>
                 <input
                   type="text"
@@ -82,180 +80,189 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                   id="title"
                   required
                   defaultValue={event.title}
-                  className="w-full pl-12 pr-4 py-3 bg-surface-container-highest/30 border border-outline-variant/50 rounded-xl text-on-surface font-body-md focus:bg-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none"
-                  placeholder="e.g. Annual Tech Conference 2026"
+                  className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                  placeholder="e.g. Annual Tech Summit 2026"
                 />
               </div>
-              {state?.error?.title && <p className="mt-2 text-xs font-semibold text-error">{state.error.title[0]}</p>}
+              {state?.error?.title && <p className="mt-1 text-[11px] font-mono text-red-400">{state.error.title[0]}</p>}
             </div>
 
             {/* Description */}
             <div>
-              <label htmlFor="description" className="block text-sm font-label-sm uppercase tracking-wider text-on-surface-variant mb-2">
-                Description <span className="text-error">*</span>
+              <label htmlFor="description" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">
+                Description <span className="text-amber-400">*</span>
               </label>
-              <div className="mt-1 relative">
-                <div className="absolute top-3 left-0 pl-4 flex items-start pointer-events-none text-on-surface-variant">
-                  <span className="material-symbols-outlined">notes</span>
+              <div className="relative">
+                <div className="absolute top-3 left-0 pl-3.5 flex items-start pointer-events-none text-slate-400">
+                  <span className="material-symbols-outlined text-lg">notes</span>
                 </div>
                 <textarea
-                  id="description"
                   name="description"
+                  id="description"
+                  rows={3}
                   required
-                  rows={4}
                   defaultValue={event.description || ''}
-                  className="w-full pl-12 pr-4 py-3 bg-surface-container-highest/30 border border-outline-variant/50 rounded-xl text-on-surface font-body-md focus:bg-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none"
-                  placeholder="Event details and agenda..."
+                  className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                  placeholder="Describe your event..."
                 />
               </div>
-              {state?.error?.description && <p className="mt-2 text-xs font-semibold text-error">{state.error.description[0]}</p>}
             </div>
 
-            {/* Date, Time, Capacity Row */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Date & Time */}
-              <div className="sm:col-span-1 lg:col-span-1 flex flex-col h-full">
-                <label htmlFor="date" className="block text-sm font-label-sm uppercase tracking-wider text-on-surface-variant mb-2">
+            {/* Date & ClosesAt Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="date" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">
                   <span className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4" /> Date & Time <span className="text-error">*</span>
+                    <Calendar className="w-3.5 h-3.5 text-amber-400" /> Start Date & Time <span className="text-amber-400">*</span>
                   </span>
                 </label>
-                <div className="mt-auto relative">
-                  {mounted ? (
-                    <input
-                      type="datetime-local"
-                      name="date"
-                      id="date"
-                      required
-                      defaultValue={formatDateForInput(event.date)}
-                      className="w-full px-4 py-3 bg-surface-container-highest/30 border border-outline-variant/50 rounded-xl text-on-surface font-body-md focus:bg-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none"
-                    />
-                  ) : (
-                    <input
-                      type="datetime-local"
-                      disabled
-                      className="w-full px-4 py-3 bg-surface-container-highest/30 border border-outline-variant/50 rounded-xl text-on-surface font-body-md opacity-50"
-                    />
-                  )}
-                </div>
-                {state?.error?.date && <p className="mt-2 text-xs font-semibold text-error">{state.error.date[0]}</p>}
-              </div>
-
-              {/* Auto Close */}
-              <div className="sm:col-span-1 lg:col-span-1 flex flex-col h-full">
-                <label htmlFor="closesAt" className="block text-sm font-label-sm uppercase tracking-wider text-on-surface-variant mb-2">
-                  <span className="flex items-center gap-1.5" title="Event closes automatically after this time">
-                    <Clock className="w-4 h-4" /> Auto-Close Time <span className="text-error">*</span>
-                  </span>
-                </label>
-                <div className="mt-auto relative">
-                  {mounted ? (
-                    <input
-                      type="datetime-local"
-                      name="closesAt"
-                      id="closesAt"
-                      required
-                      defaultValue={formatDateForInput(event.closesAt)}
-                      className="w-full px-4 py-3 bg-surface-container-highest/30 border border-outline-variant/50 rounded-xl text-on-surface font-body-md focus:bg-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none"
-                    />
-                  ) : (
-                    <input
-                      type="datetime-local"
-                      disabled
-                      className="w-full px-4 py-3 bg-surface-container-highest/30 border border-outline-variant/50 rounded-xl text-on-surface font-body-md opacity-50"
-                    />
-                  )}
-                </div>
-                {state?.error?.closesAt && <p className="mt-2 text-xs font-semibold text-error">{state.error.closesAt[0]}</p>}
-              </div>
-
-              {/* Capacity */}
-              <div className="sm:col-span-2 lg:col-span-1 flex flex-col h-full">
-                <label htmlFor="maxAttendees" className="block text-sm font-label-sm uppercase tracking-wider text-on-surface-variant mb-2">
-                  <span className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4" /> Capacity
-                  </span>
-                </label>
-                <div className="mt-auto relative">
+                <div className="relative">
                   <input
-                    type="number"
-                    name="maxAttendees"
-                    id="maxAttendees"
-                    min="1"
-                    defaultValue={event.maxAttendees || ''}
-                    className="w-full px-4 py-3 bg-surface-container-highest/30 border border-outline-variant/50 rounded-xl text-on-surface font-body-md focus:bg-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none"
-                    placeholder="e.g. 500 (Optional)"
+                    type="datetime-local"
+                    name="date"
+                    id="date"
+                    required
+                    defaultValue={mounted ? formatDateForInput(event.date) : ''}
+                    className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono [color-scheme:dark]"
                   />
                 </div>
-                {state?.error?.maxAttendees && <p className="mt-2 text-xs font-semibold text-error">{state.error.maxAttendees[0]}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="closesAt" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-amber-400" /> Registration Close Time
+                  </span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="datetime-local"
+                    name="closesAt"
+                    id="closesAt"
+                    defaultValue={mounted ? formatDateForInput(event.closesAt) : ''}
+                    className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono [color-scheme:dark]"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Location & Maps */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div className="flex flex-col h-full">
-                <label htmlFor="location" className="block text-sm font-label-sm uppercase tracking-wider text-on-surface-variant mb-2">
+            {/* Location & Map Link */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="location" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">
                   <span className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4" /> Location Name <span className="text-error">*</span>
+                    <MapPin className="w-3.5 h-3.5 text-amber-400" /> Location Venue
                   </span>
                 </label>
-                <div className="mt-auto relative">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <MapPin className="w-4 h-4" />
+                  </div>
                   <input
                     type="text"
                     name="location"
                     id="location"
-                    required
                     defaultValue={event.location || ''}
-                    className="w-full px-4 py-3 bg-surface-container-highest/30 border border-outline-variant/50 rounded-xl text-on-surface font-body-md focus:bg-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none"
-                    placeholder="e.g. Main Hall, Tech Center"
+                    className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                    placeholder="e.g. Grand Ballroom, Hilton"
                   />
                 </div>
-                {state?.error?.location && <p className="mt-2 text-xs font-semibold text-error">{state.error.location[0]}</p>}
               </div>
 
-              <div className="flex flex-col h-full">
-                <label htmlFor="mapLink" className="block text-sm font-label-sm uppercase tracking-wider text-on-surface-variant mb-2">
-                  <span className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <Map className="w-4 h-4" /> Maps URL <span className="text-error">*</span>
-                    </span>
-                    <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-600 hover:text-blue-500 flex items-center bg-blue-50 px-2 py-0.5 rounded-full" title="Open Google Maps to find the location">
-                      Find <span className="material-symbols-outlined text-[12px] ml-0.5">open_in_new</span>
-                    </a>
+              <div>
+                <label htmlFor="mapLink" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">
+                  <span className="flex items-center gap-1.5">
+                    <Map className="w-3.5 h-3.5 text-amber-400" /> Google Maps URL
                   </span>
                 </label>
-                <div className="mt-auto relative">
+                <div className="relative flex items-center">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Map className="w-4 h-4" />
+                  </div>
                   <input
                     type="url"
                     name="mapLink"
                     id="mapLink"
-                    required
                     defaultValue={event.mapLink || ''}
-                    className="w-full px-4 py-3 bg-surface-container-highest/30 border border-outline-variant/50 rounded-xl text-on-surface font-body-md focus:bg-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none"
-                    placeholder="https://maps.app.goo.gl/..."
+                    className="w-full pl-11 pr-24 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                    placeholder="https://maps.google.com/..."
                   />
+                  <a 
+                    href={event.mapLink || 'https://maps.google.com'} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="absolute right-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 text-[11px] font-mono transition-all flex items-center gap-1 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.1)]" 
+                    title="Open Google Maps to search location"
+                  >
+                    <span>Find</span>
+                    <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+                  </a>
                 </div>
-                {state?.error?.mapLink && <p className="mt-2 text-xs font-semibold text-error">{state.error.mapLink[0]}</p>}
               </div>
             </div>
 
+            {/* Capacity & Status */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="maxAttendees" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">
+                  <span className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-amber-400" /> Max Capacity Limit
+                  </span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="number"
+                    name="maxAttendees"
+                    id="maxAttendees"
+                    min={1}
+                    defaultValue={event.maxAttendees || ''}
+                    className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
+                    placeholder="Leave blank for unlimited"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="status" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">
+                  Event Stream Status
+                </label>
+                <div className="relative">
+                  <select
+                    name="status"
+                    id="status"
+                    defaultValue={event.status}
+                    className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono appearance-none cursor-pointer pr-10"
+                  >
+                    <option value="open" className="bg-slate-900 text-white">Open / Live</option>
+                    <option value="closed" className="bg-slate-900 text-white">Closed / Finished</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+                    <span className="material-symbols-outlined text-base">expand_more</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="pt-8 mt-8 border-t border-outline-variant/30 flex justify-end">
+          {/* Submit */}
+          <div className="pt-4 border-t border-white/10 flex justify-end">
             <button
               type="submit"
               disabled={isPending}
-              className="w-full sm:w-auto inline-flex justify-center items-center py-3 px-8 shadow-sm text-sm font-label-sm font-bold rounded-xl text-white bg-primary hover:bg-tertiary-container focus:outline-none transition-all active-scale disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] flex items-center gap-2 active-scale"
             >
               {isPending ? (
                 <>
-                  <span className="material-symbols-outlined mr-2 animate-spin">progress_activity</span>
-                  Saving...
+                  <span className="material-symbols-outlined text-base animate-spin">progress_activity</span>
+                  <span>Saving...</span>
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined mr-2">save</span>
-                  Save Changes
+                  <span className="material-symbols-outlined text-base">save</span>
+                  <span>Save Changes</span>
                 </>
               )}
             </button>

@@ -24,7 +24,6 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Autocomplete state
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -33,7 +32,6 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
 
   const canManage = currentUserRole === 'owner' || currentUserRole === 'editor';
 
-  // Click outside to close dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -44,7 +42,6 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Debounced Search
   useEffect(() => {
     if (!email || email.trim().length < 2) {
       setSearchResults([]);
@@ -54,7 +51,6 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
 
     const query = email.trim();
     
-    // Check cache
     if (cache[query]) {
       setSearchResults(cache[query]);
       setShowDropdown(true);
@@ -113,53 +109,53 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
 
   const getRoleIcon = (r: string) => {
     switch(r) {
-      case 'owner': return <Shield className="w-4 h-4 text-primary" />;
-      case 'editor': return <Eye className="w-4 h-4 text-blue-600" />;
-      case 'scanner': return <QrCode className="w-4 h-4 text-green-600" />;
+      case 'owner': return <Shield className="w-4 h-4 text-amber-400" />;
+      case 'editor': return <Eye className="w-4 h-4 text-indigo-400" />;
+      case 'scanner': return <QrCode className="w-4 h-4 text-emerald-400" />;
       default: return null;
     }
   };
 
   return (
-    <div className="bg-surface-container-lowest shadow-sm sm:rounded-xl border border-surface-container-high overflow-hidden">
-      <div className="px-4 py-5 sm:px-6 border-b border-surface-container-highest">
-        <h3 className="text-lg leading-6 font-headline-md font-bold text-primary flex items-center">
-          <UserPlus className="w-5 h-5 mr-2" />
-          Team & Scanners
+    <div className="claude-card rounded-3xl border border-white/10 shadow-xl overflow-hidden text-slate-100">
+      <div className="px-6 py-4 border-b border-white/10 bg-slate-950/60">
+        <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
+          <UserPlus className="w-4 h-4 text-amber-400" />
+          <span>Team & Scanner Assignments</span>
         </h3>
-        <p className="mt-1 max-w-2xl text-sm font-body-sm text-on-surface-variant">
-          Invite staff to help manage this event or scan attendees at the door.
+        <p className="mt-1 text-xs text-slate-400">
+          Assign event staff, editors, and door scanners for this stream.
         </p>
       </div>
 
-      <div className="p-4 sm:p-6 space-y-6">
+      <div className="p-6 space-y-6">
         {/* Invite Form */}
         {canManage && (
-          <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-4 items-end bg-surface-container p-4 rounded-lg overflow-visible">
+          <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-4 items-end bg-slate-950/60 p-4 rounded-2xl border border-white/10">
             <div className="flex-1 w-full relative" ref={dropdownRef}>
-              <label htmlFor="invite-email" className="block text-sm font-medium text-on-surface mb-1">Email Address</label>
+              <label htmlFor="invite-email" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">Email Address</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   id="invite-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onFocus={() => { if (email.length >= 2) setShowDropdown(true); }}
-                  placeholder="Search by name or email..."
+                  placeholder="Search name or email..."
                   required
                   autoComplete="off"
-                  className="w-full pl-9 pr-3 py-2 bg-surface border border-outline-variant rounded-md focus:ring-1 focus:ring-primary focus:border-primary text-on-surface"
+                  className="w-full pl-10 pr-3 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 font-mono transition-all"
                 />
               </div>
 
               {/* Autocomplete Dropdown */}
               {showDropdown && (
-                <div className="absolute z-50 w-full mt-1 bg-surface border border-surface-container-highest rounded-md shadow-lg max-h-60 overflow-y-auto">
+                <div className="absolute z-50 w-full mt-1 bg-slate-900 border border-white/15 rounded-xl shadow-2xl max-h-60 overflow-y-auto hide-scrollbar">
                   {isSearching ? (
-                    <div className="p-4 flex items-center justify-center space-x-2 text-on-surface-variant">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm">Searching...</span>
+                    <div className="p-4 flex items-center justify-center space-x-2 text-slate-400">
+                      <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                      <span className="text-xs font-mono">Searching users...</span>
                     </div>
                   ) : searchResults.length > 0 ? (
                     <ul className="py-1">
@@ -167,79 +163,80 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
                         <li 
                           key={user.id}
                           onClick={() => handleSelectUser(user.email)}
-                          className="px-4 py-2 hover:bg-surface-container cursor-pointer flex flex-col"
+                          className="px-4 py-2.5 hover:bg-white/10 cursor-pointer flex flex-col border-b border-white/5 last:border-0"
                         >
-                          <span className="text-sm font-medium text-on-surface">{user.fullName || 'No name'}</span>
-                          <span className="text-xs text-on-surface-variant">{user.email}</span>
+                          <span className="text-xs font-bold text-white">{user.fullName || 'No name'}</span>
+                          <span className="text-[11px] font-mono text-slate-400">{user.email}</span>
                         </li>
                       ))}
                     </ul>
                   ) : email.length >= 2 ? (
-                    <div className="p-4 text-sm text-on-surface-variant text-center">
-                      No matching users found.<br/>
-                      <span className="text-xs">They must create an account first.</span>
+                    <div className="p-4 text-xs font-mono text-slate-400 text-center">
+                      No registered user found.<br/>
+                      <span className="text-[10px] text-slate-500">They must register an account first.</span>
                     </div>
                   ) : null}
                 </div>
               )}
             </div>
             
-            <div className="w-full sm:w-48">
-              <label htmlFor="invite-role" className="block text-sm font-medium text-on-surface mb-1">Role</label>
+            <div className="w-full sm:w-44">
+              <label htmlFor="invite-role" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">Role</label>
               <select
                 id="invite-role"
                 value={role}
                 onChange={(e) => setRole(e.target.value as 'editor' | 'scanner')}
-                className="w-full px-3 py-2 bg-surface border border-outline-variant rounded-md focus:ring-1 focus:ring-primary focus:border-primary text-on-surface"
+                className="w-full px-3.5 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-amber-500/50 transition-all"
               >
                 <option value="scanner">Scanner</option>
                 <option value="editor">Editor</option>
               </select>
             </div>
+
             <button
               type="submit"
               disabled={isSubmitting || !email}
-              className="w-full sm:w-auto px-4 py-2 bg-primary text-on-primary rounded-md shadow-sm font-medium hover:bg-tertiary-container disabled:opacity-50 transition-colors"
+              className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)] disabled:opacity-50 active-scale"
             >
-              {isSubmitting ? 'Adding...' : 'Invite'}
+              {isSubmitting ? 'Adding...' : 'Invite Staff'}
             </button>
           </form>
         )}
 
         {message && (
-          <div className={`p-3 rounded-md text-sm ${message.type === 'success' ? 'bg-[#e7f5e8] text-[#1e4620]' : 'bg-error-container text-on-error-container'}`}>
+          <div className={`p-3.5 rounded-2xl text-xs font-mono border ${message.type === 'success' ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/30' : 'bg-red-950/60 text-red-300 border-red-500/30'}`}>
             {message.text}
           </div>
         )}
 
         {/* Team List */}
         <div>
-          <h4 className="font-label-sm font-semibold text-on-surface mb-3">Current Team Members</h4>
-          <div className="border border-surface-container-highest rounded-md overflow-hidden">
-            <ul className="divide-y divide-surface-container-highest">
+          <h4 className="text-xs font-mono uppercase tracking-widest text-slate-400 mb-3">Assigned Staff ({initialTeam.length})</h4>
+          <div className="border border-white/10 rounded-2xl overflow-hidden bg-slate-950/40">
+            <ul className="divide-y divide-white/10">
               {initialTeam.map((member) => (
-                <li key={member.adminId} className="px-4 py-3 flex items-center justify-between hover:bg-surface-container-lowest transition-colors">
+                <li key={member.adminId} className="px-4 py-3 flex items-center justify-between hover:bg-white/[0.03] transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-bold">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-mono font-bold text-xs">
                       {member.fullName ? member.fullName[0].toUpperCase() : member.email[0].toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-on-surface">
+                      <p className="text-xs font-bold text-white">
                         {member.fullName || 'No name'}
-                        {member.adminId === currentAdminId && <span className="ml-2 text-xs font-normal text-on-surface-variant">(You)</span>}
+                        {member.adminId === currentAdminId && <span className="ml-2 text-[10px] font-mono text-amber-400">(You)</span>}
                       </p>
-                      <p className="text-xs text-on-surface-variant">{member.email}</p>
+                      <p className="text-[11px] font-mono text-slate-400">{member.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center text-sm text-on-surface-variant capitalize">
+                    <div className="flex items-center gap-1.5 text-xs font-mono text-slate-300 uppercase tracking-wider">
                       {getRoleIcon(member.role)}
-                      <span className="ml-1">{member.role}</span>
+                      <span>{member.role}</span>
                     </div>
                     {canManage && member.adminId !== currentAdminId && !(currentUserRole === 'editor' && member.role === 'owner') && (
                       <button
                         onClick={() => handleRemove(member.adminId)}
-                        className="text-error hover:bg-error-container p-2 rounded-full transition-colors"
+                        className="text-red-400 hover:bg-red-500/10 p-2 rounded-xl transition-colors"
                         title="Remove member"
                       >
                         <Trash2 className="w-4 h-4" />

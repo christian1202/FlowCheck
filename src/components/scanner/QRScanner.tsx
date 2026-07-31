@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 import { scanTicketAction } from '@/actions/scanner';
-import type { ScanResultResponse } from '@/data/scanner';
 
 type ScannerStatus = 'idle' | 'scanning' | 'processing' | 'result';
 
@@ -25,8 +24,18 @@ export default function QRScanner({ eventId }: { eventId: string }) {
   const [currentOverlay, setCurrentOverlay] = useState<'none' | 'success' | 'duplicate' | 'error'>('none');
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [isMirrored, setIsMirrored] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showToast = (msg: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastMessage(msg);
+    toastTimerRef.current = setTimeout(() => {
+      setToastMessage(null);
+    }, 3200);
+  };
 
   const playSound = (type: 'success' | 'error' | 'warning') => {
     try {
@@ -36,7 +45,6 @@ export default function QRScanner({ eventId }: { eventId: string }) {
       gainNode.gain.value = 0.3;
 
       if (type === 'success') {
-        // Pleasant two-tone chime
         const osc1 = ctx.createOscillator();
         osc1.type = 'sine';
         osc1.frequency.value = 880;
@@ -51,7 +59,6 @@ export default function QRScanner({ eventId }: { eventId: string }) {
         osc2.start(ctx.currentTime + 0.15);
         osc2.stop(ctx.currentTime + 0.3);
       } else if (type === 'warning') {
-        // Double beep
         for (let i = 0; i < 2; i++) {
           const osc = ctx.createOscillator();
           osc.type = 'square';
@@ -61,7 +68,6 @@ export default function QRScanner({ eventId }: { eventId: string }) {
           osc.stop(ctx.currentTime + i * 0.2 + 0.1);
         }
       } else {
-        // Low descending tone
         const osc = ctx.createOscillator();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(440, ctx.currentTime);
@@ -71,10 +77,9 @@ export default function QRScanner({ eventId }: { eventId: string }) {
         osc.stop(ctx.currentTime + 0.3);
       }
 
-      // Clean up the AudioContext after sounds finish
       setTimeout(() => ctx.close().catch(() => {}), 1000);
     } catch {
-      // Ignore audio errors (e.g. user hasn't interacted yet)
+      // Ignore audio errors
     }
   };
 
@@ -117,7 +122,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
       }
     }
 
-    setRecentScans(prev => [newScan, ...prev].slice(0, 20)); // Keep last 20
+    setRecentScans(prev => [newScan, ...prev].slice(0, 20));
     setStatus('result');
 
     setTimeout(() => {
@@ -134,9 +139,28 @@ export default function QRScanner({ eventId }: { eventId: string }) {
       scannerRef.current = new Html5Qrcode('qr-reader');
     }
 
+    let targetMode = mode;
+
+    // Check available devices before starting
+    try {
+      const devices = await Html5Qrcode.getCameras();
+      if (devices && devices.length > 0) {
+        const hasRear = devices.length > 1 || devices.some(d => /back|rear|environment|main/i.test(d.label));
+        if (targetMode === 'environment' && !hasRear && devices.length === 1) {
+          // PC/Laptop with single webcam
+          showToast("Sorry, we didn't detect a rear camera on this device. Using default webcam.");
+          targetMode = 'user';
+          setFacingMode('user');
+          setIsMirrored(true);
+        }
+      }
+    } catch {
+      // Permission not granted yet; proceed to start()
+    }
+
     try {
       await scannerRef.current.start(
-        { facingMode: mode },
+        { facingMode: targetMode },
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
@@ -145,12 +169,39 @@ export default function QRScanner({ eventId }: { eventId: string }) {
         (decodedText) => {
           processScan(decodedText);
         },
-        () => {} // ignore errors while seeking
+        () => {}
       );
       setStatus('scanning');
     } catch (err) {
       console.error("Error starting scanner:", err);
-      alert("Could not start camera. Please ensure permissions are granted.");
+
+      // Fallback logic if environment mode fails on PC/Laptop
+      if (targetMode === 'environment') {
+        showToast("Sorry, we didn't detect a rear camera on this device.");
+        setFacingMode('user');
+        setIsMirrored(true);
+
+        try {
+          await scannerRef.current.start(
+            { facingMode: 'user' },
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 },
+              aspectRatio: 1.0,
+            },
+            (decodedText) => {
+              processScan(decodedText);
+            },
+            () => {}
+          );
+          setStatus('scanning');
+          return;
+        } catch (fallbackErr) {
+          console.error("Fallback to front camera failed:", fallbackErr);
+        }
+      }
+
+      alert("Could not start camera. Please ensure camera permissions are granted.");
     }
   };
 
@@ -161,10 +212,45 @@ export default function QRScanner({ eventId }: { eventId: string }) {
     }
   };
 
+  const toggleMirror = () => {
+    const nextMirrored = !isMirrored;
+    setIsMirrored(nextMirrored);
+    showToast(
+      nextMirrored 
+        ? "Camera view mirrored (Inverted for natural video call orientation)" 
+        : "Camera view unmirrored (Standard orientation)"
+    );
+  };
+
   const toggleCamera = async () => {
     const newMode = facingMode === 'environment' ? 'user' : 'environment';
+
+    // If attempting to switch to rear camera on PC/laptop with single webcam
+    if (newMode === 'environment') {
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length === 1) {
+          const hasRear = devices.some(d => /back|rear|environment|main/i.test(d.label));
+          if (!hasRear) {
+            showToast("Sorry, we didn't detect a rear camera on this device.");
+            return;
+          }
+        }
+      } catch {
+        // Proceed with attempt
+      }
+    }
+
+    const newMirrored = newMode === 'user'; // Default front camera to mirror mode
+    
     setFacingMode(newMode);
-    setIsMirrored(newMode === 'user');
+    setIsMirrored(newMirrored);
+
+    showToast(
+      newMode === 'user'
+        ? "Switched to Front Camera (Video Call Mirror Enabled)"
+        : "Switched to Rear Camera (Standard Optical View)"
+    );
     
     if (scannerRef.current && scannerRef.current.getState() !== Html5QrcodeScannerState.NOT_STARTED) {
       await stopScanner();
@@ -181,71 +267,108 @@ export default function QRScanner({ eventId }: { eventId: string }) {
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-row h-full min-h-[80vh] w-full absolute inset-0 pt-16 md:pt-0">
-      {/* Scanner Viewfinder */}
-      <div className="flex-1 relative bg-black flex flex-col items-center justify-center p-gutter md:p-section-padding z-10">
+    <div className="flex flex-col md:flex-row h-full min-h-[82vh] w-full absolute inset-0 pt-14 md:pt-0 text-slate-100 bg-black">
+      
+      {/* Viewfinder Area */}
+      <div className="flex-1 relative bg-slate-950 flex flex-col items-center justify-center p-4 md:p-8 z-10 bg-ambient-mesh">
         
-        {/* Top Controls */}
-        <div className="absolute top-gutter right-gutter z-20 flex gap-4">
-          <button onClick={() => setIsMirrored(!isMirrored)} className="h-touch-target px-4 rounded-full bg-surface/10 backdrop-blur-md border border-outline-variant/30 text-white font-label-sm text-label-sm hover:bg-surface/20 transition-colors flex items-center gap-2">
+        {/* Top Floating HUD Controls */}
+        <div className="absolute top-4 right-4 z-20 flex gap-2.5">
+          <button 
+            onClick={toggleMirror} 
+            className={`px-3.5 py-2 rounded-xl bg-slate-900/80 backdrop-blur-md border text-xs font-mono transition-all flex items-center gap-1.5 active-scale ${
+              isMirrored 
+                ? 'border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]' 
+                : 'border-white/10 text-slate-300 hover:text-white hover:bg-slate-800'
+            }`}
+            title="Toggle video mirror effect"
+          >
             <span className="material-symbols-outlined text-sm">flip</span>
-            Flip
+            <span>{isMirrored ? 'Mirrored' : 'Unmirrored'}</span>
           </button>
-          <button onClick={toggleCamera} className="h-touch-target px-4 rounded-full bg-surface/10 backdrop-blur-md border border-outline-variant/30 text-white font-label-sm text-label-sm hover:bg-surface/20 transition-colors flex items-center gap-2">
+          <button 
+            onClick={toggleCamera} 
+            className="px-3.5 py-2 rounded-xl bg-slate-900/80 backdrop-blur-md border border-white/10 text-xs font-mono text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5 active-scale"
+            title="Switch front/rear camera"
+          >
             <span className="material-symbols-outlined text-sm">cameraswitch</span>
-            {facingMode === 'environment' ? 'Rear' : 'Front'}
+            <span>{facingMode === 'environment' ? 'Rear' : 'Front'}</span>
           </button>
           {status !== 'idle' && (
-             <button onClick={stopScanner} className="h-touch-target px-4 rounded-full bg-error/80 backdrop-blur-md border border-error/50 text-white font-label-sm text-label-sm hover:bg-error transition-colors flex items-center gap-2">
+             <button 
+               onClick={stopScanner} 
+               className="px-3.5 py-2 rounded-xl bg-red-950/80 backdrop-blur-md border border-red-500/40 text-xs font-mono text-red-300 hover:bg-red-900 transition-all flex items-center gap-1.5 active-scale"
+             >
                <span className="material-symbols-outlined text-sm">stop_circle</span>
-               Stop
+               <span>Stop</span>
              </button>
           )}
         </div>
 
-        {/* Viewfinder Frame */}
-        <div className="relative z-10 w-full max-w-md aspect-square border-2 border-white/20 rounded-xl overflow-hidden shadow-lg backdrop-blur-sm bg-black/50">
+        {/* HUD Notification Toast */}
+        {toastMessage && (
+          <div className="absolute top-16 md:top-6 left-1/2 -translate-x-1/2 z-40 px-4 py-2.5 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-300 text-xs font-mono shadow-[0_0_20px_rgba(245,158,11,0.25)] flex items-center gap-2 animate-[fadeIn_0.2s_ease-out] backdrop-blur-xl max-w-[90%] text-center">
+            <span className="material-symbols-outlined text-sm text-amber-400 shrink-0">info</span>
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
+        {/* Futuristic Camera Frame */}
+        <div className="relative z-10 w-full max-w-md aspect-square border border-white/15 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md bg-slate-950/70 claude-card">
+          
           <div id="qr-reader" className={`w-full h-full [&_video]:object-cover [&_video]:w-full [&_video]:h-full ${isMirrored ? '[&_video]:scale-x-[-1]' : ''}`}></div>
           
-          {/* Scanning Line */}
+          {/* Laser Scanning Bar */}
           {status === 'scanning' && (
-            <div className="absolute left-0 w-full h-0.5 bg-white shadow-[0_0_8px_2px_rgba(255,255,255,0.5)] animate-[scan_2s_infinite_linear] z-20 top-0"></div>
+            <div className="scan-laser"></div>
           )}
 
+          {/* Idle Start State */}
           {status === 'idle' && (
-            <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-30">
-               <button onClick={() => startScanner()} className="bg-primary text-on-primary px-8 h-touch-target rounded-full font-label-sm shadow-md hover:scale-105 transition-transform flex items-center gap-2">
-                 <span className="material-symbols-outlined">videocam</span> Start Scanner
+            <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-xl flex flex-col items-center justify-center p-6 z-30">
+               <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                 <span className="material-symbols-outlined text-3xl">qr_code_scanner</span>
+               </div>
+               <h3 className="text-lg font-bold text-white mb-1">Scanner Offline</h3>
+               <p className="text-xs text-slate-400 mb-6 text-center max-w-xs">Activate camera stream to scan attendee QR codes in real-time.</p>
+               <button 
+                 onClick={() => startScanner()} 
+                 className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] flex items-center gap-2 active-scale"
+               >
+                 <span className="material-symbols-outlined text-lg">videocam</span> 
+                 <span>Start Optical Stream</span>
                </button>
             </div>
           )}
 
+          {/* Processing State */}
           {status === 'processing' && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-30">
-               <div className="animate-spin rounded-full h-12 w-12 border-4 border-t-transparent border-white"></div>
+            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center z-30">
+               <div className="animate-spin rounded-full h-10 w-10 border-2 border-t-amber-400 border-white/10 mb-3"></div>
+               <span className="text-xs font-mono uppercase tracking-widest text-amber-400">Verifying Ticket...</span>
             </div>
           )}
 
-          {/* Success/Error Overlay */}
+          {/* Result Overlay */}
           {currentOverlay !== 'none' && (
-            <div className="absolute inset-0 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center z-40 animate-[fadeIn_0.3s_ease-out]">
-              <div className={`w-24 h-24 rounded-full flex items-center justify-center mb-4 animate-[bounceIn_0.5s_cubic-bezier(0.175,0.885,0.32,1.275)_forwards] ${
-                currentOverlay === 'success' ? 'bg-green-600' : 
-                currentOverlay === 'duplicate' ? 'bg-yellow-500' : 'bg-error'
+            <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 z-40 animate-[fadeIn_0.25s_ease-out]">
+              <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-4 border ${
+                currentOverlay === 'success' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.3)]' : 
+                currentOverlay === 'duplicate' ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.3)]' : 'bg-red-500/15 border-red-500/40 text-red-400 shadow-[0_0_30px_rgba(239,68,68,0.3)]'
               }`}>
-                <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1", fontSize: "48px" }}>
-                  {currentOverlay === 'success' ? 'check_circle' : currentOverlay === 'duplicate' ? 'info' : 'cancel'}
+                <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  {currentOverlay === 'success' ? 'check_circle' : currentOverlay === 'duplicate' ? 'warning' : 'cancel'}
                 </span>
               </div>
-              <p className={`font-headline-md text-headline-md font-bold text-center px-4 ${
-                 currentOverlay === 'success' ? 'text-green-700' : 
-                 currentOverlay === 'duplicate' ? 'text-yellow-700' : 'text-error'
+              <h3 className={`text-xl font-bold tracking-tight text-center ${
+                 currentOverlay === 'success' ? 'text-emerald-300' : 
+                 currentOverlay === 'duplicate' ? 'text-amber-300' : 'text-red-300'
               }`}>
                 {recentScans[0]?.message}
-              </p>
+              </h3>
               {recentScans[0]?.attendee && (
-                <p className="font-body-md text-body-md text-on-surface-variant mt-2 text-center px-4">
-                  {recentScans[0].attendee.name} • {recentScans[0].attendee.local}
+                <p className="text-xs text-slate-300 mt-2 font-mono text-center">
+                  {recentScans[0].attendee.name} {recentScans[0].attendee.local ? `• ${recentScans[0].attendee.local}` : ''}
                 </p>
               )}
             </div>
@@ -253,64 +376,63 @@ export default function QRScanner({ eventId }: { eventId: string }) {
         </div>
         
         {status === 'scanning' && (
-           <p className="mt-8 text-white/70 font-label-sm text-label-sm z-10 text-center max-w-sm px-4">
-               Align QR code within the frame to scan. <br/>Hold steady for best results.
+           <p className="mt-6 text-slate-400 font-mono text-[11px] z-10 text-center max-w-sm">
+               Align QR code inside target frame to process check-in.
            </p>
         )}
       </div>
 
-      {/* Recent Scans Sidebar */}
-      <aside className="w-full md:w-80 bg-surface border-l border-outline-variant flex flex-col h-[40vh] md:h-full shrink-0 z-40 shadow-[-4px_0_15px_rgba(0,0,0,0.03)] animate-[slideInRight_0.4s_ease-out]">
-        <div className="p-gutter border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest sticky top-0 z-10">
-          <h2 className="font-headline-md text-headline-md text-primary font-bold">Recent Scans</h2>
-          <div className="flex items-center gap-1 text-on-surface-variant">
-            <span className="material-symbols-outlined text-sm">history</span>
-            <span className="font-label-xs text-label-xs">Live</span>
+      {/* Telemetry Log Sidebar */}
+      <aside className="w-full md:w-80 bg-slate-950 border-l border-white/10 flex flex-col h-[40vh] md:h-full shrink-0 z-20">
+        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/60 backdrop-blur-md sticky top-0 z-10">
+          <h2 className="text-xs font-mono uppercase tracking-widest text-slate-300 font-bold">Telemetry Stream</h2>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-[10px] font-mono text-emerald-400 uppercase">Live</span>
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-gutter space-y-3 bg-background">
+        <div className="flex-1 overflow-y-auto p-3 space-y-2.5 hide-scrollbar">
           {recentScans.length === 0 ? (
-            <div className="text-center text-on-surface-variant font-body-md py-8">
-              No scans yet.
+            <div className="text-center text-slate-500 font-mono text-xs py-10">
+              No scans recorded.
             </div>
           ) : (
             recentScans.map((scan) => (
-              <div key={scan.id} className={`bg-surface-container-lowest p-3 rounded-lg shadow-sm flex items-start gap-3 transition-shadow relative overflow-hidden border ${
-                scan.result === 'error' ? 'border-error/30' : 
-                scan.result === 'duplicate' ? 'border-yellow-500/30' : 'border-outline-variant/40 hover:shadow-md'
-              }`}>
-                {scan.result !== 'success' && (
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${scan.result === 'error' ? 'bg-error' : 'bg-yellow-500'}`}></div>
-                )}
-                
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                  scan.result === 'success' ? 'bg-primary/5 text-primary' :
-                  scan.result === 'duplicate' ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-error-container text-on-error-container'
+              <div 
+                key={scan.id} 
+                className={`claude-card p-3 rounded-2xl flex items-start gap-3 border ${
+                  scan.result === 'error' ? 'border-red-500/30 bg-red-950/20' : 
+                  scan.result === 'duplicate' ? 'border-amber-500/30 bg-amber-950/20' : 'border-white/10 hover:border-white/20'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${
+                  scan.result === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
+                  scan.result === 'duplicate' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' :
+                  'bg-red-500/10 border-red-500/30 text-red-400'
                 }`}>
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    {scan.result === 'success' ? 'person' : scan.result === 'duplicate' ? 'info' : scan.result === 'event_closed' ? 'lock' : 'error'}
+                  <span className="material-symbols-outlined text-base">
+                    {scan.result === 'success' ? 'person' : scan.result === 'duplicate' ? 'info' : 'error'}
                   </span>
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center mb-1">
-                    <p className="font-label-sm text-label-sm text-on-surface font-semibold truncate">
-                      {scan.attendee?.name || 'Unknown Code'}
+                  <div className="flex justify-between items-center mb-0.5">
+                    <p className="text-xs font-bold text-white truncate">
+                      {scan.attendee?.name || 'Unknown Token'}
                     </p>
-                    <span className="font-label-xs text-label-xs text-on-surface-variant">
+                    <span className="text-[10px] font-mono text-slate-500">
                       {scan.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}
                     </span>
                   </div>
                   
                   {scan.result === 'success' ? (
-                    <div className="flex items-center gap-2 mt-1">
-                       <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-xs text-[10px] truncate max-w-[100px]">{scan.attendee?.local}</span>
-                       <p className="font-body-md text-xs text-on-surface-variant truncate">{scan.attendee?.duty}</p>
+                    <div className="flex items-center gap-1.5 mt-1 text-[11px] font-mono text-slate-400">
+                       <span className="px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/10 text-slate-300 text-[10px] truncate">{scan.attendee?.local || 'Standard'}</span>
+                       <span className="truncate">{scan.attendee?.duty}</span>
                     </div>
                   ) : (
-                    <p className={`font-body-md text-xs truncate mt-1 ${scan.result === 'error' ? 'text-error' : 'text-yellow-700'}`}>
+                    <p className={`text-[11px] font-mono truncate mt-0.5 ${scan.result === 'error' ? 'text-red-400' : 'text-amber-400'}`}>
                       {scan.message}
                     </p>
                   )}
@@ -320,25 +442,6 @@ export default function QRScanner({ eventId }: { eventId: string }) {
           )}
         </div>
       </aside>
-
-      <style jsx global>{`
-        @keyframes scan {
-            0% { top: 0; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-        @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.05); opacity: 1; }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 }
