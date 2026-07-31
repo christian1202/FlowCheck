@@ -13,68 +13,72 @@ export async function registerAttendee(
   eventId: string
 ): Promise<RegistrationResult> {
   const db = getDb();
-  // Use transaction to ensure consistency
-  return await db.transaction(async (tx) => {
-    // 1. Check if event is open
-    const [event] = await tx.select({ 
-      title: events.title,
-      status: events.status, 
-      maxAttendees: events.maxAttendees,
-      closesAt: events.closesAt
+
+  // 1. Atomic UPDATE on events table using sql operator
+  // Only increments currentAttendees if event exists, is open, registration is not closed, and below max capacity
+  const [updatedEvent] = await db
+    .update(events)
+    .set({
+      currentAttendees: sql`${events.currentAttendees} + 1`,
     })
-    .from(events)
-    .where(eq(events.id, eventId))
-    .limit(1);
+    .where(
+      and(
+        eq(events.id, eventId),
+        eq(events.status, 'open'),
+        sql`(${events.closesAt} IS NULL OR ${events.closesAt} > NOW())`,
+        sql`(${events.maxAttendees} IS NULL OR ${events.currentAttendees} < ${events.maxAttendees})`
+      )
+    )
+    .returning({ id: events.id });
 
-    if (!event) {
-      return { success: false, error: 'Event not found' };
-    }
-    if (event.status !== 'open') {
-      return { success: false, error: 'Event is not accepting registrations' };
-    }
-    if (event.closesAt && new Date() > new Date(event.closesAt)) {
-      return { success: false, error: 'Event registration has closed' };
-    }
+  if (!updatedEvent) {
+    return { success: false, error: 'Event is full, closed, or does not exist.' };
+  }
 
-    // 2. Check for duplicate registration (same email + eventId)
-    const existing = await tx.select({ id: attendees.id })
-      .from(attendees)
-      .where(and(eq(attendees.eventId, eventId), eq(attendees.email, data.email)))
-      .limit(1);
+  // 2. Insert Attendee into attendees table
+  try {
+    const [newAttendee] = await db
+      .insert(attendees)
+      .values({
+        eventId,
+        name: data.name,
+        email: data.email,
+        local: data.local,
+        district: data.district,
+        zone: data.zone,
+        duty: data.duty,
+        status: 'registered',
+      })
+      .returning();
 
-    if (existing.length > 0) {
-      return { success: false, error: 'Already registered with this email' };
-    }
-
-    // 3. Check capacity if maxAttendees is set
-    if (event.maxAttendees !== null) {
-      const [{ count }] = await tx.select({ count: sql<number>`count(*)` })
-        .from(attendees)
-        .where(eq(attendees.eventId, eventId));
-        
-      if (Number(count) >= event.maxAttendees) {
-        return { success: false, error: 'Event is at full capacity' };
-      }
-    }
-
-    // 4. Insert Attendee
-    // Drizzle defaults `scanToken` to `gen_random_uuid()`
-    const [newAttendee] = await tx.insert(attendees).values({
-      eventId,
-      name: data.name,
-      email: data.email,
-      local: data.local,
-      district: data.district,
-      zone: data.zone,
-      duty: data.duty,
-      status: 'registered',
-    }).returning();
-
-    // 5. Enqueue the Google Sheets sync
+    // 3. Enqueue Google Sheets sync
     await enqueueSheetSync(eventId);
 
     return { success: true, scanToken: newAttendee.scanToken };
-  });
+  } catch (err: any) {
+    // If insert fails due to PostgreSQL unique constraint violation ('23505')
+    if (err.code === '23505' || err?.cause?.code === '23505' || err?.constraint === 'unq_event_email') {
+      // Compensating transaction: decrement currentAttendees counter by 1
+      await db
+        .update(events)
+        .set({
+          currentAttendees: sql`${events.currentAttendees} - 1`,
+        })
+        .where(eq(events.id, eventId));
+
+      return { success: false, error: 'Already registered with this email' };
+    }
+
+    // Rollback currentAttendees counter on any other unexpected error
+    await db
+      .update(events)
+      .set({
+        currentAttendees: sql`${events.currentAttendees} - 1`,
+      })
+      .where(eq(events.id, eventId));
+
+    return { success: false, error: err.message || 'Registration failed' };
+  }
 }
 
 export async function lookupAttendee(eventId: string, email: string) {
