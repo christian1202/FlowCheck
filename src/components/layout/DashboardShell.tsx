@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import LogoutButton from '@/components/auth/LogoutButton';
@@ -60,7 +60,11 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         
         <div className="flex-1 mt-4 overflow-y-auto hide-scrollbar">
           <div data-collapsed={isCollapsed ? "true" : undefined} className="sidebar-nav-wrapper">
-             <SidebarNav isCollapsed={isCollapsed} />
+             <Suspense fallback={<div className="space-y-3 px-3">
+               {[...Array(5)].map((_, i) => <div key={i} className={`h-10 bg-slate-800 rounded-xl animate-pulse ${isCollapsed ? 'w-10 mx-auto' : 'w-full'}`} />)}
+             </div>}>
+               <SidebarNav isCollapsed={isCollapsed} />
+             </Suspense>
           </div>
         </div>
         
@@ -97,7 +101,11 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
       {/* Mobile Bottom Navigation (hidden on desktop) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 glass-nav border-t border-white/10 bg-slate-950/90 backdrop-blur-2xl py-2 px-2 pb-safe flex items-center">
-        <SidebarNav isHorizontal={true} />
+        <Suspense fallback={<div className="flex justify-around items-center w-full px-3 animate-pulse">
+           {[...Array(5)].map((_, i) => <div key={i} className="h-8 w-8 bg-slate-800 rounded-lg" />)}
+        </div>}>
+          <SidebarNav isHorizontal={true} />
+        </Suspense>
       </nav>
 
     </div>

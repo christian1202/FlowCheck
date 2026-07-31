@@ -3,7 +3,7 @@ import { events, eventAdmins, admins, attendees } from '@/lib/db/schema';
 import { eq, and, desc, ilike, sql } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 import type { CreateEventInput, UpdateEventInput } from '@/lib/validators/events';
-import { unstable_cache } from 'next/cache';
+import { cacheTag } from 'next/cache';
 
 export type EventRole = 'owner' | 'editor' | 'scanner';
 export type EventRow = InferSelectModel<typeof events>;
@@ -178,35 +178,29 @@ export async function deleteEvent(eventId: string, adminId: string): Promise<voi
 }
 
 export async function getEventBySlug(slug: string) {
-  return unstable_cache(
-    async () => {
-      const db = getDb();
-      const [event] = await db
-        .select({
-          id: events.id,
-          title: events.title,
-          slug: events.slug,
-          description: events.description,
-          date: events.date,
-          location: events.location,
-          mapLink: events.mapLink,
-          status: events.status,
-          closesAt: events.closesAt,
-          maxAttendees: events.maxAttendees,
-          currentAttendees: events.currentAttendees,
-        })
-        .from(events)
-        .where(eq(events.slug, slug))
-        .limit(1);
+  "use cache";
+  cacheTag('events', slug);
 
-      return event || null;
-    },
-    ['public-event-metadata', slug],
-    {
-      revalidate: 15,
-      tags: ['events', slug],
-    }
-  )();
+  const db = getDb();
+  const [event] = await db
+    .select({
+      id: events.id,
+      title: events.title,
+      slug: events.slug,
+      description: events.description,
+      date: events.date,
+      location: events.location,
+      mapLink: events.mapLink,
+      status: events.status,
+      closesAt: events.closesAt,
+      maxAttendees: events.maxAttendees,
+      currentAttendees: events.currentAttendees,
+    })
+    .from(events)
+    .where(eq(events.slug, slug))
+    .limit(1);
+
+  return event || null;
 }
 
 export async function getEventTeam(eventId: string) {

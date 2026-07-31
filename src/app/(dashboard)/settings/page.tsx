@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { getAdminSessionId } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { admins } from '@/lib/db/schema';
@@ -6,6 +7,7 @@ import { redirect } from 'next/navigation';
 import SettingsForm from '@/components/settings/SettingsForm';
 
 export default async function SettingsPage() {
+  await connection();
   const db = getDb();
   const adminId = await getAdminSessionId();
   if (!adminId) {

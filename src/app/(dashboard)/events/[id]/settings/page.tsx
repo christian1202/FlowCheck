@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { getEventById, getEventTeam } from '@/data/events';
 import { getAdminSessionId } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
@@ -14,6 +15,7 @@ export default async function EventSettingsPage({
 }: Readonly<{
   params: Promise<{ id: string }>;
 }>) {
+  await connection();
   const { id } = await params;
   const adminId = await getAdminSessionId();
   if (!adminId) redirect('/login');

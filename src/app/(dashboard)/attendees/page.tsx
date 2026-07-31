@@ -1,9 +1,11 @@
+import { connection } from 'next/server';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getAttendeesPaginated, getAttendeesStats, getUniqueEventsForAdmin, type AttendeeWithEvent } from '@/data/attendees';
 import AttendeesDashboard from '@/components/attendees/AttendeesDashboard';
 
 export default async function AttendeesPage() {
+  await connection();
   const adminId = await getAdminSessionId();
   if (!adminId) {
     redirect('/login');

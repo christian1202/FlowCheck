@@ -2,6 +2,8 @@ import { Hono } from 'hono';
 import { getDb } from '@/lib/db';
 import { events } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { registerAttendee } from '@/data/registration';
+import { registrationSchema } from '@/lib/validators/registration';
 
 const app = new Hono().basePath('/api');
 
@@ -29,6 +31,27 @@ const routes = app
       return c.json(event);
     } catch (e) {
       console.error(e);
+      return c.json({ error: 'Internal Server Error' }, 500);
+    }
+  })
+  .post('/events/:id/register', async (c) => {
+    const eventId = c.req.param('id');
+    try {
+      const body = await c.req.json();
+      const validated = registrationSchema.safeParse(body);
+      if (!validated.success) {
+        return c.json({ error: validated.error.flatten().fieldErrors }, 400);
+      }
+
+      const result = await registerAttendee(validated.data, eventId);
+
+      if (!result.success) {
+        return c.json({ error: result.error }, 409);
+      }
+
+      return c.json({ success: true, scanToken: result.scanToken }, 201);
+    } catch (e) {
+      console.error('Registration endpoint error:', e);
       return c.json({ error: 'Internal Server Error' }, 500);
     }
   });

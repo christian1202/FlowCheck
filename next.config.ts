@@ -10,7 +10,14 @@ const withSerwist = withSerwistInit({
 const nextConfig: NextConfig = {
   // Your Next.js config
   reactStrictMode: true,
+  reactCompiler: true,
+  experimental: {
+    cacheComponents: true,
+  },
   turbopack: {},
+  images: {
+    formats: ['image/avif', 'image/webp'],
+  },
 };
 
 export default withSerwist(nextConfig);

@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import Link from 'next/link';
 import { getEventsForAdmin, type EventWithRole } from '@/data/events';
 import { getAdminSessionId } from '@/lib/auth';
@@ -6,6 +7,7 @@ import { getTotalScansForAdmin } from '@/data/scanner';
 import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
 
 export default async function EventsPage() {
+  await connection();
   const adminId = await getAdminSessionId();
   if (!adminId) {
     redirect('/login');
