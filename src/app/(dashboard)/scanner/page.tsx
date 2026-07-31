@@ -1,9 +1,11 @@
+import { connection } from 'next/server';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getEventsPaginated, type EventWithRole } from '@/data/events';
 import EventsList from '@/components/events/EventsList';
 
 export default async function ScannerSelectPage() {
+  await connection();
   const adminId = await getAdminSessionId();
   if (!adminId) {
     redirect('/login');

@@ -31,6 +31,10 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Track page via ref so loadMore callback stays stable
+  const pageRef = useRef(page);
+  pageRef.current = page;
+
   // Reload data on search
   useEffect(() => {
     let isMounted = true;
@@ -49,21 +53,16 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
         if (isMounted) setIsLoading(false);
       }
     };
-    
-    if (debouncedSearchTerm === '' && page === 1 && events === initialEvents) {
-      return;
-    }
-    
     loadNewSearch();
     return () => { isMounted = false; };
-  }, [debouncedSearchTerm, initialEvents, page, events]);
+  }, [debouncedSearchTerm]);
 
   // Load next page
   const loadMore = useCallback(async () => {
     if (isLoading || !hasMore) return;
     setIsLoading(true);
     try {
-      const nextPage = page + 1;
+      const nextPage = pageRef.current + 1;
       const newEvents = await fetchEventsPage(nextPage, 20, debouncedSearchTerm);
       
       setEvents(prev => [...prev, ...newEvents]);
@@ -74,7 +73,7 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, hasMore, page, debouncedSearchTerm]);
+  }, [isLoading, hasMore, debouncedSearchTerm]);
 
   // Virtualizer setup
   const parentRef = useRef<HTMLDivElement>(null);
