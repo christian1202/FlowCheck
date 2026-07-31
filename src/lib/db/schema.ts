@@ -1,4 +1,5 @@
 import { pgTable, uuid, text, timestamp, integer, pgEnum, primaryKey, uniqueIndex, index } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 // Enums
 export const eventStatusEnum = pgEnum('event_status', ['draft', 'open', 'closed', 'archived']);
@@ -25,6 +26,7 @@ export const events = pgTable('events', {
   location: text('location'),
   mapLink: text('map_link'),
   maxAttendees: integer('max_attendees'),
+  currentAttendees: integer('current_attendees').default(0).notNull(),
   status: eventStatusEnum('status').default('draft').notNull(),
   googleSheetId: text('google_sheet_id'),
   googleSheetUrl: text('google_sheet_url'),
@@ -46,7 +48,7 @@ export const eventAdmins = pgTable('event_admins', {
 export const attendees = pgTable('attendees', {
   id: uuid('id').defaultRandom().primaryKey(),
   eventId: uuid('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
-  scanToken: uuid('scan_token').defaultRandom().notNull().unique(),
+  scanToken: text('scan_token').default(sql`gen_random_uuid()::text`).notNull().unique(),
   name: text('name').notNull(),
   email: text('email').notNull(),
   local: text('local'),      // e.g., Mabolo, Mandaue
@@ -59,6 +61,7 @@ export const attendees = pgTable('attendees', {
   checkedInBy: uuid('checked_in_by').references(() => admins.id, { onDelete: 'set null' }),
 }, (t) => ({
   unqEventEmail: uniqueIndex('unq_event_email').on(t.eventId, t.email),
+  idxScanTokenEvent: index('idx_scan_token_event').on(t.scanToken, t.eventId),
   idxName: index('idx_attendee_name').on(t.name),
   idxEmail: index('idx_attendee_email').on(t.email),
   idxEvent: index('idx_attendee_event').on(t.eventId),
