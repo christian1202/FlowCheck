@@ -3,6 +3,29 @@ import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
 export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // 1. Immediately bypass public pre-registration routes without initializing Supabase client
+  // Matches: /events/{slug}/register
+  const isPublicRegistration = /^\/events\/[^/]+\/register\/?$/.test(pathname);
+  if (isPublicRegistration) {
+    return NextResponse.next();
+  }
+
+  // 2. Handle root route redirect
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL('/events', req.url));
+  }
+
+  const isProtected = pathname.startsWith('/dashboard') || pathname.startsWith('/events');
+  const isLoginRoute = pathname === '/login';
+
+  // 3. Immediately bypass non-protected and non-login routes
+  if (!isProtected && !isLoginRoute) {
+    return NextResponse.next();
+  }
+
+  // 4. Initialize Supabase client ONLY for routes that require authentication
   let supabaseResponse = NextResponse.next({
     request: req,
   });
@@ -28,39 +51,22 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  const { pathname } = req.nextUrl;
-  
-  // Basic WAF/Rate limiting logic could go here
-  
-  // Allow public registration routes without authentication
-  // Matches: /events/{slug}/register
-  const isPublicRegistration = /^\/events\/[^/]+\/register\/?$/.test(pathname);
-
-  // Protect /dashboard and /events routes (except public registration)
-  if (!isPublicRegistration && (pathname.startsWith('/dashboard') || pathname.startsWith('/events') || pathname === '/')) {
-    // If accessing root, redirect to events
-    if (pathname === '/') {
-      return NextResponse.redirect(new URL('/events', req.url));
-    }
-    
-    // Lazily evaluate session to prevent blocking non-protected routes
+  // 5. Protect /dashboard and administrative /events routes
+  if (isProtected) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      // If not authenticated, redirect to login
       if (!user) {
         return NextResponse.redirect(new URL('/login', req.url));
       }
     } catch {
-      // Auth service unavailable (e.g. misconfigured env vars or network issue)
-      // Redirect to login rather than crashing the entire request
       console.error('Auth check failed in middleware — redirecting to /login');
       return NextResponse.redirect(new URL('/login', req.url));
     }
   }
 
-  // Prevent logged in users from seeing the login page
-  if (pathname === '/login') {
+  // 6. Prevent logged-in users from seeing the login page
+  if (isLoginRoute) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -76,13 +82,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public (public folder files)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|images/.*|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

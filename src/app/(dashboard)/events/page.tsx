@@ -17,16 +17,19 @@ export default async function EventsPage() {
   let totalScans = 0;
   
   try {
-    allEvents = await getEventsForAdmin(adminId);
+    const [eventsResult, scansResult] = await Promise.all([
+      getEventsForAdmin(adminId),
+      getTotalScansForAdmin(adminId),
+    ]);
+    
+    allEvents = eventsResult;
+    totalScans = scansResult;
     
     // Sort events by date descending
     allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
     // Show top 6 events
     dashboardEvents = allEvents.slice(0, 6);
-
-    // Get total scans
-    totalScans = await getTotalScansForAdmin(adminId);
   } catch (err: unknown) {
     error = err instanceof Error ? err.message : 'Unknown error';
   }

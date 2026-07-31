@@ -15,9 +15,15 @@ export default async function AttendeesPage() {
   let error: string | null = null;
   
   try {
-    initialAttendees = await getAttendeesPaginated(adminId, {}, 1, 50);
-    initialStats = await getAttendeesStats(adminId, {});
-    uniqueEvents = await getUniqueEventsForAdmin(adminId);
+    const [attendeesResult, statsResult, eventsResult] = await Promise.all([
+      getAttendeesPaginated(adminId, {}, 1, 50),
+      getAttendeesStats(adminId, {}),
+      getUniqueEventsForAdmin(adminId),
+    ]);
+
+    initialAttendees = attendeesResult;
+    initialStats = statsResult;
+    uniqueEvents = eventsResult;
   } catch (err: unknown) {
     error = err instanceof Error ? err.message : 'Unknown error';
   }
