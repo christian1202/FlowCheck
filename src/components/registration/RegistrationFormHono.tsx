@@ -37,7 +37,7 @@ export default function RegistrationFormHono({ eventId }: { eventId: string }) {
         {loading ? 'Fetching...' : 'Fetch Event via Hono'}
       </button>
 
-      {data && (
+      {data !== null && (
         <pre className="p-2 bg-gray-100 rounded text-sm overflow-auto">
           {JSON.stringify(data, null, 2)}
         </pre>

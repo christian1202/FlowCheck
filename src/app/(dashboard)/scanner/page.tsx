@@ -1,6 +1,6 @@
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getEventsPaginated, type EventRow } from '@/data/events';
+import { getEventsPaginated, type EventWithRole } from '@/data/events';
 import EventsList from '@/components/events/EventsList';
 
 export default async function ScannerSelectPage() {
@@ -9,7 +9,7 @@ export default async function ScannerSelectPage() {
     redirect('/login');
   }
   
-  let initialEvents: EventRow[] = [];
+  let initialEvents: EventWithRole[] = [];
   let error = null;
   
   try {
