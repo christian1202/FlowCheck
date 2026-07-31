@@ -3,7 +3,6 @@ import { events, eventAdmins, admins, attendees } from '@/lib/db/schema';
 import { eq, and, desc, ilike, sql } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 import type { CreateEventInput, UpdateEventInput } from '@/lib/validators/events';
-import { cacheTag } from 'next/cache';
 
 export type EventRole = 'owner' | 'editor' | 'scanner';
 export type EventRow = InferSelectModel<typeof events>;
@@ -179,9 +178,6 @@ export async function deleteEvent(eventId: string, adminId: string): Promise<voi
 }
 
 export async function getEventBySlug(slug: string) {
-  "use cache";
-  cacheTag('events', slug);
-
   const db = getDb();
   const [event] = await db
     .select({

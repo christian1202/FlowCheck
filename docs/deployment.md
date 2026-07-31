@@ -1,6 +1,6 @@
 # FlowCheck — Deployment Guide
 
-This guide details deploying FlowCheck using Cloudflare Pages / Workers via OpenNext and Supabase (PostgreSQL + Auth).
+This guide details deploying FlowCheck to a Cloudflare Worker via OpenNext and Supabase (PostgreSQL + Auth).
 
 ---
 
@@ -18,7 +18,7 @@ This guide details deploying FlowCheck using Cloudflare Pages / Workers via Open
 
 ## Environment Variables
 
-Configure the following environment variables in your deployment environment (e.g., Cloudflare Pages dashboard or `.dev.vars` / `.env` for local development):
+Configure the following environment variables as Worker secrets. For local Worker development, place them in `.dev.vars` (which must not be committed).
 
 ```bash
 # ── Supabase & PostgreSQL Connection ──
@@ -29,7 +29,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
 
 # ── Application Configuration ──
-NEXT_PUBLIC_APP_URL=https://flowcheck.pages.dev
+NEXT_PUBLIC_APP_URL=https://flowcheck.flowcheck.workers.dev
 ```
 
 ---
@@ -44,7 +44,8 @@ The `package.json` provides scripts for building and deploying to Cloudflare Wor
     "dev": "NODE_OPTIONS='--max-old-space-size=8192' next dev",
     "build": "NODE_OPTIONS='--max-old-space-size=8192' next build",
     "build:cf": "NODE_OPTIONS='--max-old-space-size=8192' npx opennextjs-cloudflare build",
-    "preview:cf": "wrangler pages dev .open-next",
+    "start:cf": "wrangler dev",
+    "deploy:cf": "wrangler deploy",
     "db:push": "drizzle-kit push"
   }
 }
@@ -52,22 +53,24 @@ The `package.json` provides scripts for building and deploying to Cloudflare Wor
 
 ---
 
-## Cloudflare Deployment Steps
+## Cloudflare Worker Deployment Steps
 
 1. **Build Cloudflare Bundle**:
    ```bash
    npm run build:cf
    ```
 
-2. **Preview Locally with Wrangler**:
+2. **Preview locally with Wrangler**:
    ```bash
-   npm run preview:cf
+   npm run start:cf
    ```
 
-3. **Deploy via Wrangler**:
+3. **Deploy the Worker**:
    ```bash
-   npx wrangler pages deploy .open-next
+   npm run deploy:cf
    ```
+
+The Worker configuration is in `wrangler.toml`; deploys use `.open-next/worker.js` and `.open-next/assets`. Do not use `wrangler pages deploy` for this project.
 
 ---
 

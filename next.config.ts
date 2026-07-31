@@ -11,9 +11,6 @@ const nextConfig: NextConfig = {
   // Your Next.js config
   reactStrictMode: true,
   reactCompiler: true,
-  experimental: {
-    cacheComponents: true,
-  },
   turbopack: {},
   images: {
     formats: ['image/avif', 'image/webp'],
