@@ -6,7 +6,8 @@
     "dev": "NODE_OPTIONS='--max-old-space-size=8192' next dev",
     "build": "NODE_OPTIONS='--max-old-space-size=8192' next build",
     "build:cf": "NODE_OPTIONS='--max-old-space-size=8192' npx opennextjs-cloudflare build",
-    "preview:cf": "wrangler pages dev .open-next",
+    "start:cf": "wrangler dev",
+    "deploy:cf": "wrangler deploy",
     "start": "NODE_OPTIONS='--max-old-space-size=8192' next start",
     "lint": "eslint",
     "db:push": "drizzle-kit push"

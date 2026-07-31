@@ -10,6 +10,7 @@ import type { EventWithRole } from '@/data/events';
 import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
 
 export default function EventsList({ initialEvents, linkSuffix = '/settings' }: { initialEvents: EventWithRole[], linkSuffix?: string }) {
+  "use no memo";
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   
