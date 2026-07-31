@@ -1,6 +1,6 @@
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getAttendeesPaginated, getAttendeesStats, getUniqueEventsForAdmin } from '@/data/attendees';
+import { getAttendeesPaginated, getAttendeesStats, getUniqueEventsForAdmin, type AttendeeWithEvent } from '@/data/attendees';
 import AttendeesDashboard from '@/components/attendees/AttendeesDashboard';
 
 export default async function AttendeesPage() {
@@ -9,17 +9,17 @@ export default async function AttendeesPage() {
     redirect('/login');
   }
   
-  let initialAttendees: any[] = [];
+  let initialAttendees: AttendeeWithEvent[] = [];
   let initialStats = { total: 0, checkedIn: 0, registered: 0 };
-  let uniqueEvents: any[] = [];
-  let error = null;
+  let uniqueEvents: { id: string; title: string }[] = [];
+  let error: string | null = null;
   
   try {
     initialAttendees = await getAttendeesPaginated(adminId, {}, 1, 50);
     initialStats = await getAttendeesStats(adminId, {});
     uniqueEvents = await getUniqueEventsForAdmin(adminId);
-  } catch (err: any) {
-    error = err.message;
+  } catch (err: unknown) {
+    error = err instanceof Error ? err.message : 'Unknown error';
   }
 
   return (

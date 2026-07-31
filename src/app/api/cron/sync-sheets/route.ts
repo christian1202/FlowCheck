@@ -44,9 +44,9 @@ export async function POST(req: NextRequest) {
           try {
             const rowsSynced = await syncEventToSheet(eventId, event.googleSheetId);
             return { eventId, status: 'success', rowsSynced };
-          } catch (error: any) {
+          } catch (error: unknown) {
             console.error(`Failed to sync event ${eventId}:`, error);
-            return { eventId, status: 'error', error: error.message };
+            return { eventId, status: 'error', error: error instanceof Error ? error.message : 'Unknown error' };
           }
         } else {
           return { eventId, status: 'skipped', reason: 'No sheet provisioned' };
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     // the Cron handles sheets, and we can add email retries here later.
 
     return NextResponse.json({ results }, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API Error in sync-sheets:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

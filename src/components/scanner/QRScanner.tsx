@@ -39,7 +39,8 @@ export default function QRScanner({ eventId }: { eventId: string }) {
 
   const playSound = (type: 'success' | 'error' | 'warning') => {
     try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new AudioCtx();
       const gainNode = ctx.createGain();
       gainNode.connect(ctx.destination);
       gainNode.gain.value = 0.3;

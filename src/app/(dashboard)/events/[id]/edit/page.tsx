@@ -1,7 +1,6 @@
 import { getEventById } from '@/data/events';
 import { getAdminSessionId } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import EditEventForm from '@/components/events/EditEventForm';
 

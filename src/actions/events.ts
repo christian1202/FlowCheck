@@ -52,10 +52,8 @@ export async function createEventAction(prevState: CreateEventState | null, form
     return { error: validated.error.flatten().fieldErrors };
   }
 
-  let newEventId: string;
   try {
-    const event = await createEvent(validated.data, adminId);
-    newEventId = event.id;
+    await createEvent(validated.data, adminId);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to create event';
     return { error: { form: [message] } };
@@ -67,7 +65,7 @@ export async function createEventAction(prevState: CreateEventState | null, form
 
 export type UpdateEventState = CreateEventState;
 
-export async function updateEventAction(eventId: string, prevState: any, formData: FormData): Promise<UpdateEventState> {
+export async function updateEventAction(eventId: string, _prevState: unknown, formData: FormData): Promise<UpdateEventState> {
   const adminId = await getAdminId();
   
   const rawData = {
@@ -81,7 +79,7 @@ export async function updateEventAction(eventId: string, prevState: any, formDat
   };
 
   // Filter out undefined values to allow partial updates
-  const cleanedData = Object.fromEntries(Object.entries(rawData).filter(([_, v]) => v !== undefined));
+  const cleanedData = Object.fromEntries(Object.entries(rawData).filter(([, v]) => v !== undefined));
 
   const validated = updateEventSchema.safeParse(cleanedData);
   if (!validated.success) {
@@ -99,7 +97,7 @@ export async function updateEventAction(eventId: string, prevState: any, formDat
   }
 }
 
-export async function publishEventAction(eventId: string, formData?: FormData) {
+export async function publishEventAction(eventId: string) {
   const adminId = await getAdminId();
   try {
     // We update the status. In Phase 5, we will trigger the Google Sheet creation here.

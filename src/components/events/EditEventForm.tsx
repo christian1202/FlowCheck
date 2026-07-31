@@ -1,10 +1,11 @@
 'use client';
 
-import { useActionState, useEffect, useState, startTransition } from 'react';
+import { useActionState, useEffect, startTransition } from 'react';
 import { updateEventAction } from '@/actions/events';
 import { Calendar, MapPin, Users, Clock, Map } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { EventRow } from '@/data/events';
+import { useIsMounted } from '@/hooks/useIsMounted';
 
 // Convert JS Date to YYYY-MM-DDTHH:mm format required by datetime-local input
 const formatDateForInput = (dateStr: Date | null) => {
@@ -17,11 +18,7 @@ const formatDateForInput = (dateStr: Date | null) => {
 export default function EditEventForm({ event }: { event: EventRow }) {
   const [state, formAction, isPending] = useActionState(updateEventAction.bind(null, event.id), null);
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsMounted();
 
   useEffect(() => {
     if (state?.success) {

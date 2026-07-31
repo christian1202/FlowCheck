@@ -11,6 +11,12 @@ export type TeamMember = {
   role: 'owner' | 'editor' | 'scanner';
 };
 
+export type SearchResultUser = {
+  id: string;
+  email: string;
+  fullName: string | null;
+};
+
 interface TeamManagementProps {
   eventId: string;
   initialTeam: TeamMember[];
@@ -25,9 +31,9 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResultUser[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [cache, setCache] = useState<Record<string, any[]>>({});
+  const [cache, setCache] = useState<Record<string, SearchResultUser[]>>({});
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const canManage = currentUserRole === 'owner' || currentUserRole === 'editor';
@@ -42,34 +48,43 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (!email || email.trim().length < 2) {
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    const trimmed = val.trim();
+    if (!trimmed || trimmed.length < 2) {
       setSearchResults([]);
       setShowDropdown(false);
-      return;
-    }
-
-    const query = email.trim();
-    
-    if (cache[query]) {
-      setSearchResults(cache[query]);
+    } else if (cache[trimmed]) {
+      setSearchResults(cache[trimmed]);
       setShowDropdown(true);
+    } else {
+      setIsSearching(true);
+      setShowDropdown(true);
+    }
+  };
+
+  useEffect(() => {
+    const query = email.trim();
+    if (!query || query.length < 2 || cache[query]) {
       return;
     }
 
-    setIsSearching(true);
-    setShowDropdown(true);
-
+    let isCancelled = false;
     const debounceTimer = setTimeout(async () => {
       const result = await searchAdmins(query, eventId);
-      if (result.data) {
-        setSearchResults(result.data);
-        setCache(prev => ({ ...prev, [query]: result.data }));
+      if (!isCancelled) {
+        if (result.data) {
+          setSearchResults(result.data);
+          setCache(prev => ({ ...prev, [query]: result.data }));
+        }
+        setIsSearching(false);
       }
-      setIsSearching(false);
     }, 300);
 
-    return () => clearTimeout(debounceTimer);
+    return () => {
+      isCancelled = true;
+      clearTimeout(debounceTimer);
+    };
   }, [email, eventId, cache]);
 
   const handleSelectUser = (selectedEmail: string) => {
@@ -140,7 +155,7 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
                   id="invite-email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => handleEmailChange(e.target.value)}
                   onFocus={() => { if (email.length >= 2) setShowDropdown(true); }}
                   placeholder="Search name or email..."
                   required

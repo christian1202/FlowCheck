@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 import { getDb } from '@/lib/db';
-import { attendees, events } from '@/lib/db/schema';
+import { attendees } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 // Setup Google Auth

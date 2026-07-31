@@ -28,15 +28,18 @@ function buildConditions(adminAllowedIds: string[], filters: AttendeesFilters) {
     conditions.push(eq(attendees.eventId, filters.eventId));
   }
   if (filters.status && filters.status !== 'all') {
-    conditions.push(eq(attendees.status, filters.status as any));
+    conditions.push(eq(attendees.status, filters.status as 'registered' | 'checked_in' | 'cancelled'));
   }
   if (filters.search) {
     const s = `%${filters.search}%`;
-    conditions.push(or(
+    const searchCondition = or(
       ilike(attendees.name, s),
       ilike(attendees.email, s),
       ilike(attendees.local, s)
-    ) as any);
+    );
+    if (searchCondition) {
+      conditions.push(searchCondition);
+    }
   }
   
   return conditions;

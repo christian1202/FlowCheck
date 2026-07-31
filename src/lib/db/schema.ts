@@ -1,5 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, boolean, pgEnum, primaryKey, uniqueIndex, index } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTable, uuid, text, timestamp, integer, pgEnum, primaryKey, uniqueIndex, index } from 'drizzle-orm/pg-core';
 
 // Enums
 export const eventStatusEnum = pgEnum('event_status', ['draft', 'open', 'closed', 'archived']);

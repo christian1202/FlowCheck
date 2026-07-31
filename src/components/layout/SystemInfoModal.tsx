@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { Info, X, Code2, Database, Layout, Server, Sparkles } from 'lucide-react';
+import { useIsMounted } from '@/hooks/useIsMounted';
 
 interface SystemInfoModalProps {
   isCollapsed?: boolean;
@@ -13,11 +14,7 @@ interface SystemInfoModalProps {
 
 export default function SystemInfoModal({ isCollapsed, className, iconOnly }: SystemInfoModalProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsMounted();
 
   const defaultClassName = "flex items-center gap-3.5 w-full px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-white/[0.04] hover:text-slate-200 transition-all active-scale";
   const buttonClass = className || defaultClassName;

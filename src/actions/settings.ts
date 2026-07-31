@@ -44,7 +44,6 @@ export async function updateProfileName(fullName: string) {
 }
 
 export async function updatePassword(password: string) {
-  const db = getDb();
   const adminId = await getAdminSessionId();
   if (!adminId) {
     return { error: 'Unauthorized' };

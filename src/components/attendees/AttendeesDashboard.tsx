@@ -70,7 +70,7 @@ export default function AttendeesDashboard({
     loadNewFilters();
     
     return () => { isMounted = false; };
-  }, [debouncedSearchTerm, statusFilter, eventFilter]);
+  }, [debouncedSearchTerm, statusFilter, eventFilter, initialAttendees, page, attendees]);
   
   // Load next page
   const loadMore = useCallback(async () => {
@@ -101,15 +101,15 @@ export default function AttendeesDashboard({
   });
   
   const virtualItems = rowVirtualizer.getVirtualItems();
-  const lastItem = virtualItems[virtualItems.length - 1];
+  const lastItemIndex = virtualItems.length > 0 ? virtualItems[virtualItems.length - 1].index : -1;
   
   useEffect(() => {
-    if (!lastItem) return;
+    if (lastItemIndex < 0) return;
     
-    if (lastItem.index >= attendees.length - 1 && hasMore && !isLoading) {
+    if (lastItemIndex >= attendees.length - 1 && hasMore && !isLoading) {
       loadMore();
     }
-  }, [lastItem?.index, attendees.length, hasMore, isLoading, loadMore]);
+  }, [lastItemIndex, attendees.length, hasMore, isLoading, loadMore]);
   
   // Chart data
   const pieData = [
@@ -199,7 +199,7 @@ export default function AttendeesDashboard({
           
           <select 
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'registered' | 'checked_in')}
             className="w-full md:w-36 bg-slate-950/60 border border-white/10 rounded-xl py-2.5 px-3 text-xs text-white font-mono focus:outline-none focus:border-amber-500/50 transition-all"
           >
             <option value="all">All Status</option>

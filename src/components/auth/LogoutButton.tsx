@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { createClient } from '@/lib/auth/client';
 import { useRouter } from 'next/navigation';
 import { LogOut, X } from 'lucide-react';
+import { useIsMounted } from '@/hooks/useIsMounted';
 
 export default function LogoutButton({ className, iconOnly }: { className?: string, iconOnly?: boolean }) {
   const router = useRouter();
@@ -12,11 +13,7 @@ export default function LogoutButton({ className, iconOnly }: { className?: stri
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsMounted();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);

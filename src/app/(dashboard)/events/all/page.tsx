@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getEventsPaginated } from '@/data/events';
+import { getEventsPaginated, type EventWithRole } from '@/data/events';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import EventsList from '@/components/events/EventsList';
@@ -10,13 +10,13 @@ export default async function AllEventsPage() {
     redirect('/login');
   }
   
-  let initialEvents: any[] = [];
+  let initialEvents: EventWithRole[] = [];
   let error = null;
   
   try {
     initialEvents = await getEventsPaginated(adminId, 1, 20);
-  } catch (err: any) {
-    error = err.message;
+  } catch (err: unknown) {
+    error = err instanceof Error ? err.message : 'Unknown error';
   }
 
   return (

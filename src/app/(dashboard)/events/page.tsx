@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getEventsForAdmin } from '@/data/events';
+import { getEventsForAdmin, type EventWithRole } from '@/data/events';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getTotalScansForAdmin } from '@/data/scanner';
@@ -11,8 +11,8 @@ export default async function EventsPage() {
     redirect('/login');
   }
   
-  let allEvents: any[] = [];
-  let dashboardEvents: any[] = [];
+  let allEvents: EventWithRole[] = [];
+  let dashboardEvents: EventWithRole[] = [];
   let error = null;
   let totalScans = 0;
   
@@ -27,8 +27,8 @@ export default async function EventsPage() {
 
     // Get total scans
     totalScans = await getTotalScansForAdmin(adminId);
-  } catch (err: any) {
-    error = err.message;
+  } catch (err: unknown) {
+    error = err instanceof Error ? err.message : 'Unknown error';
   }
 
   const activeEvents = allEvents.filter(e => {
@@ -132,7 +132,7 @@ export default async function EventsPage() {
                 <span className="material-symbols-outlined text-4xl">event_note</span>
               </div>
               <h3 className="text-xl font-bold text-white mb-1">No events found</h3>
-              <p className="text-xs text-slate-400 mb-6 max-w-md">You haven't created any events yet. Get started by initializing your first stream.</p>
+              <p className="text-xs text-slate-400 mb-6 max-w-md">You haven&apos;t created any events yet. Get started by initializing your first stream.</p>
               <Link
                 href="/events/new"
                 className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold text-xs rounded-xl active-scale transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)]"

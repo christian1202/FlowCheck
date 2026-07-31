@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { submitRegistrationAction, lookupAttendeeAction } from '@/actions/registration';
 import QRCode from 'qrcode';
 import SystemInfoModal from '@/components/layout/SystemInfoModal';
+import Image from 'next/image';
 
 type FormErrors = {
   form?: string[];
@@ -18,7 +19,7 @@ type FormErrors = {
 export default function RegistrationForm({ eventId }: { eventId: string }) {
   const [step, setStep] = useState(1);
   const [isPending, setIsPending] = useState(false);
-  const [scanToken, setScanToken] = useState<string | null>(null);
+  const [, setScanToken] = useState<string | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   
@@ -26,7 +27,7 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
   const [lookupError, setLookupError] = useState('');
   const [isLookingUp, setIsLookingUp] = useState(false);
   
-  const lookupCache = useRef<Record<string, any>>({});
+  const lookupCache = useRef<Record<string, string>>({});
 
   const handleSubmit = async (formData: FormData) => {
     setIsPending(true);
@@ -204,7 +205,7 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
             {qrCodeDataUrl ? (
               <div className="flex flex-col items-center justify-center gap-4">
                 <div className="p-3 bg-white rounded-2xl shadow-lg border border-white/20">
-                  <img src={qrCodeDataUrl} alt="Your Ticket QR Code" className="w-44 h-44" />
+                  <Image src={qrCodeDataUrl} alt="Your Ticket QR Code" width={176} height={176} className="w-44 h-44" unoptimized />
                 </div>
                 <a 
                   href={qrCodeDataUrl} 
@@ -267,7 +268,7 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
                         errorCorrectionLevel: 'H', margin: 2, width: 300, color: { dark: '#0b0c10', light: '#ffffff' }
                       });
                       setQrCodeDataUrl(url);
-                    } catch (err) {}
+                    } catch {}
                     setStep(3);
                     return;
                   }

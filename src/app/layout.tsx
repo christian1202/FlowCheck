@@ -31,6 +31,7 @@ export default function RootLayout({
         <link rel="icon" href="/images/flowchecklogo-final-bg-white-big.png" type="image/png" />
         <link rel="shortcut icon" href="/images/flowchecklogo-final-bg-white-big.png" type="image/png" />
         <link rel="apple-touch-icon" href="/images/flowchecklogo-final-bg-white-big.png" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
       <body className="bg-background text-on-background min-h-screen overflow-x-hidden">{children}</body>

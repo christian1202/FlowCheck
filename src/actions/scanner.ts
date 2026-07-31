@@ -20,7 +20,7 @@ export async function scanTicketAction(eventId: string, scanToken: string) {
     const result = await processScan(eventId, adminId, scanToken);
     
     return { data: result };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Scan Action Error:', err);
     return { error: 'Failed to process scan due to a server error.' };
   }

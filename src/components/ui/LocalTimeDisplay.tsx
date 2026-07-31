@@ -1,13 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useIsMounted } from '@/hooks/useIsMounted';
 
 export default function LocalTimeDisplay({ date }: { date: string | Date }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsMounted();
 
   if (!mounted) {
     return <span>Loading time...</span>;

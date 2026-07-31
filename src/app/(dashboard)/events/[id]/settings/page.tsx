@@ -29,7 +29,7 @@ export default async function EventSettingsPage({
   if (!event || !teamRecords) notFound();
 
   // Server action to publish this specific event
-  const publishAction = async (formData: FormData) => {
+  const publishAction = async () => {
     'use server';
     await publishEventAction(id);
   };

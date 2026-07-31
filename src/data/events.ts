@@ -83,10 +83,7 @@ export async function getEventsPaginated(
   const db = getDb();
   const offset = (page - 1) * limit;
 
-  let conditions = eq(eventAdmins.adminId, adminId);
-  if (search) {
-    conditions = and(conditions, ilike(events.title, `%${search}%`)) as any;
-  }
+  const conditions = search ? and(eq(eventAdmins.adminId, adminId), ilike(events.title, `%${search}%`)) : eq(eventAdmins.adminId, adminId);
 
   const rows = await db
     .select({

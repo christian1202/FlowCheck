@@ -56,7 +56,7 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
     
     loadNewSearch();
     return () => { isMounted = false; };
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, initialEvents, page, events]);
 
   // Load next page
   const loadMore = useCallback(async () => {
@@ -89,15 +89,15 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
   });
 
   const virtualItems = rowVirtualizer.getVirtualItems();
-  const lastItem = virtualItems[virtualItems.length - 1];
+  const lastItemIndex = virtualItems.length > 0 ? virtualItems[virtualItems.length - 1].index : -1;
 
   useEffect(() => {
-    if (!lastItem) return;
+    if (lastItemIndex < 0) return;
     
-    if (lastItem.index >= rowCount - 1 && hasMore && !isLoading) {
+    if (lastItemIndex >= rowCount - 1 && hasMore && !isLoading) {
       loadMore();
     }
-  }, [lastItem?.index, rowCount, hasMore, isLoading, loadMore]);
+  }, [lastItemIndex, rowCount, hasMore, isLoading, loadMore]);
 
   return (
     <div className="flex flex-col space-y-6">

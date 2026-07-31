@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 
 export default function RegistrationFormHono({ eventId }: { eventId: string }) {
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<unknown>(null);
 
   const fetchEvent = async () => {
     setLoading(true);

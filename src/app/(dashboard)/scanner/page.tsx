@@ -1,6 +1,6 @@
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getEventsPaginated } from '@/data/events';
+import { getEventsPaginated, type EventRow } from '@/data/events';
 import EventsList from '@/components/events/EventsList';
 
 export default async function ScannerSelectPage() {
@@ -9,14 +9,14 @@ export default async function ScannerSelectPage() {
     redirect('/login');
   }
   
-  let initialEvents: any[] = [];
+  let initialEvents: EventRow[] = [];
   let error = null;
   
   try {
     // Fetch initial page of events (first 20)
     initialEvents = await getEventsPaginated(adminId, 1, 20);
-  } catch (err: any) {
-    error = err.message;
+  } catch (err: unknown) {
+    error = err instanceof Error ? err.message : 'Unknown error';
   }
 
   return (
