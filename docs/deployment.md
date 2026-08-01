@@ -55,6 +55,27 @@ The `package.json` provides scripts for building and deploying to Cloudflare Wor
 
 ## Cloudflare Worker Deployment Steps
 
+### Required: bind Hyperdrive for PostgreSQL
+
+Workers cannot use `DATABASE_URL` as a direct PostgreSQL TCP connection. Create a
+Cloudflare Hyperdrive config pointing at the same Supabase PostgreSQL URL:
+
+```bash
+npx wrangler hyperdrive create flowcheck-db --connection-string="$DATABASE_URL"
+```
+
+Copy the returned config ID into `wrangler.toml`:
+
+```toml
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "<returned-config-id>"
+```
+
+The application uses `env.HYPERDRIVE.connectionString` in Cloudflare and falls
+back to `DATABASE_URL` for local Node development. Do not deploy the Worker
+without this binding; dashboard/database requests will return 500 or close.
+
 1. **Build Cloudflare Bundle**:
    ```bash
    npm run build:cf

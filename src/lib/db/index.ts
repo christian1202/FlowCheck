@@ -4,6 +4,10 @@ import postgres from 'postgres';
 type PostgresClient = ReturnType<typeof postgres>;
 type DrizzleDb = ReturnType<typeof drizzle>;
 
+type HyperdriveBinding = {
+  connectionString: string;
+};
+
 const globalForDb = globalThis as unknown as {
   conn: PostgresClient | undefined;
   db: DrizzleDb | undefined;
@@ -24,7 +28,10 @@ export function getDb(): DrizzleDb {
     return globalForDb.db;
   }
 
-  const connectionString = process.env.DATABASE_URL;
+  // Cloudflare Workers must use a Hyperdrive connection string for Postgres
+  // TCP access. OpenNext exposes bindings on process.env at request time.
+  const hyperdrive = (process.env as unknown as { HYPERDRIVE?: HyperdriveBinding }).HYPERDRIVE;
+  const connectionString = hyperdrive?.connectionString || process.env.DATABASE_URL;
 
   if (!connectionString) {
     throw new Error(
@@ -33,7 +40,10 @@ export function getDb(): DrizzleDb {
   }
 
   const client = globalForDb.conn ?? postgres(connectionString, {
-    prepare: false,
+    // Hyperdrive can cache prepared statements. Direct local connections use
+    // the same setting safely with the transaction pooler.
+    prepare: true,
+    fetch_types: false,
     max: 1,
     idle_timeout: 15,
     max_lifetime: 60,
