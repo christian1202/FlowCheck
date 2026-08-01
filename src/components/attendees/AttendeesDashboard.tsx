@@ -34,8 +34,15 @@ export default function AttendeesDashboard({
   const [isExporting, setIsExporting] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   
+  const isInitialMount = useRef(true);
+
   // Reload data when filters change
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     let isMounted = true;
     const loadNewFilters = async () => {
       setIsLoading(true);
@@ -63,14 +70,10 @@ export default function AttendeesDashboard({
       }
     };
     
-    if (debouncedSearchTerm === '' && statusFilter === 'all' && eventFilter === 'all' && page === 1 && attendees === initialAttendees) {
-      return;
-    }
-    
     loadNewFilters();
     
     return () => { isMounted = false; };
-  }, [debouncedSearchTerm, statusFilter, eventFilter, initialAttendees, page, attendees]);
+  }, [debouncedSearchTerm, statusFilter, eventFilter]);
   
   // Load next page
   const loadMore = useCallback(async () => {
