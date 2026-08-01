@@ -163,7 +163,7 @@ export default async function EventSettingsPage({
             {/* Open Event Actions */}
             {event.status === 'open' && displayStatus !== 'Closed' && (
               <div className="mb-6">
-                <CopyLinkButton slug={event.slug} />
+                <CopyLinkButton slug={event.slug} eventTitle={event.title} />
               </div>
             )}
             

@@ -52,6 +52,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   turbopack: {},
   images: {
+    unoptimized: true,
     formats: ['image/avif', 'image/webp'],
   },
   async headers() {

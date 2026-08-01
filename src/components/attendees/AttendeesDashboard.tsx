@@ -69,12 +69,21 @@ export default function AttendeesDashboard({
 }) {
   const [isPending, startTransition] = useTransition();
 
+  const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const debouncedSearchTerm = useDebounce(deferredSearchTerm, 300);
   
   const [statusFilter, setStatusFilter] = useState<'all' | 'registered' | 'checked_in'>('all');
   const [eventFilter, setEventFilter] = useState<string>('all');
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    startTransition(() => {
+      setSearchTerm(val);
+    });
+  };
   
   const handleEventFilterChange = (val: string) => {
     startTransition(() => setEventFilter(val));
@@ -231,8 +240,8 @@ export default function AttendeesDashboard({
           <input 
             type="text" 
             placeholder="Search name, email, local..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={inputValue}
+            onChange={handleSearchChange}
             className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 font-mono transition-colors transform-gpu"
           />
         </div>

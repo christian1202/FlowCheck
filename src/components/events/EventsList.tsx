@@ -119,9 +119,18 @@ export default function EventsList({
 }) {
   "use no memo";
   const [isPending, startTransition] = useTransition();
+  const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const debouncedSearchTerm = useDebounce(deferredSearchTerm, 300);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    startTransition(() => {
+      setSearchTerm(val);
+    });
+  };
   
   const [events, setEvents] = useState<EventWithRole[]>(initialEvents);
   const [page, setPage] = useState(1);
@@ -223,8 +232,8 @@ export default function EventsList({
           <input 
             type="text" 
             placeholder="Search events by title..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={inputValue}
+            onChange={handleSearchChange}
             className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-mono"
           />
         </div>

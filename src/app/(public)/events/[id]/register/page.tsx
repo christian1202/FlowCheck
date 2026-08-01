@@ -3,6 +3,8 @@ import { getEventBySlug } from '@/data/events';
 import RegistrationForm from './RegistrationForm';
 import Image from 'next/image';
 
+export const revalidate = 60;
+
 export default async function RegisterPage({
   params,
 }: {
@@ -120,7 +122,7 @@ export default async function RegisterPage({
       
       {/* Registration Form Card */}
       <div className="w-full max-w-2xl relative z-10 fade-in-stagger" style={{ animationDelay: '0.08s' }}>
-        <RegistrationForm eventId={event.id} />
+        <RegistrationForm eventId={event.id} eventTitle={event.title} />
       </div>
 
       <footer className="mt-8 text-center relative z-10 fade-in-stagger opacity-60">
