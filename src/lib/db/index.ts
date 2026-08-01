@@ -1,5 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 type PostgresClient = ReturnType<typeof postgres>;
 type DrizzleDb = ReturnType<typeof drizzle>;
@@ -7,6 +8,12 @@ type DrizzleDb = ReturnType<typeof drizzle>;
 type HyperdriveBinding = {
   connectionString: string;
 };
+
+declare global {
+  interface CloudflareEnv {
+    HYPERDRIVE?: HyperdriveBinding;
+  }
+}
 
 const globalForDb = globalThis as unknown as {
   conn: PostgresClient | undefined;
@@ -24,9 +31,14 @@ export function resetDb() {
 }
 
 export function getDb(): DrizzleDb {
-  // Cloudflare Workers must use a Hyperdrive connection string for Postgres
-  // TCP access. OpenNext exposes bindings on process.env at request time.
-  const hyperdrive = (process.env as unknown as { HYPERDRIVE?: HyperdriveBinding }).HYPERDRIVE;
+  // OpenNext exposes Cloudflare bindings through its request context, not
+  // process.env. The fallback keeps direct Postgres usable in local Node work.
+  let hyperdrive: HyperdriveBinding | undefined;
+  try {
+    hyperdrive = getCloudflareContext().env.HYPERDRIVE as HyperdriveBinding | undefined;
+  } catch {
+    // No Worker request context: use DATABASE_URL for local development.
+  }
   const isCloudflareDeployment = process.env.NEXT_PUBLIC_APP_URL?.includes('workers.dev') ||
     process.env.NEXT_PUBLIC_APP_URL?.includes('workers.cloudflare.com');
 

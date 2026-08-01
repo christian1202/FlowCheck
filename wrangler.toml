@@ -3,12 +3,9 @@ compatibility_date = "2026-07-31"
 compatibility_flags = ["nodejs_compat"]
 main = ".open-next/worker.js"
 
-# Required for Postgres access from Cloudflare Workers. Create one with:
-#   npx wrangler hyperdrive create flowcheck-db --connection-string="<DATABASE_URL>"
-# Then replace the placeholder with the returned config ID.
-# [[hyperdrive]]
-# binding = "HYPERDRIVE"
-# id = "<HYPERDRIVE_CONFIG_ID>"
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "e1d3b90553dd4de5ad349720c28bc861"
 
 [assets]
 directory = ".open-next/assets"
