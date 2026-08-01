@@ -65,7 +65,7 @@ export default async function RegisterPage({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
           
           {/* Date Card */}
-          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-amber-500/30 transition-all">
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 md:hover:border-amber-500/30 transition-colors duration-150 transform-gpu">
             <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-lg">calendar_today</span>
             </div>
@@ -79,7 +79,7 @@ export default async function RegisterPage({
 
           {/* Location Card */}
           {event.location && (
-            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-amber-500/30 transition-all">
+            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 md:hover:border-amber-500/30 transition-colors duration-150 transform-gpu">
               <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-lg">location_on</span>
               </div>
@@ -92,7 +92,7 @@ export default async function RegisterPage({
                   href={event.mapLink} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 transition-all text-xs font-mono flex items-center gap-1.5 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.15)]" 
+                  className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 md:hover:bg-amber-500/20 transition-colors duration-150 transform-gpu text-xs font-mono flex items-center gap-1.5 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.15)]" 
                   title="View on Google Maps"
                 >
                   <span className="material-symbols-outlined text-sm">map</span>

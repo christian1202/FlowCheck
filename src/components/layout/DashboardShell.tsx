@@ -17,7 +17,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       <nav 
         className={`
           hidden md:flex flex-col h-full bg-slate-950/80 py-6 space-y-4 
-          fixed left-0 top-0 border-r border-white/10 z-30 transition-all duration-300 glass-sidebar
+          fixed left-0 top-0 border-r border-white/10 z-30 transition-transform duration-200 transform-gpu glass-sidebar
           ${isCollapsed ? 'w-20' : 'w-64'} 
         `}
       >
@@ -77,7 +77,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       </nav>
 
       {/* Main Content Area */}
-      <main className={`flex-1 flex flex-col min-h-screen transition-all duration-300 pb-24 md:pb-0 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+      <main className={`flex-1 flex flex-col min-h-screen transition-all duration-200 transform-gpu pb-24 md:pb-0 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
         
         {/* Mobile Top Header (hidden on desktop) */}
         <header className="md:hidden glass-nav sticky top-0 z-20 flex justify-between items-center w-full px-4 h-14 border-b border-white/10 bg-slate-950/95">

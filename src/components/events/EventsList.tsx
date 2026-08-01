@@ -168,7 +168,7 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
 
                       return (
                         <div key={event.id} className="block group h-full fade-in-stagger relative">
-                          <div className="claude-card rounded-3xl hover-lift p-6 flex flex-col h-full min-h-[280px] transition-all duration-300 relative overflow-hidden">
+                          <div className="claude-card rounded-3xl hover-lift p-6 flex flex-col h-full min-h-[280px] transition-colors duration-150 transform-gpu relative overflow-hidden">
                             
                             {/* Link */}
                             <Link href={`/events/${event.id}${linkSuffix}`} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></Link>

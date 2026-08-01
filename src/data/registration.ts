@@ -3,7 +3,6 @@ import { attendees, events } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import type { RegistrationInput } from '@/lib/validators/registration';
 import { enqueueSheetSync } from '@/lib/queue/producer';
-import { generateHmacToken } from '@/lib/auth/tokens';
 
 export type RegistrationResult = 
   | { success: true; scanToken: string }
@@ -15,31 +14,48 @@ export async function registerAttendee(
 ): Promise<RegistrationResult> {
   const db = getDb();
 
-  // 1. Atomic UPDATE on events table using sql operator
-  // Only increments currentAttendees if event exists, is open, registration is not closed, and below max capacity
-  const [updatedEvent] = await db
-    .update(events)
-    .set({
-      currentAttendees: sql`${events.currentAttendees} + 1`,
+  // 1. Fetch event status and capacity details
+  const [event] = await db
+    .select({
+      id: events.id,
+      status: events.status,
+      maxAttendees: events.maxAttendees,
+      currentAttendees: events.currentAttendees,
+      closesAt: events.closesAt,
     })
-    .where(
-      and(
-        eq(events.id, eventId),
-        eq(events.status, 'open'),
-        sql`(${events.closesAt} IS NULL OR ${events.closesAt} > NOW())`,
-        sql`(${events.maxAttendees} IS NULL OR ${events.currentAttendees} < ${events.maxAttendees})`
-      )
-    )
-    .returning({ id: events.id });
+    .from(events)
+    .where(eq(events.id, eventId))
+    .limit(1);
 
-  if (!updatedEvent) {
-    return { success: false, error: 'Event is full, closed, or does not exist.' };
+  if (!event) {
+    return { success: false, error: 'Event does not exist.' };
   }
 
-  // 2. Generate zero-latency HMAC token for QR code
-  const scanToken = await generateHmacToken(eventId, data.email);
+  if (event.status !== 'open') {
+    return { success: false, error: `Registration is currently ${event.status}.` };
+  }
 
-  // 3. Insert Attendee into attendees table
+  if (event.closesAt && new Date() > new Date(event.closesAt)) {
+    return { success: false, error: 'Event registration auto-close deadline has passed.' };
+  }
+
+  const currentCount = event.currentAttendees ?? 0;
+  if (event.maxAttendees !== null && event.maxAttendees !== undefined && currentCount >= event.maxAttendees) {
+    return { success: false, error: `Event has reached maximum capacity (${event.maxAttendees} attendees).` };
+  }
+
+  // 2. Increment currentAttendees counter safely using COALESCE
+  await db
+    .update(events)
+    .set({
+      currentAttendees: sql`COALESCE(${events.currentAttendees}, 0) + 1`,
+    })
+    .where(eq(events.id, eventId));
+
+  // 3. Generate clean UUID scan token for fast, high-contrast QR code scanning
+  const scanToken = crypto.randomUUID();
+
+  // 4. Insert Attendee into attendees table
   try {
     const [newAttendee] = await db
       .insert(attendees)
@@ -56,31 +72,22 @@ export async function registerAttendee(
       })
       .returning();
 
-    // 4. Enqueue Google Sheets sync
+    // 5. Enqueue Google Sheets sync
     await enqueueSheetSync(eventId);
 
     return { success: true, scanToken: newAttendee.scanToken };
   } catch (err: any) {
-    // If insert fails due to PostgreSQL unique constraint violation ('23505')
-    if (err.code === '23505' || err?.cause?.code === '23505' || err?.constraint === 'unq_event_email') {
-      // Compensating transaction: decrement currentAttendees counter by 1
-      await db
-        .update(events)
-        .set({
-          currentAttendees: sql`${events.currentAttendees} - 1`,
-        })
-        .where(eq(events.id, eventId));
-
-      return { success: false, error: 'Already registered with this email' };
-    }
-
-    // Rollback currentAttendees counter on any other unexpected error
+    // Rollback currentAttendees counter on error
     await db
       .update(events)
       .set({
-        currentAttendees: sql`${events.currentAttendees} - 1`,
+        currentAttendees: sql`GREATEST(0, COALESCE(${events.currentAttendees}, 1) - 1)`,
       })
       .where(eq(events.id, eventId));
+
+    if (err.code === '23505' || err?.cause?.code === '23505' || err?.constraint === 'unq_event_email') {
+      return { success: false, error: 'Already registered with this email' };
+    }
 
     return { success: false, error: err.message || 'Registration failed' };
   }
@@ -88,9 +95,12 @@ export async function registerAttendee(
 
 export async function lookupAttendee(eventId: string, email: string) {
   const db = getDb();
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) return null;
+
   const [attendee] = await db.select({ scanToken: attendees.scanToken })
     .from(attendees)
-    .where(and(eq(attendees.eventId, eventId), eq(attendees.email, email)))
+    .where(and(eq(attendees.eventId, eventId), eq(sql`LOWER(${attendees.email})`, cleanEmail)))
     .limit(1);
     
   return attendee || null;

@@ -1,6 +1,6 @@
 'use server';
 
-import { registerAttendee } from '@/data/registration';
+import { registerAttendee, lookupAttendee } from '@/data/registration';
 import { registrationSchema } from '@/lib/validators/registration';
 
 export async function submitRegistrationAction(eventId: string, formData: FormData) {
@@ -37,7 +37,6 @@ export async function submitRegistrationAction(eventId: string, formData: FormDa
 
 export async function lookupAttendeeAction(eventId: string, email: string) {
   try {
-    const { lookupAttendee } = await import('@/data/registration');
     const result = await lookupAttendee(eventId, email);
     if (!result) {
       return { success: false, error: 'No registration found for this email.' };

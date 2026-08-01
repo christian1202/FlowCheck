@@ -1,6 +1,6 @@
 import { getDb } from '@/lib/db';
 import { events, eventAdmins, admins, attendees } from '@/lib/db/schema';
-import { eq, and, desc, ilike, sql } from 'drizzle-orm';
+import { eq, and, desc, ilike, sql, or } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 import type { CreateEventInput, UpdateEventInput } from '@/lib/validators/events';
 
@@ -177,8 +177,15 @@ export async function deleteEvent(eventId: string, adminId: string): Promise<voi
   await db.delete(events).where(eq(events.id, eventId));
 }
 
-export async function getEventBySlug(slug: string) {
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export async function getEventBySlug(slugOrId: string) {
   const db = getDb();
+  const isUuid = UUID_REGEX.test(slugOrId);
+  const condition = isUuid 
+    ? or(eq(events.slug, slugOrId), eq(events.id, slugOrId))
+    : eq(events.slug, slugOrId);
+
   const [event] = await db
     .select({
       id: events.id,
@@ -194,7 +201,7 @@ export async function getEventBySlug(slug: string) {
       currentAttendees: events.currentAttendees,
     })
     .from(events)
-    .where(eq(events.slug, slug))
+    .where(condition)
     .limit(1);
 
   return event || null;

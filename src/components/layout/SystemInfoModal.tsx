@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { Info, X, Code2, Database, Layout, Server, Sparkles } from 'lucide-react';
@@ -12,7 +12,7 @@ interface SystemInfoModalProps {
   iconOnly?: boolean;
 }
 
-export default function SystemInfoModal({ isCollapsed, className, iconOnly }: SystemInfoModalProps) {
+function SystemInfoModal({ isCollapsed, className, iconOnly }: SystemInfoModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const mounted = useIsMounted();
 
@@ -166,3 +166,5 @@ export default function SystemInfoModal({ isCollapsed, className, iconOnly }: Sy
     </>
   );
 }
+
+export default memo(SystemInfoModal);

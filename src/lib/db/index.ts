@@ -1,30 +1,44 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { cache } from 'react';
 
-export const getDb = cache(() => {
+type PostgresClient = ReturnType<typeof postgres>;
+type DrizzleDb = ReturnType<typeof drizzle>;
+
+const globalForDb = globalThis as unknown as {
+  conn: PostgresClient | undefined;
+  db: DrizzleDb | undefined;
+};
+
+export function getDb(): DrizzleDb {
+  if (globalForDb.db) {
+    return globalForDb.db;
+  }
+
   let connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
     throw new Error(
-      "DATABASE_URL is not set. Make sure you've configured it as a Cloudflare secret:\n" +
-      "  wrangler secret put DATABASE_URL"
+      "DATABASE_URL is not set. Make sure you've configured it in your environment or Cloudflare secrets."
     );
   }
 
-  // Force the use of the transaction pooler (port 6543) instead of direct connection (port 5432)
+  // Standardize Supabase transaction pooler port (6543) with PgBouncer mode
   connectionString = connectionString.replace(':5432/', ':6543/');
-
   if (!connectionString.includes('pgbouncer=true')) {
     connectionString += (connectionString.includes('?') ? '&' : '?') + 'pgbouncer=true';
   }
 
-  const client = postgres(connectionString, {
+  const client = globalForDb.conn ?? postgres(connectionString, {
     prepare: false,
-    max: 1,
-    idle_timeout: 0,
-    max_lifetime: 10 // Force connection refresh every 10 seconds to avoid Cloudflare isolate freeze socket drops
+    max: 5,
+    idle_timeout: 30,
+    connect_timeout: 10,
   });
 
-  return drizzle(client);
-});
+  const db = globalForDb.db ?? drizzle(client);
+
+  globalForDb.conn = client;
+  globalForDb.db = db;
+
+  return db;
+}

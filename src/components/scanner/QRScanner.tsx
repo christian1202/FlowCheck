@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
+import type { Html5Qrcode } from 'html5-qrcode';
 import { scanTicketAction } from '@/actions/scanner';
 import { useDevicePower } from '@/hooks/useDevicePower';
 
@@ -30,6 +30,9 @@ export default function QRScanner({ eventId }: { eventId: string }) {
   
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isProcessingRef = useRef<boolean>(false);
+  const lastScannedTokenRef = useRef<{ token: string; time: number } | null>(null);
+  const processScanRef = useRef<(text: string) => Promise<void>>(async () => {});
 
   const showToast = (msg: string) => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -87,57 +90,81 @@ export default function QRScanner({ eventId }: { eventId: string }) {
   };
 
   const processScan = async (decodedText: string) => {
-    if (status === 'processing') return;
-    
-    if (scannerRef.current?.getState() === Html5QrcodeScannerState.SCANNING) {
-      scannerRef.current.pause();
+    if (!decodedText || isProcessingRef.current) return;
+
+    const now = Date.now();
+    if (
+      lastScannedTokenRef.current &&
+      lastScannedTokenRef.current.token === decodedText &&
+      now - lastScannedTokenRef.current.time < 3000
+    ) {
+      return;
     }
+
+    isProcessingRef.current = true;
+    lastScannedTokenRef.current = { token: decodedText, time: now };
     
     setStatus('processing');
     setCurrentOverlay('none');
 
-    const res = await scanTicketAction(eventId, decodedText);
-    
-    const newScan: RecentScan = {
-      id: crypto.randomUUID(),
-      timestamp: new Date(),
-      result: 'error',
-      message: res.error || 'Unknown error'
-    };
-
-    if (res.error) {
-      playSound('error');
-      setCurrentOverlay('error');
-    } else if (res.data) {
-      newScan.result = res.data.result === 'success' ? 'success' : res.data.result === 'duplicate' ? 'duplicate' : res.data.result === 'event_closed' ? 'event_closed' : 'error';
-      newScan.attendee = res.data.attendee;
-      newScan.message = res.data.result === 'success' ? 'Access Granted' : res.data.result === 'duplicate' ? 'Already Scanned' : res.data.result === 'event_closed' ? 'Event is Closed' : 'Invalid Ticket';
+    try {
+      const res = await scanTicketAction(eventId, decodedText);
       
-      if (res.data.result === 'success') {
-        playSound('success');
-        setCurrentOverlay('success');
-      } else if (res.data.result === 'duplicate') {
-        playSound('warning');
-        setCurrentOverlay('duplicate');
-      } else {
+      const newScan: RecentScan = {
+        id: crypto.randomUUID(),
+        timestamp: new Date(),
+        result: 'error',
+        message: res.error || 'Unknown error'
+      };
+
+      if (res.error) {
         playSound('error');
         setCurrentOverlay('error');
+      } else if (res.data) {
+        newScan.result = res.data.result === 'success' ? 'success' : res.data.result === 'duplicate' ? 'duplicate' : res.data.result === 'event_closed' ? 'event_closed' : 'error';
+        newScan.attendee = res.data.attendee;
+        newScan.message = res.data.result === 'success' ? 'Access Granted' : res.data.result === 'duplicate' ? 'Already Scanned' : res.data.result === 'event_closed' ? 'Event is Closed' : 'Invalid Ticket';
+        
+        if (res.data.result === 'success') {
+          playSound('success');
+          setCurrentOverlay('success');
+        } else if (res.data.result === 'duplicate') {
+          playSound('warning');
+          setCurrentOverlay('duplicate');
+        } else {
+          playSound('error');
+          setCurrentOverlay('error');
+        }
       }
+
+      setRecentScans(prev => [newScan, ...prev].slice(0, 20));
+    } catch (err) {
+      console.error('Scan processing error:', err);
+      playSound('error');
+      setCurrentOverlay('error');
+    } finally {
+      setStatus('result');
+
+      // Auto-unlock software lock after 1.8s so camera keeps streaming without freezing
+      setTimeout(() => {
+        setStatus('scanning');
+        setCurrentOverlay('none');
+        isProcessingRef.current = false;
+      }, 1800);
     }
-
-    setRecentScans(prev => [newScan, ...prev].slice(0, 20));
-    setStatus('result');
-
-    setTimeout(() => {
-      setStatus('scanning');
-      setCurrentOverlay('none');
-      if (scannerRef.current?.getState() === Html5QrcodeScannerState.PAUSED) {
-        scannerRef.current.resume();
-      }
-    }, 2500);
   };
 
+  processScanRef.current = processScan;
+
   const startScanner = async (mode = facingMode) => {
+    isProcessingRef.current = false;
+    setStatus('processing');
+
+    // Yield main thread to force instant Next Paint (< 16ms) before heavy WebRTC device query
+    await new Promise((r) => setTimeout(r, 16));
+
+    const { Html5Qrcode } = await import('html5-qrcode');
+
     if (!scannerRef.current) {
       scannerRef.current = new Html5Qrcode('qr-reader');
     }
@@ -170,7 +197,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
           aspectRatio: 1.0,
         },
         (decodedText) => {
-          processScan(decodedText);
+          processScanRef.current(decodedText);
         },
         () => {}
       );
@@ -193,7 +220,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
               aspectRatio: 1.0,
             },
             (decodedText) => {
-              processScan(decodedText);
+              processScanRef.current(decodedText);
             },
             () => {}
           );
@@ -209,8 +236,13 @@ export default function QRScanner({ eventId }: { eventId: string }) {
   };
 
   const stopScanner = async () => {
-    if (scannerRef.current && scannerRef.current.getState() !== Html5QrcodeScannerState.NOT_STARTED) {
-      await scannerRef.current.stop();
+    isProcessingRef.current = false;
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+      } catch {
+        // Scanner was already stopped or idle
+      }
       setStatus('idle');
     }
   };
@@ -231,6 +263,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
     // If attempting to switch to rear camera on PC/laptop with single webcam
     if (newMode === 'environment') {
       try {
+        const { Html5Qrcode } = await import('html5-qrcode');
         const devices = await Html5Qrcode.getCameras();
         if (devices && devices.length === 1) {
           const hasRear = devices.some(d => /back|rear|environment|main/i.test(d.label));
@@ -255,7 +288,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
         : "Switched to Rear Camera (Standard Optical View)"
     );
     
-    if (scannerRef.current && scannerRef.current.getState() !== Html5QrcodeScannerState.NOT_STARTED) {
+    if (scannerRef.current && (status === 'scanning' || status === 'processing')) {
       await stopScanner();
       setTimeout(() => startScanner(newMode), 300);
     }
@@ -263,8 +296,8 @@ export default function QRScanner({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     return () => {
-      if (scannerRef.current && scannerRef.current.getState() !== Html5QrcodeScannerState.NOT_STARTED) {
-        scannerRef.current.stop().catch(console.error);
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(() => {});
       }
     };
   }, []);
@@ -374,6 +407,26 @@ export default function QRScanner({ eventId }: { eventId: string }) {
                   {recentScans[0].attendee.name} {recentScans[0].attendee.local ? `• ${recentScans[0].attendee.local}` : ''}
                 </p>
               )}
+
+              {/* Animated UI Cooldown Timer Indicator */}
+              <div className="mt-6 w-full max-w-[220px] flex flex-col items-center">
+                <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-white/10 p-0.5">
+                  <div 
+                    className={`h-full w-full rounded-full origin-left transform-gpu ${
+                      currentOverlay === 'success' ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]' :
+                      currentOverlay === 'duplicate' ? 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]' :
+                      'bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.5)]'
+                    }`}
+                    style={{
+                      animation: 'cooldownShrink 1.8s linear forwards'
+                    }}
+                  ></div>
+                </div>
+                <div className="flex items-center gap-1.5 mt-2 text-[11px] font-mono text-slate-400">
+                  <span className="material-symbols-outlined text-xs text-amber-400 animate-spin">hourglass_top</span>
+                  <span>Cooldown active • Readying scanner...</span>
+                </div>
+              </div>
             </div>
           )}
         </div>
