@@ -29,15 +29,19 @@ export default async function AttendeesPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 lg:p-12 flex-1 fade-in-stagger w-full max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 md:p-8 lg:p-10 flex-1 fade-in-stagger w-full max-w-7xl mx-auto text-slate-100">
       {/* Header */}
-      <div className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+      <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-          <h2 className="font-display-lg-mobile md:font-display-lg text-primary tracking-tight">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono mb-3">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            GLOBAL ATTENDEE REGISTRY
+          </div>
+          <h2 className="font-display-lg-mobile md:font-display-lg tracking-tight text-white gradient-text">
             Attendees
           </h2>
-          <p className="font-body-lg text-on-surface-variant mt-2 max-w-2xl">
-            View and manage all attendees across your events.
+          <p className="text-sm md:text-base text-slate-400 mt-1.5 max-w-2xl">
+            View and manage all registered attendees across your event streams.
           </p>
         </div>
       </div>

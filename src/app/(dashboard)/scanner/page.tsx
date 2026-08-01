@@ -22,15 +22,21 @@ export default async function ScannerSelectPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 lg:p-12 flex-1 fade-in-stagger w-full max-w-7xl mx-auto flex flex-col h-[calc(100vh-80px)]">
+    <div className="p-4 sm:p-6 md:p-8 lg:p-10 flex-1 fade-in-stagger w-full max-w-7xl mx-auto flex flex-col text-slate-100">
       {/* Hero Greeting */}
-      <div className="mb-8">
-        <h2 className="font-display-lg-mobile md:font-display-lg text-primary tracking-tight">
-          Scanner Access
-        </h2>
-        <p className="font-body-lg text-on-surface-variant mt-2 max-w-2xl">
-          Select an event to start scanning attendee QR codes.
-        </p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono mb-3">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            SCANNER TERMINAL
+          </div>
+          <h2 className="font-display-lg-mobile md:font-display-lg tracking-tight text-white gradient-text">
+            Scanner Access
+          </h2>
+          <p className="text-sm md:text-base text-slate-400 mt-1.5 max-w-2xl">
+            Select an active event stream to launch the QR scanner interface.
+          </p>
+        </div>
       </div>
 
       {error ? (

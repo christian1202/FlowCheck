@@ -199,7 +199,7 @@ export default function EventsList({
   const rowVirtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 340,
+    estimateSize: () => 370,
     overscan: 3,
   });
 
@@ -232,7 +232,7 @@ export default function EventsList({
 
       <div 
         ref={parentRef}
-        className={`overflow-auto touch-pan-y overscroll-contain h-[600px] md:h-[700px] w-full hide-scrollbar transition-opacity duration-200 ${isPending ? 'opacity-50' : 'opacity-100'} ${rowVirtualizer.isScrolling ? 'pointer-events-none' : ''}`}
+        className={`overflow-auto touch-pan-y overscroll-contain h-[650px] md:h-[750px] w-full hide-scrollbar transition-opacity duration-200 ${isPending ? 'opacity-50' : 'opacity-100'} ${rowVirtualizer.isScrolling ? 'pointer-events-none' : ''}`}
         style={{ contain: 'strict' }}
       >
         {events.length === 0 ? (
@@ -269,7 +269,7 @@ export default function EventsList({
                     top: 0,
                     left: 0,
                     width: '100%',
-                    height: 340,
+                    height: 370,
                     transform,
                   }}
                   className="w-full transform-gpu"

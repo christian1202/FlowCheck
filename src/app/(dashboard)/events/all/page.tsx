@@ -21,23 +21,27 @@ export default async function AllEventsPage() {
   }
 
   return (
-    <div className="p-container-margin md:p-section-padding flex-1 fade-in-stagger w-full max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 md:p-8 lg:p-10 flex-1 fade-in-stagger w-full max-w-7xl mx-auto text-slate-100">
       {/* Hero Greeting */}
-      <div className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+      <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-          <h2 className="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary tracking-tight">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono mb-3">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            ALL EVENT ARCHIVES
+          </div>
+          <h2 className="font-display-lg-mobile md:font-display-lg tracking-tight text-white gradient-text">
             All Events
           </h2>
-          <p className="font-body-lg text-body-lg text-on-surface-variant mt-2">
-            View and manage all your past, present, and future events.
+          <p className="text-sm md:text-base text-slate-400 mt-1.5 max-w-2xl">
+            View and manage all your active, upcoming, and past event streams.
           </p>
         </div>
         <Link prefetch={false}
           href="/events/new"
-          className="inline-flex items-center px-6 py-3 bg-primary text-on-primary font-label-sm rounded-lg hover:bg-tertiary-container transition-colors shadow-sm"
+          className="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold text-xs rounded-xl active-scale transition-colors shadow-[0_0_20px_rgba(245,158,11,0.25)]"
         >
-          <span className="material-symbols-outlined mr-2">add</span>
-          New Event
+          <span className="material-symbols-outlined mr-2 text-lg">add</span>
+          <span>New Event</span>
         </Link>
       </div>
 
