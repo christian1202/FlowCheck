@@ -10,7 +10,8 @@
     "deploy:cf": "wrangler deploy",
     "start": "NODE_OPTIONS='--max-old-space-size=8192' next start",
     "lint": "eslint",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "test-db": "node scripts/test-db.js"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.1",
