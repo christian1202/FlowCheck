@@ -9,23 +9,27 @@ const globalForDb = globalThis as unknown as {
   db: DrizzleDb | undefined;
 };
 
+export function resetDb() {
+  if (globalForDb.conn) {
+    try {
+      globalForDb.conn.end();
+    } catch {}
+  }
+  globalForDb.conn = undefined;
+  globalForDb.db = undefined;
+}
+
 export function getDb(): DrizzleDb {
   if (globalForDb.db) {
     return globalForDb.db;
   }
 
-  let connectionString = process.env.DATABASE_URL;
+  const connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
     throw new Error(
       "DATABASE_URL is not set. Make sure you've configured it in your environment or Cloudflare secrets."
     );
-  }
-
-  // Standardize Supabase transaction pooler port (6543) with PgBouncer mode
-  connectionString = connectionString.replace(':5432/', ':6543/');
-  if (!connectionString.includes('pgbouncer=true')) {
-    connectionString += (connectionString.includes('?') ? '&' : '?') + 'pgbouncer=true';
   }
 
   const client = globalForDb.conn ?? postgres(connectionString, {
@@ -34,6 +38,7 @@ export function getDb(): DrizzleDb {
     idle_timeout: 15,
     max_lifetime: 60,
     connect_timeout: 10,
+    onnotice: () => {},
   });
 
   const db = globalForDb.db ?? drizzle(client);
