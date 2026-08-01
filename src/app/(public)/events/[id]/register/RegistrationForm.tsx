@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useTransition, useCallback, useEffect, useActionState } from 'react';
+import { useState, useRef, useTransition, useCallback, useEffect, memo } from 'react';
 import { submitRegistrationAction, lookupAttendeeAction } from '@/actions/registration';
 import SystemInfoModal from '@/components/layout/SystemInfoModal';
 import Image from 'next/image';
@@ -16,6 +16,51 @@ type FormErrors = {
   duty?: string[];
 };
 
+const ForgotQrButton = memo(function ForgotQrButton({
+  onForgot,
+  disabled
+}: {
+  onForgot: () => void;
+  disabled?: boolean;
+}) {
+  const [active, setActive] = useState(false);
+
+  const handleClick = useCallback(() => {
+    setActive(true);
+    setTimeout(() => setActive(false), 200);
+    onForgot();
+  }, [onForgot]);
+
+  return (
+    <button 
+      type="button" 
+      onClick={handleClick}
+      disabled={disabled}
+      className={`text-xs font-mono text-amber-400 hover:text-amber-300 transition-colors duration-75 touch-manipulation select-none disabled:opacity-50 ${active ? 'opacity-70 scale-95' : ''}`}
+    >
+      Forgot QR ticket code?
+    </button>
+  );
+});
+
+const LookupSubmitButton = memo(function LookupSubmitButton({
+  isLookingUp,
+  disabled
+}: {
+  isLookingUp: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <button 
+      type="submit" 
+      disabled={isLookingUp || disabled} 
+      className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 md:hover:from-amber-400 md:hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-colors duration-75 shadow-[0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-1.5 disabled:opacity-50 active-scale touch-manipulation select-none"
+    >
+      {isLookingUp ? 'Searching...' : 'Lookup Ticket'} <span className="material-symbols-outlined text-base pointer-events-none">search</span>
+    </button>
+  );
+});
+
 export default function RegistrationForm({ 
   eventId, 
   eventTitle 
@@ -25,6 +70,7 @@ export default function RegistrationForm({
 }) {
   const [step, setStep] = useState(1);
   const [isPending, startTransition] = useTransition();
+  const [isStepPending, startStepTransition] = useTransition();
   const [, setScanToken] = useState<string | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -118,7 +164,7 @@ export default function RegistrationForm({
 
   const goToStep = useCallback((s: number) => {
     setErrors({});
-    startTransition(() => {
+    startStepTransition(() => {
       setStep(s);
     });
     if (s === 4) {
@@ -132,7 +178,7 @@ export default function RegistrationForm({
         lookupEmailRef.current?.focus();
       }, 30);
     }
-  }, []);
+  }, [startStepTransition]);
 
   const handleLookupSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -195,10 +241,9 @@ export default function RegistrationForm({
             </div>
             <button 
               type="button" 
-              onClick={() => step < 3 && goToStep(1)} 
-              onPointerDown={(e) => { if (step < 3) { e.preventDefault(); goToStep(1); } }}
-              disabled={step >= 3} 
-              className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-75 touch-manipulation select-none ${step >= 1 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 border border-white/10'} ${step < 3 ? 'hover:scale-110' : ''}`}
+              onClick={() => step < 3 && !isStepPending && goToStep(1)} 
+              disabled={step >= 3 || isStepPending} 
+              className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-75 touch-manipulation select-none ${step >= 1 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 border border-white/10'} ${step < 3 ? 'hover:scale-110' : ''} ${isStepPending ? 'opacity-60' : ''}`}
             >
               <span className="text-xs font-mono">1</span>
             </button>
@@ -212,10 +257,9 @@ export default function RegistrationForm({
             </div>
             <button 
               type="button" 
-              onClick={() => step < 3 && goToStep(2)} 
-              onPointerDown={(e) => { if (step < 3) { e.preventDefault(); goToStep(2); } }}
-              disabled={step >= 3} 
-              className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-75 touch-manipulation select-none ${step >= 2 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 border border-white/10'} ${step < 3 ? 'hover:scale-110' : ''}`}
+              onClick={() => step < 3 && !isStepPending && goToStep(2)} 
+              disabled={step >= 3 || isStepPending} 
+              className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-75 touch-manipulation select-none ${step >= 2 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 border border-white/10'} ${step < 3 ? 'hover:scale-110' : ''} ${isStepPending ? 'opacity-60' : ''}`}
             >
               <span className="text-xs font-mono">2</span>
             </button>
@@ -245,8 +289,8 @@ export default function RegistrationForm({
                  <button 
                    type="button" 
                    onClick={() => goToStep(4)} 
-                   onPointerDown={(e) => { e.preventDefault(); goToStep(4); }}
-                   className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/30 transition-colors duration-75 shrink-0 active-scale touch-manipulation select-none"
+                   disabled={isStepPending}
+                   className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/30 transition-colors duration-75 shrink-0 active-scale touch-manipulation select-none disabled:opacity-50"
                  >
                    Retrieve Ticket
                  </button>
@@ -265,7 +309,7 @@ export default function RegistrationForm({
 
         <form ref={formRef} action={handleSubmit} onChange={handleFormChange} className="w-full">
           {/* STEP 1 */}
-          <section className={`w-full ${step === 1 ? 'block' : 'hidden'}`}>
+          <section className={`w-full ${step === 1 ? 'block' : 'hidden'}`} style={{ contentVisibility: step === 1 ? 'visible' : 'auto' }}>
             <h2 className="text-lg font-bold text-white mb-4">Personal Information</h2>
             <div className="space-y-4">
               <div>
@@ -281,19 +325,15 @@ export default function RegistrationForm({
               </div>
 
               <div className="pt-6 flex justify-between items-center">
-                <button 
-                  type="button" 
-                  onClick={() => goToStep(4)} 
-                  onPointerDown={(e) => { e.preventDefault(); goToStep(4); }}
-                  className="text-xs font-mono text-amber-400 hover:text-amber-300 transition-colors duration-75 touch-manipulation select-none"
-                >
-                  Forgot QR ticket code?
-                </button>
+                <ForgotQrButton 
+                  onForgot={() => goToStep(4)} 
+                  disabled={isStepPending} 
+                />
                 <button 
                   type="button" 
                   onClick={() => goToStep(2)} 
-                  onPointerDown={(e) => { e.preventDefault(); goToStep(2); }}
-                  className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 md:hover:from-amber-400 md:hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-colors duration-75 shadow-[0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-1.5 active-scale touch-manipulation select-none"
+                  disabled={isStepPending}
+                  className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 md:hover:from-amber-400 md:hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-colors duration-75 shadow-[0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-1.5 active-scale touch-manipulation select-none disabled:opacity-50"
                 >
                   <span>Continue</span> <span className="material-symbols-outlined text-base pointer-events-none">arrow_forward</span>
                 </button>
@@ -339,8 +379,8 @@ export default function RegistrationForm({
                 <button 
                   type="button" 
                   onClick={() => goToStep(1)} 
-                  onPointerDown={(e) => { e.preventDefault(); goToStep(1); }}
-                  className="px-4 py-2 rounded-xl text-slate-400 hover:bg-white/10 transition-colors duration-75 flex items-center gap-1.5 text-xs font-mono touch-manipulation select-none"
+                  disabled={isStepPending}
+                  className="px-4 py-2 rounded-xl text-slate-400 hover:bg-white/10 transition-colors duration-75 flex items-center gap-1.5 text-xs font-mono touch-manipulation select-none disabled:opacity-50"
                 >
                   <span className="material-symbols-outlined text-base pointer-events-none">arrow_back</span> Back
                 </button>
@@ -425,7 +465,7 @@ export default function RegistrationForm({
         </section>
 
         {/* STEP 4: FORGOT QR CODE / LOOKUP TICKET */}
-        <section className={`w-full ${step === 4 ? 'block' : 'hidden'}`}>
+        <section className={`w-full ${step === 4 ? 'block' : 'hidden'}`} style={{ contentVisibility: step === 4 ? 'visible' : 'auto' }}>
           <h2 className="text-lg font-bold text-white mb-1">Lookup Ticket</h2>
           <p className="text-xs text-slate-400 mb-4">Enter your registered email address to retrieve your QR entry ticket.</p>
           
@@ -454,18 +494,15 @@ export default function RegistrationForm({
               <button 
                 type="button" 
                 onClick={() => goToStep(1)} 
-                onPointerDown={(e) => { e.preventDefault(); goToStep(1); }}
-                className="px-4 py-2 rounded-xl text-slate-400 hover:bg-white/10 transition-colors duration-75 flex items-center gap-1.5 text-xs font-mono touch-manipulation select-none"
+                disabled={isStepPending}
+                className="px-4 py-2 rounded-xl text-slate-400 hover:bg-white/10 transition-colors duration-75 flex items-center gap-1.5 text-xs font-mono touch-manipulation select-none disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-base pointer-events-none">arrow_back</span> Back
               </button>
-              <button 
-                type="submit" 
-                disabled={isLookingUp} 
-                className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 md:hover:from-amber-400 md:hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-colors duration-75 shadow-[0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-1.5 disabled:opacity-50 active-scale touch-manipulation select-none"
-              >
-                {isLookingUp ? 'Searching...' : 'Lookup Ticket'} <span className="material-symbols-outlined text-base pointer-events-none">search</span>
-              </button>
+              <LookupSubmitButton 
+                isLookingUp={isLookingUp} 
+                disabled={isStepPending} 
+              />
             </div>
           </form>
         </section>

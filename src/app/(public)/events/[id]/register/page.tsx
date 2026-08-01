@@ -35,6 +35,15 @@ export default async function RegisterPage({
     );
   }
 
+  const formattedDate = new Date(event.date).toLocaleDateString('en-US', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
   return (
     <div className="bg-ambient-mesh text-slate-100 font-sans antialiased min-h-screen flex flex-col items-center justify-center py-10 px-4 md:px-8 relative overflow-hidden">
       
@@ -49,11 +58,11 @@ export default async function RegisterPage({
         <h1 className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">FlowCheck Pass Portal</h1>
       </header>
       
-      {/* Premium Event Details Card */}
-      <div className="w-full max-w-2xl claude-card rounded-3xl shadow-2xl p-6 md:p-8 mb-6 relative z-10 fade-in-stagger border border-white/10 bg-slate-950/95 md:bg-slate-950/70 md:backdrop-blur-xl">
+      {/* Optimized Premium Event Details Card */}
+      <div className="w-full max-w-2xl claude-card rounded-3xl shadow-xl p-6 md:p-8 mb-6 relative z-10 border border-white/10 bg-slate-950/95 md:bg-slate-950/80 [contain:content] transform-gpu">
         <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/15 to-emerald-500/5 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono uppercase tracking-widest shadow-[0_0_12px_rgba(16,185,129,0.15)]">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] shrink-0"></span>
             <span>Registration Open</span>
           </div>
           <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Verified Event Node</span>
@@ -69,12 +78,12 @@ export default async function RegisterPage({
           {/* Date Card */}
           <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 md:hover:border-amber-500/30 transition-colors duration-150 transform-gpu">
             <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-lg">calendar_today</span>
+              <span className="material-symbols-outlined text-lg pointer-events-none">calendar_today</span>
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">Date & Time</span>
               <span className="text-xs font-semibold text-slate-200 truncate">
-                {new Date(event.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                {formattedDate}
               </span>
             </div>
           </div>
@@ -83,7 +92,7 @@ export default async function RegisterPage({
           {event.location && (
             <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 md:hover:border-amber-500/30 transition-colors duration-150 transform-gpu">
               <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-lg">location_on</span>
+                <span className="material-symbols-outlined text-lg pointer-events-none">location_on</span>
               </div>
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">Venue Location</span>
@@ -97,7 +106,7 @@ export default async function RegisterPage({
                   className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 md:hover:bg-amber-500/20 transition-colors duration-150 transform-gpu text-xs font-mono flex items-center gap-1.5 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.15)]" 
                   title="View on Google Maps"
                 >
-                  <span className="material-symbols-outlined text-sm">map</span>
+                  <span className="material-symbols-outlined text-sm pointer-events-none">map</span>
                   <span className="hidden xs:inline">Map</span>
                 </a>
               )}
@@ -110,7 +119,7 @@ export default async function RegisterPage({
         {event.description && (
           <div className="mt-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
             <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-xs text-amber-400">info</span>
+              <span className="material-symbols-outlined text-xs text-amber-400 pointer-events-none">info</span>
               About This Event
             </span>
             <p className="text-xs text-slate-300 leading-relaxed font-sans">
