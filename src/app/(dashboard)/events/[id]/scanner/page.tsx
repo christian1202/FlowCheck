@@ -50,7 +50,7 @@ export default async function ScannerPage({
     <div className="flex-1 relative h-full min-h-[calc(100vh-64px)] w-full flex flex-col bg-surface-bright overflow-hidden">
       {/* Mobile-only header back button (optional, since topnav is hidden on scanner if absolute) */}
       <div className="absolute top-4 left-4 z-50 md:hidden">
-        <Link href={`/events/${event.id}/settings`} className="w-touch-target h-touch-target bg-surface/80 backdrop-blur-md rounded-full flex items-center justify-center shadow-md">
+        <Link href={`/events/${event.id}/settings`} className="w-touch-target h-touch-target bg-surface/95 rounded-full flex items-center justify-center shadow-md">
           <span className="material-symbols-outlined text-primary">arrow_back</span>
         </Link>
       </div>

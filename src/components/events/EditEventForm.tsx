@@ -42,7 +42,7 @@ export default function EditEventForm({ event }: { event: EventRow }) {
   };
 
   return (
-    <div className="claude-card p-6 sm:p-8 rounded-3xl relative overflow-hidden fade-in-stagger text-slate-100 border border-white/10 bg-slate-950/70 backdrop-blur-xl shadow-2xl">
+    <div className="claude-card p-6 sm:p-8 rounded-3xl relative overflow-hidden fade-in-stagger text-slate-100 border border-white/10 bg-slate-950/95 md:bg-slate-950/70 md:backdrop-blur-xl shadow-2xl">
       
       <div className="relative z-10">
         <div className="mb-6 border-b border-white/10 pb-4">

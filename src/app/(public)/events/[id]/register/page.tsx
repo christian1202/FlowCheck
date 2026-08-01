@@ -48,7 +48,7 @@ export default async function RegisterPage({
       </header>
       
       {/* Premium Event Details Card */}
-      <div className="w-full max-w-2xl claude-card rounded-3xl shadow-2xl p-6 md:p-8 mb-6 relative z-10 fade-in-stagger border border-white/10 bg-slate-950/70 backdrop-blur-xl">
+      <div className="w-full max-w-2xl claude-card rounded-3xl shadow-2xl p-6 md:p-8 mb-6 relative z-10 fade-in-stagger border border-white/10 bg-slate-950/95 md:bg-slate-950/70 md:backdrop-blur-xl">
         <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/15 to-emerald-500/5 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono uppercase tracking-widest shadow-[0_0_12px_rgba(16,185,129,0.15)]">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>

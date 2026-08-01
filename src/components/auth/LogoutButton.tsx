@@ -29,7 +29,7 @@ export default function LogoutButton({ className, iconOnly }: { className?: stri
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl transition-opacity"
+        className="fixed inset-0 bg-slate-950/95 md:bg-slate-950/90 md:backdrop-blur-xl transition-opacity transform-gpu"
         onClick={() => !isLoggingOut && setShowConfirm(false)}
       />
       

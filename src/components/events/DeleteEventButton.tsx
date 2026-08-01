@@ -34,7 +34,7 @@ export default function DeleteEventButton({ eventId }: { eventId: string }) {
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
       <div 
-        className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl transition-opacity"
+        className="fixed inset-0 bg-slate-950/95 md:bg-slate-950/90 md:backdrop-blur-xl transition-opacity transform-gpu"
         onClick={() => !isDeleting && setShowConfirm(false)}
       />
       <div className="relative w-full max-w-sm bg-slate-900/95 border border-white/15 rounded-3xl shadow-2xl overflow-hidden glass-panel flex flex-col my-auto z-10 text-slate-100 animate-[fadeIn_0.2s_ease-out]">

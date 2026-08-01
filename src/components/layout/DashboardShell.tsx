@@ -80,7 +80,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       <main className={`flex-1 flex flex-col min-h-screen transition-all duration-300 pb-24 md:pb-0 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
         
         {/* Mobile Top Header (hidden on desktop) */}
-        <header className="md:hidden glass-nav sticky top-0 z-20 flex justify-between items-center w-full px-4 h-14 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">
+        <header className="md:hidden glass-nav sticky top-0 z-20 flex justify-between items-center w-full px-4 h-14 border-b border-white/10 bg-slate-950/95">
           <div className="flex items-center gap-2.5">
             <div className="p-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
               <Image src="/images/flowchecklogo-final-bg-white-big.png" alt="FlowCheck" width={26} height={26} className="h-6 w-6" priority />
@@ -100,7 +100,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       </main>
 
       {/* Mobile Bottom Navigation (hidden on desktop) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 glass-nav border-t border-white/10 bg-slate-950/90 backdrop-blur-2xl py-2 px-2 pb-safe flex items-center">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 glass-nav border-t border-white/10 bg-slate-950/95 py-2 px-2 pb-safe flex items-center">
         <Suspense fallback={<div className="flex justify-around items-center w-full px-3 animate-pulse">
            {[...Array(5)].map((_, i) => <div key={i} className="h-8 w-8 bg-slate-800 rounded-lg" />)}
         </div>}>

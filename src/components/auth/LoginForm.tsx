@@ -131,14 +131,14 @@ export default function LoginForm() {
   return (
     <div className="flex flex-col space-y-6 text-slate-100">
       {/* Tab Switcher */}
-      <div className="flex bg-slate-950/80 p-1 rounded-xl border border-white/10 relative z-10 backdrop-blur-md">
+      <div className="flex bg-slate-950/95 md:bg-slate-950/80 p-1 rounded-xl border border-white/10 relative z-10 md:backdrop-blur-md">
         <button
           type="button"
           onClick={() => resetState(true)}
           className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-all active-scale ${
             isLogin && !isForgotPassword 
               ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
-              : 'text-slate-400 hover:text-white'
+              : 'text-slate-400 md:hover:text-white'
           }`}
         >
           Sign In
@@ -149,7 +149,7 @@ export default function LoginForm() {
           className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-all active-scale ${
             !isLogin && !isForgotPassword 
               ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
-              : 'text-slate-400 hover:text-white'
+              : 'text-slate-400 md:hover:text-white'
           }`}
         >
           Register
@@ -157,8 +157,8 @@ export default function LoginForm() {
       </div>
 
       {message && (
-        <div className={`p-4 rounded-2xl text-xs font-mono border backdrop-blur-md ${
-          message.type === 'success' ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/30' : 'bg-red-950/60 text-red-300 border-red-500/30'
+        <div className={`p-4 rounded-2xl text-xs font-mono border md:backdrop-blur-md ${
+          message.type === 'success' ? 'bg-emerald-950/90 md:bg-emerald-950/60 text-emerald-300 border-emerald-500/30' : 'bg-red-950/90 md:bg-red-950/60 text-red-300 border-red-500/30'
         }`}>
           {message.text}
         </div>

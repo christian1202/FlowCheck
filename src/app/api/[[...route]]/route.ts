@@ -15,7 +15,7 @@ const routes = app
   .get('/events', async (c) => {
     try {
       const db = getDb();
-      const allEvents = await db.select().from(events);
+      const allEvents = await db.select().from(events).limit(100);
       return c.json(allEvents);
     } catch (e) {
       console.error(e);

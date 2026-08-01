@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 import { scanTicketAction } from '@/actions/scanner';
+import { useDevicePower } from '@/hooks/useDevicePower';
 
 type ScannerStatus = 'idle' | 'scanning' | 'processing' | 'result';
 
@@ -19,6 +20,7 @@ type RecentScan = {
 };
 
 export default function QRScanner({ eventId }: { eventId: string }) {
+  const isWeakDevice = useDevicePower();
   const [status, setStatus] = useState<ScannerStatus>('idle');
   const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
   const [currentOverlay, setCurrentOverlay] = useState<'none' | 'success' | 'duplicate' | 'error'>('none');
@@ -163,7 +165,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
       await scannerRef.current.start(
         { facingMode: targetMode },
         {
-          fps: 10,
+          fps: isWeakDevice ? 5 : 10,
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
         },
@@ -186,7 +188,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
           await scannerRef.current.start(
             { facingMode: 'user' },
             {
-              fps: 10,
+              fps: isWeakDevice ? 5 : 10,
               qrbox: { width: 250, height: 250 },
               aspectRatio: 1.0,
             },
@@ -277,10 +279,10 @@ export default function QRScanner({ eventId }: { eventId: string }) {
         <div className="absolute top-4 right-4 z-20 flex gap-2.5">
           <button 
             onClick={toggleMirror} 
-            className={`px-3.5 py-2 rounded-xl bg-slate-900/80 backdrop-blur-md border text-xs font-mono transition-all flex items-center gap-1.5 active-scale ${
+            className={`px-3.5 py-2 rounded-xl bg-slate-900/95 md:bg-slate-900/80 md:backdrop-blur-md border text-xs font-mono transition-all flex items-center gap-1.5 active-scale ${
               isMirrored 
                 ? 'border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]' 
-                : 'border-white/10 text-slate-300 hover:text-white hover:bg-slate-800'
+                : 'border-white/10 text-slate-300 md:hover:text-white md:hover:bg-slate-800'
             }`}
             title="Toggle video mirror effect"
           >
@@ -289,7 +291,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
           </button>
           <button 
             onClick={toggleCamera} 
-            className="px-3.5 py-2 rounded-xl bg-slate-900/80 backdrop-blur-md border border-white/10 text-xs font-mono text-slate-300 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5 active-scale"
+            className="px-3.5 py-2 rounded-xl bg-slate-900/95 md:bg-slate-900/80 md:backdrop-blur-md border border-white/10 text-xs font-mono text-slate-300 md:hover:text-white md:hover:bg-slate-800 transition-all flex items-center gap-1.5 active-scale"
             title="Switch front/rear camera"
           >
             <span className="material-symbols-outlined text-sm">cameraswitch</span>
@@ -298,7 +300,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
           {status !== 'idle' && (
              <button 
                onClick={stopScanner} 
-               className="px-3.5 py-2 rounded-xl bg-red-950/80 backdrop-blur-md border border-red-500/40 text-xs font-mono text-red-300 hover:bg-red-900 transition-all flex items-center gap-1.5 active-scale"
+               className="px-3.5 py-2 rounded-xl bg-red-950/95 md:bg-red-950/80 md:backdrop-blur-md border border-red-500/40 text-xs font-mono text-red-300 md:hover:bg-red-900 transition-all flex items-center gap-1.5 active-scale"
              >
                <span className="material-symbols-outlined text-sm">stop_circle</span>
                <span>Stop</span>
@@ -308,25 +310,25 @@ export default function QRScanner({ eventId }: { eventId: string }) {
 
         {/* HUD Notification Toast */}
         {toastMessage && (
-          <div className="absolute top-16 md:top-6 left-1/2 -translate-x-1/2 z-40 px-4 py-2.5 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-300 text-xs font-mono shadow-[0_0_20px_rgba(245,158,11,0.25)] flex items-center gap-2 animate-[fadeIn_0.2s_ease-out] backdrop-blur-xl max-w-[90%] text-center">
+          <div className="absolute top-16 md:top-6 left-1/2 -translate-x-1/2 z-40 px-4 py-2.5 rounded-2xl bg-slate-900/95 md:bg-slate-900/90 md:backdrop-blur-xl border border-amber-500/40 text-amber-300 text-xs font-mono shadow-[0_0_20px_rgba(245,158,11,0.25)] flex items-center gap-2 animate-[fadeIn_0.2s_ease-out] max-w-[90%] text-center transform-gpu">
             <span className="material-symbols-outlined text-sm text-amber-400 shrink-0">info</span>
             <span>{toastMessage}</span>
           </div>
         )}
 
         {/* Futuristic Camera Frame */}
-        <div className="relative z-10 w-full max-w-md aspect-square border border-white/15 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md bg-slate-950/70 claude-card">
+        <div className="relative z-10 w-full max-w-md aspect-square border border-white/15 rounded-3xl overflow-hidden shadow-2xl md:backdrop-blur-md bg-slate-950/90 md:bg-slate-950/70 claude-card transform-gpu">
           
           <div id="qr-reader" className={`w-full h-full [&_video]:object-cover [&_video]:w-full [&_video]:h-full ${isMirrored ? '[&_video]:scale-x-[-1]' : ''}`}></div>
           
           {/* Laser Scanning Bar */}
           {status === 'scanning' && (
-            <div className="scan-laser"></div>
+            <div className="scan-laser transform-gpu"></div>
           )}
 
           {/* Idle Start State */}
           {status === 'idle' && (
-            <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-xl flex flex-col items-center justify-center p-6 z-30">
+            <div className="absolute inset-0 bg-slate-950/95 md:bg-slate-950/85 md:backdrop-blur-xl flex flex-col items-center justify-center p-6 z-30">
                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
                  <span className="material-symbols-outlined text-3xl">qr_code_scanner</span>
                </div>
@@ -334,7 +336,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
                <p className="text-xs text-slate-400 mb-6 text-center max-w-xs">Activate camera stream to scan attendee QR codes in real-time.</p>
                <button 
                  onClick={() => startScanner()} 
-                 className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] flex items-center gap-2 active-scale"
+                 className="bg-gradient-to-r from-amber-500 to-amber-600 md:hover:from-amber-400 md:hover:to-amber-500 text-slate-950 font-bold text-xs px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] flex items-center gap-2 active-scale"
                >
                  <span className="material-symbols-outlined text-lg">videocam</span> 
                  <span>Start Optical Stream</span>
@@ -344,7 +346,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
 
           {/* Processing State */}
           {status === 'processing' && (
-            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center z-30">
+            <div className="absolute inset-0 bg-slate-950/95 md:bg-slate-950/80 md:backdrop-blur-md flex flex-col items-center justify-center z-30 transform-gpu">
                <div className="animate-spin rounded-full h-10 w-10 border-2 border-t-amber-400 border-white/10 mb-3"></div>
                <span className="text-xs font-mono uppercase tracking-widest text-amber-400">Verifying Ticket...</span>
             </div>
@@ -352,7 +354,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
 
           {/* Result Overlay */}
           {currentOverlay !== 'none' && (
-            <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 z-40 animate-[fadeIn_0.25s_ease-out]">
+            <div className="absolute inset-0 bg-slate-950/95 md:backdrop-blur-xl flex flex-col items-center justify-center p-6 z-40 animate-[fadeIn_0.25s_ease-out] transform-gpu">
               <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-4 border ${
                 currentOverlay === 'success' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.3)]' : 
                 currentOverlay === 'duplicate' ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.3)]' : 'bg-red-500/15 border-red-500/40 text-red-400 shadow-[0_0_30px_rgba(239,68,68,0.3)]'
@@ -385,7 +387,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
 
       {/* Telemetry Log Sidebar */}
       <aside className="w-full md:w-80 bg-slate-950 border-l border-white/10 flex flex-col h-[40vh] md:h-full shrink-0 z-20">
-        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/60 backdrop-blur-md sticky top-0 z-10">
+        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/95 md:bg-slate-900/60 md:backdrop-blur-md sticky top-0 z-10">
           <h2 className="text-xs font-mono uppercase tracking-widest text-slate-300 font-bold">Telemetry Stream</h2>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>

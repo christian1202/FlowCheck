@@ -53,7 +53,7 @@ export default async function EventSettingsPage({
       </div>
 
       {/* Hero Header Glass Panel */}
-      <div className="w-full claude-card rounded-3xl shadow-2xl p-6 md:p-8 relative z-10 overflow-hidden border border-white/10 bg-slate-950/70 backdrop-blur-xl">
+      <div className="w-full claude-card rounded-3xl shadow-2xl p-6 md:p-8 relative z-10 overflow-hidden border border-white/10 bg-slate-950/95 md:bg-slate-950/70 md:backdrop-blur-xl">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-6 mb-6">
           <div>
             <h3 className="text-2xl font-bold text-white tracking-tight gradient-text">Event Settings</h3>

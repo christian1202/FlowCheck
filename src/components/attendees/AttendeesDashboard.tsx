@@ -357,7 +357,7 @@ export default function AttendeesDashboard({
       
       {/* Export Modal */}
       {showExportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 md:bg-slate-950/80 md:backdrop-blur-md p-4 transform-gpu">
           <div className="claude-card rounded-3xl max-w-md w-full p-6 shadow-2xl border border-white/10 text-slate-100">
             <h3 className="text-lg font-bold text-white mb-2">Confirm Data Export</h3>
             <p className="text-xs text-slate-300 mb-6">

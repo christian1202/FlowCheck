@@ -61,7 +61,7 @@ export default async function EventsPage() {
       </div>
 
       {error && (
-        <div className="bg-red-950/60 text-red-300 p-4 rounded-2xl mb-8 text-xs font-mono border border-red-500/30 backdrop-blur-xl">
+        <div className="bg-red-950/90 md:bg-red-950/60 text-red-300 p-4 rounded-2xl mb-8 text-xs font-mono border border-red-500/30 md:backdrop-blur-xl">
           Error loading events: {error}
         </div>
       )}

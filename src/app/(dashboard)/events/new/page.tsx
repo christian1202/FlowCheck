@@ -43,7 +43,7 @@ export default function NewEventPage() {
         </Link>
       </div>
 
-      <div className="claude-card p-6 sm:p-10 rounded-3xl relative overflow-hidden text-slate-100 border border-white/10 bg-slate-950/70 backdrop-blur-xl shadow-2xl">
+      <div className="claude-card p-6 sm:p-10 rounded-3xl relative overflow-hidden text-slate-100 border border-white/10 bg-slate-950/95 md:bg-slate-950/70 md:backdrop-blur-xl shadow-2xl">
         {/* Decorative ambient background glow */}
         <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 

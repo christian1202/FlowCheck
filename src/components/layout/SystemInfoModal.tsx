@@ -23,7 +23,7 @@ export default function SystemInfoModal({ isCollapsed, className, iconOnly }: Sy
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-hidden">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl transition-opacity"
+        className="fixed inset-0 bg-slate-950/95 md:bg-slate-950/90 md:backdrop-blur-xl transition-opacity transform-gpu"
         onClick={() => setIsOpen(false)}
       />
       

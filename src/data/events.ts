@@ -211,7 +211,8 @@ export async function getEventTeam(eventId: string) {
     })
     .from(eventAdmins)
     .innerJoin(admins, eq(eventAdmins.adminId, admins.id))
-    .where(eq(eventAdmins.eventId, eventId));
+    .where(eq(eventAdmins.eventId, eventId))
+    .limit(100);
 
   return rows.map((row) => ({
     adminId: row.adminId,
