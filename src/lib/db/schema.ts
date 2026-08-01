@@ -66,6 +66,8 @@ export const attendees = pgTable('attendees', {
   idxName: index('idx_attendee_name').on(t.name),
   idxEmail: index('idx_attendee_email').on(t.email),
   idxEvent: index('idx_attendee_event').on(t.eventId),
+  idxEventStatus: index('idx_attendees_event_status').on(t.eventId, t.status),
+  idxSearchVector: index('idx_attendee_search').using('gin', sql`to_tsvector('english', ${t.name} || ' ' || ${t.email} || ' ' || coalesce(${t.local}, ''))`),
 }));
 
 export const scanLogs = pgTable('scan_logs', {

@@ -22,3 +22,15 @@ export async function fetchAttendeesStats(filters: AttendeesFilters) {
   const stats = await getAttendeesStats(adminId, filters);
   return stats;
 }
+
+import { searchAdminEvents } from '@/data/events';
+
+export async function searchEventsAction(query: string) {
+  const adminId = await getAdminSessionId();
+  if (!adminId) {
+    throw new Error("Unauthorized");
+  }
+
+  const events = await searchAdminEvents(adminId, query);
+  return events;
+}

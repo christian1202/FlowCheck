@@ -279,3 +279,26 @@ export async function getEventTeam(eventId: string) {
     fullName: row.fullName,
   }));
 }
+
+export async function searchAdminEvents(adminId: string, query: string) {
+  const db = getDb();
+  
+  const ftsQuery = query.trim().split(/\\s+/).filter(Boolean).map(w => `${w}:*`).join(' & ');
+  
+  const conditions = ftsQuery 
+    ? and(
+        eq(eventAdmins.adminId, adminId), 
+        sql`to_tsvector('english', ${events.title} || ' ' || coalesce(${events.location}, '')) @@ to_tsquery('english', ${ftsQuery})`
+      )
+    : eq(eventAdmins.adminId, adminId);
+
+  const rows = await db
+    .select({ id: events.id, title: events.title })
+    .from(eventAdmins)
+    .innerJoin(events, eq(eventAdmins.eventId, events.id))
+    .where(conditions)
+    .orderBy(desc(events.createdAt))
+    .limit(20);
+
+  return rows;
+}

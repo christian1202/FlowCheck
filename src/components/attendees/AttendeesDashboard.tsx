@@ -9,6 +9,7 @@ import { Search, Filter, Loader2, Download } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { fetchAttendeesPage, fetchAttendeesStats } from '@/app/(dashboard)/attendees/actions';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import AsyncEventCombobox from './AsyncEventCombobox';
 
 export default function AttendeesDashboard({ 
   initialAttendees,
@@ -45,6 +46,7 @@ export default function AttendeesDashboard({
 
     let isMounted = true;
     const loadNewFilters = async () => {
+      setAttendees([]);
       setIsLoading(true);
       try {
         const filters = {
@@ -161,17 +163,12 @@ export default function AttendeesDashboard({
 
         <div className="flex w-full md:w-auto gap-3">
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <Filter className="text-slate-400 w-4 h-4 shrink-0" />
-            <select 
-              value={eventFilter}
-              onChange={(e) => setEventFilter(e.target.value)}
-              className="w-full md:w-48 bg-slate-950/60 border border-white/10 rounded-xl py-2.5 px-3 text-xs text-white font-mono focus:outline-none focus:border-amber-500/50 transition-all"
-            >
-              <option value="all">All Events</option>
-              {uniqueEvents.map(e => (
-                <option key={e.id} value={e.id}>{e.title}</option>
-              ))}
-            </select>
+            <Filter className="text-slate-400 w-4 h-4 shrink-0 hidden md:block" />
+            <AsyncEventCombobox 
+              value={eventFilter} 
+              onChange={setEventFilter} 
+              initialEvents={uniqueEvents} 
+            />
           </div>
           
           <select 

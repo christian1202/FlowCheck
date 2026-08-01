@@ -31,14 +31,11 @@ function buildConditions(adminAllowedIds: string[], filters: AttendeesFilters) {
     conditions.push(eq(attendees.status, filters.status as 'registered' | 'checked_in' | 'cancelled'));
   }
   if (filters.search) {
-    const s = `%${filters.search}%`;
-    const searchCondition = or(
-      ilike(attendees.name, s),
-      ilike(attendees.email, s),
-      ilike(attendees.local, s)
-    );
-    if (searchCondition) {
-      conditions.push(searchCondition);
+    const ftsQuery = filters.search.trim().split(/\\s+/).filter(Boolean).map(w => `${w}:*`).join(' & ');
+    if (ftsQuery) {
+      conditions.push(
+        sql`to_tsvector('english', ${attendees.name} || ' ' || ${attendees.email} || ' ' || coalesce(${attendees.local}, '')) @@ to_tsquery('english', ${ftsQuery})`
+      );
     }
   }
   
