@@ -126,7 +126,16 @@ export async function getEventsPaginated(
   const db = getDb();
   const offset = (page - 1) * limit;
 
-  const conditions = search ? and(eq(eventAdmins.adminId, adminId), ilike(events.title, `%${search}%`)) : eq(eventAdmins.adminId, adminId);
+  const ftsQuery = search 
+    ? search.trim().split(/\\s+/).filter(Boolean).map(w => `${w}:*`).join(' & ') 
+    : '';
+
+  const conditions = search && ftsQuery 
+    ? and(
+        eq(eventAdmins.adminId, adminId), 
+        sql`to_tsvector('english', ${events.title} || ' ' || coalesce(${events.location}, '')) @@ to_tsquery('english', ${ftsQuery})`
+      ) 
+    : eq(eventAdmins.adminId, adminId);
 
   const rows = await db
     .select({

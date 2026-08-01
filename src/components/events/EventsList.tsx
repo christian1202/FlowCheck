@@ -9,7 +9,19 @@ import { fetchEventsPage } from '@/app/(dashboard)/events/all/actions';
 import type { EventWithRole } from '@/data/events';
 import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
 
-export default function EventsList({ initialEvents, linkSuffix = '/settings', fetchPages = true }: { initialEvents: EventWithRole[], linkSuffix?: string, fetchPages?: boolean }) {
+type FetchEventsAction = (page: number, limit: number, search?: string) => Promise<EventWithRole[]>;
+
+export default function EventsList({ 
+  initialEvents, 
+  linkSuffix = '/settings', 
+  fetchPages = true,
+  fetchAction
+}: { 
+  initialEvents: EventWithRole[], 
+  linkSuffix?: string, 
+  fetchPages?: boolean,
+  fetchAction: FetchEventsAction
+}) {
   "use no memo";
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -43,7 +55,7 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings', fe
     const loadNewSearch = async () => {
       setIsLoading(true);
       try {
-        const newEvents = await fetchEventsPage(1, 20, debouncedSearchTerm);
+        const newEvents = await fetchAction(1, 20, debouncedSearchTerm);
         if (isMounted) {
           setEvents(newEvents);
           setPage(1);
@@ -65,7 +77,7 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings', fe
     setIsLoading(true);
     try {
       const nextPage = pageRef.current + 1;
-      const newEvents = await fetchEventsPage(nextPage, 20, debouncedSearchTerm);
+      const newEvents = await fetchAction(nextPage, 20, debouncedSearchTerm);
       
       setEvents(prev => [...prev, ...newEvents]);
       setPage(nextPage);

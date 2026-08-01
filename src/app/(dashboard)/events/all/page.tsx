@@ -3,6 +3,7 @@ import { getEventsPaginated, type EventWithRole } from '@/data/events';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import EventsList from '@/components/events/EventsList';
+import { fetchEventsPage } from './actions';
 
 export default async function AllEventsPage() {
   const adminId = await getAdminSessionId();
@@ -46,9 +47,8 @@ export default async function AllEventsPage() {
         </div>
       )}
 
-      {/* Main Content */}
       <div className="w-full">
-        {!error && <EventsList initialEvents={initialEvents} />}
+        {!error && <EventsList initialEvents={initialEvents} fetchAction={fetchEventsPage} />}
       </div>
     </div>
   );

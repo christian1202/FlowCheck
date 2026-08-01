@@ -34,6 +34,7 @@ export const events = pgTable('events', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (t) => ({
   idxTitle: index('idx_event_title').on(t.title),
+  idxSearchVector: index('idx_event_search').using('gin', sql`to_tsvector('english', ${t.title} || ' ' || coalesce(${t.location}, ''))`),
 }));
 
 export const eventAdmins = pgTable('event_admins', {

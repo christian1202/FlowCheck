@@ -1,8 +1,9 @@
 import { connection } from 'next/server';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getScannerEventsForAdmin, type EventWithRole } from '@/data/events';
+import { getEventsPaginated, type EventWithRole } from '@/data/events';
 import EventsList from '@/components/events/EventsList';
+import { fetchEventsPage } from '@/app/(dashboard)/events/all/actions';
 
 export default async function ScannerSelectPage() {
   await connection();
@@ -15,7 +16,7 @@ export default async function ScannerSelectPage() {
   let error = null;
   
   try {
-    initialEvents = await getScannerEventsForAdmin(adminId);
+    initialEvents = await getEventsPaginated(adminId, 1, 20);
   } catch (err: unknown) {
     error = err instanceof Error ? err.message : 'Unknown error';
   }
@@ -38,7 +39,7 @@ export default async function ScannerSelectPage() {
         </div>
       ) : (
         <div className="flex-1 min-h-0 relative">
-          <EventsList initialEvents={initialEvents} linkSuffix="/scanner" fetchPages={false} />
+          <EventsList initialEvents={initialEvents} linkSuffix="/scanner" fetchPages={true} fetchAction={fetchEventsPage} />
         </div>
       )}
     </div>
