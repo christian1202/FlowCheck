@@ -1,9 +1,8 @@
 import { connection } from 'next/server';
 import Link from 'next/link';
-import { getEventsForAdmin, type EventWithRole } from '@/data/events';
+import { getDashboardStats, getRecentDashboardEvents } from '@/data/dashboard';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getTotalScansForAdmin } from '@/data/scanner';
 import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
 
 export default async function EventsPage() {
@@ -13,33 +12,21 @@ export default async function EventsPage() {
     redirect('/login');
   }
   
-  let allEvents: EventWithRole[] = [];
-  let dashboardEvents: EventWithRole[] = [];
+  let dashboardEvents = [];
   let error = null;
-  let totalScans = 0;
+  let stats = { totalEvents: 0, activeEvents: 0, totalScans: 0 };
   
   try {
-    const [eventsResult, scansResult] = await Promise.all([
-      getEventsForAdmin(adminId),
-      getTotalScansForAdmin(adminId),
+    const [eventsResult, statsResult] = await Promise.all([
+      getRecentDashboardEvents(adminId),
+      getDashboardStats(adminId),
     ]);
     
-    allEvents = eventsResult;
-    totalScans = scansResult;
-    
-    // Sort events by date descending
-    allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
-    // Show top 6 events
-    dashboardEvents = allEvents.slice(0, 6);
+    dashboardEvents = eventsResult;
+    stats = statsResult;
   } catch (err: unknown) {
     error = err instanceof Error ? err.message : 'Unknown error';
   }
-
-  const activeEvents = allEvents.filter(e => {
-    const isClosed = e.closesAt && new Date() > new Date(e.closesAt);
-    return e.status === 'open' && !isClosed;
-  }).length;
 
   return (
     <div className="p-4 sm:p-6 md:p-8 lg:p-10 flex-1 fade-in-stagger w-full max-w-7xl mx-auto text-slate-100">
@@ -79,7 +66,7 @@ export default async function EventsPage() {
           </div>
           <div>
             <h4 className="text-xs font-mono uppercase tracking-widest text-slate-400 mb-1">Total Events</h4>
-            <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">{allEvents.length}</div>
+            <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">{stats.totalEvents}</div>
           </div>
         </div>
 
@@ -89,7 +76,7 @@ export default async function EventsPage() {
             <div className="h-11 w-11 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-[22px]">play_circle</span>
             </div>
-            {activeEvents > 0 && (
+            {stats.activeEvents > 0 && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live Now
               </span>
@@ -97,7 +84,7 @@ export default async function EventsPage() {
           </div>
           <div>
             <h4 className="text-xs font-mono uppercase tracking-widest text-slate-400 mb-1">Active Events</h4>
-            <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">{activeEvents}</div>
+            <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">{stats.activeEvents}</div>
           </div>
         </div>
 
@@ -111,7 +98,7 @@ export default async function EventsPage() {
           </div>
           <div>
             <h4 className="text-xs font-mono uppercase tracking-widest text-slate-400 mb-1">Total Scans</h4>
-            <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">{totalScans.toLocaleString()}</div>
+            <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">{stats.totalScans.toLocaleString()}</div>
           </div>
         </div>
       </div>
