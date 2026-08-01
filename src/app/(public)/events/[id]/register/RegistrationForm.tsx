@@ -57,7 +57,21 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
       lookupEmailRef.current.value = '';
     }
     setLookupError('');
+    setErrors({});
     setStep(1);
+  }, []);
+
+  const handleFormChange = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+    const target = e.target as HTMLInputElement;
+    if (target.name) {
+      setErrors((prev) => {
+        if (!prev.form && !prev[target.name as keyof FormErrors]) return prev;
+        const updated = { ...prev };
+        delete updated[target.name as keyof FormErrors];
+        delete updated.form;
+        return updated;
+      });
+    }
   }, []);
 
   const handleSubmit = (formData: FormData) => {
@@ -72,7 +86,11 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
           generateQrDataUrl(result.scanToken);
         } else if (result?.error) {
           setErrors(result.error);
-          if (('name' in result.error && result.error.name) || ('email' in result.error && result.error.email)) {
+          if (
+            ('name' in result.error && result.error.name) ||
+            ('email' in result.error && result.error.email) ||
+            ('form' in result.error && result.error.form)
+          ) {
             setStep(1);
           }
         }
@@ -82,6 +100,7 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
 
   const goToStep = useCallback((s: number) => {
     setStep(s);
+    setErrors({});
     if (s === 4) {
       setTimeout(() => {
         if (lookupEmailRef.current && !lookupEmailRef.current.value) {
@@ -195,26 +214,36 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
 
       {/* Form Container */}
       <div className="relative min-h-[320px]">
-        {errors.form && (
+        {errors.form && (step === 1 || step === 2) && (
            <div className="mb-6 bg-red-950/60 text-red-300 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border border-red-500/30 text-xs font-mono">
              <div className="flex items-center gap-3">
                <span className="material-symbols-outlined text-red-400 pointer-events-none">error</span>
                <p>{errors.form[0]}</p>
              </div>
-             {errors.form[0].toLowerCase().includes('already registered') && (
-               <button 
-                 type="button" 
-                 onClick={() => goToStep(4)} 
-                 onPointerDown={(e) => { e.preventDefault(); goToStep(4); }}
-                 className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/30 transition-colors duration-75 shrink-0 active-scale touch-manipulation select-none"
+             <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+               {errors.form[0].toLowerCase().includes('already registered') && (
+                 <button 
+                   type="button" 
+                   onClick={() => goToStep(4)} 
+                   onPointerDown={(e) => { e.preventDefault(); goToStep(4); }}
+                   className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/30 transition-colors duration-75 shrink-0 active-scale touch-manipulation select-none"
+                 >
+                   Retrieve Ticket
+                 </button>
+               )}
+               <button
+                 type="button"
+                 onClick={() => setErrors((prev) => ({ ...prev, form: undefined }))}
+                 className="p-1 text-red-400 hover:text-red-200 transition-colors rounded-lg flex items-center justify-center active-scale touch-manipulation select-none"
+                 aria-label="Dismiss error"
                >
-                 Retrieve Ticket
+                 <span className="material-symbols-outlined text-base pointer-events-none">close</span>
                </button>
-             )}
+             </div>
            </div>
         )}
 
-        <form ref={formRef} action={handleSubmit} className="w-full">
+        <form ref={formRef} action={handleSubmit} onChange={handleFormChange} className="w-full">
           {/* STEP 1 */}
           <section className={`w-full ${step === 1 ? 'block' : 'hidden'}`}>
             <h2 className="text-lg font-bold text-white mb-4">Personal Information</h2>
@@ -371,6 +400,7 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
                 ref={lookupEmailRef}
                 defaultValue=""
                 required
+                onChange={() => setLookupError('')}
                 className="block w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 px-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 font-mono transition-colors duration-75" 
                 placeholder="juan@example.com" 
               />
