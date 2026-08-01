@@ -9,14 +9,14 @@ import { fetchEventsPage } from '@/app/(dashboard)/events/all/actions';
 import type { EventWithRole } from '@/data/events';
 import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
 
-export default function EventsList({ initialEvents, linkSuffix = '/settings' }: { initialEvents: EventWithRole[], linkSuffix?: string }) {
+export default function EventsList({ initialEvents, linkSuffix = '/settings', fetchPages = true }: { initialEvents: EventWithRole[], linkSuffix?: string, fetchPages?: boolean }) {
   "use no memo";
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   
   const [events, setEvents] = useState<EventWithRole[]>(initialEvents);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(initialEvents.length === 20);
+  const [hasMore, setHasMore] = useState(fetchPages && initialEvents.length === 20);
   const [isLoading, setIsLoading] = useState(false);
   const [columns, setColumns] = useState(3);
 
@@ -38,6 +38,7 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
 
   // Reload data on search
   useEffect(() => {
+    if (!fetchPages) return;
     let isMounted = true;
     const loadNewSearch = async () => {
       setIsLoading(true);
@@ -56,7 +57,7 @@ export default function EventsList({ initialEvents, linkSuffix = '/settings' }: 
     };
     loadNewSearch();
     return () => { isMounted = false; };
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, fetchPages]);
 
   // Load next page
   const loadMore = useCallback(async () => {

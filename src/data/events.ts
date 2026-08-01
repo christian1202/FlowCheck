@@ -3,6 +3,7 @@ import { events, eventAdmins, admins, attendees } from '@/lib/db/schema';
 import { eq, and, desc, ilike, sql, or } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 import type { CreateEventInput, UpdateEventInput } from '@/lib/validators/events';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 
 export type EventRole = 'owner' | 'editor' | 'scanner';
 export type EventRow = InferSelectModel<typeof events>;
@@ -11,6 +12,47 @@ export type EventWithRole = EventRow & {
   registeredCount?: number;
   checkedInCount?: number;
 };
+
+/**
+ * Worker-safe event lookup for the scanner landing page. This uses Supabase's
+ * HTTPS API rather than the Postgres TCP client, which can hang a Worker when
+ * Hyperdrive has not been configured.
+ */
+export async function getScannerEventsForAdmin(adminId: string): Promise<EventWithRole[]> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from('event_admins')
+    .select('role, events!inner(*)')
+    .eq('admin_id', adminId)
+    .order('created_at', { referencedTable: 'events', ascending: false })
+    .limit(20);
+
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).flatMap((row) => {
+    const event = Array.isArray(row.events) ? row.events[0] : row.events;
+    if (!event) return [];
+
+    return [{
+      id: event.id,
+      createdBy: event.created_by,
+      title: event.title,
+      slug: event.slug,
+      description: event.description,
+      date: new Date(event.date),
+      location: event.location,
+      mapLink: event.map_link,
+      maxAttendees: event.max_attendees,
+      currentAttendees: event.current_attendees,
+      status: event.status,
+      googleSheetId: event.google_sheet_id,
+      googleSheetUrl: event.google_sheet_url,
+      closesAt: event.closes_at ? new Date(event.closes_at) : null,
+      createdAt: new Date(event.created_at),
+      adminRole: row.role as EventRole,
+    } satisfies EventWithRole];
+  });
+}
 
 /**
  * Generate a unique slug from a title
