@@ -7,6 +7,7 @@
     "build": "NODE_OPTIONS='--max-old-space-size=8192' next build",
     "build:cf": "NODE_OPTIONS='--max-old-space-size=8192' npx opennextjs-cloudflare build",
     "start:cf": "wrangler dev",
+    "predeploy:cf": "npm run build:cf",
     "deploy:cf": "wrangler deploy",
     "start": "NODE_OPTIONS='--max-old-space-size=8192' next start",
     "lint": "eslint",
