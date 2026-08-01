@@ -10,10 +10,7 @@ const globalForDb = globalThis as unknown as {
 };
 
 export function getDb(): DrizzleDb {
-  // Use global caching ONLY in local development to prevent hot-reload connection leaks.
-  // In serverless Cloudflare Workers production, global sockets get closed by Cloudflare/Supabase
-  // between request pauses, leading to "Error: Connection closed." on reused isolates.
-  if (process.env.NODE_ENV === 'development' && globalForDb.db) {
+  if (globalForDb.db) {
     return globalForDb.db;
   }
 
@@ -31,19 +28,18 @@ export function getDb(): DrizzleDb {
     connectionString += (connectionString.includes('?') ? '&' : '?') + 'pgbouncer=true';
   }
 
-  const client = postgres(connectionString, {
+  const client = globalForDb.conn ?? postgres(connectionString, {
     prepare: false,
     max: 1,
-    idle_timeout: 5,
+    idle_timeout: 15,
+    max_lifetime: 60,
     connect_timeout: 10,
   });
 
-  const db = drizzle(client);
+  const db = globalForDb.db ?? drizzle(client);
 
-  if (process.env.NODE_ENV === 'development') {
-    globalForDb.conn = client;
-    globalForDb.db = db;
-  }
+  globalForDb.conn = client;
+  globalForDb.db = db;
 
   return db;
 }
