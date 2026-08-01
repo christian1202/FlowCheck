@@ -327,7 +327,7 @@ export default function RegistrationForm({ eventId }: { eventId: string }) {
                 <a 
                   href={qrCodeDataUrl} 
                   download="flowcheck-ticket.png" 
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all duration-75 shadow-md flex items-center justify-center gap-2 active-scale touch-manipulation select-none"
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-colors transition-transform transform-gpu duration-75 shadow-md flex items-center justify-center gap-2 active-scale touch-manipulation select-none"
                 >
                   <span className="material-symbols-outlined text-lg pointer-events-none">download</span> Download Ticket
                 </a>

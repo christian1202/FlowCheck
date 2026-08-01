@@ -25,6 +25,7 @@
     "hono": "^4.12.30",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^1.24.0",
+    "material-symbols": "^0.45.10",
     "next": "^16.2.11",
     "postgres": "^3.4.9",
     "qrcode": "^1.5.4",

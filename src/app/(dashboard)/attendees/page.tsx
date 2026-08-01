@@ -17,11 +17,9 @@ export default async function AttendeesPage() {
   let error: string | null = null;
   
   try {
-    const [attendeesResult, statsResult, eventsResult] = await Promise.all([
-      getAttendeesPaginated(adminId, {}, 1, 20),
-      getAttendeesStats(adminId, {}),
-      getUniqueEventsForAdmin(adminId),
-    ]);
+    const attendeesResult = await getAttendeesPaginated(adminId, {}, 1, 20);
+    const statsResult = await getAttendeesStats(adminId);
+    const eventsResult = await getUniqueEventsForAdmin(adminId);
 
     initialAttendees = attendeesResult;
     initialStats = statsResult;

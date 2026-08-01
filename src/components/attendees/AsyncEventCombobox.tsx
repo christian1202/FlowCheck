@@ -61,7 +61,7 @@ export default function AsyncEventCombobox({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between bg-slate-950/60 border border-white/10 rounded-xl py-2.5 px-3 text-xs text-white font-mono hover:border-amber-500/30 transition-all"
+        className="w-full flex items-center justify-between bg-slate-950/60 border border-white/10 rounded-xl py-2.5 px-3 text-xs text-white font-mono hover:border-amber-500/30 transition-colors transform-gpu"
       >
         <span className="truncate pr-2">{selectedEvent?.title || 'Select Event...'}</span>
         <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />

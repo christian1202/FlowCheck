@@ -160,7 +160,7 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
                   placeholder="Search name or email..."
                   required
                   autoComplete="off"
-                  className="w-full pl-10 pr-3 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 font-mono transition-all"
+                  className="w-full pl-10 pr-3 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 font-mono transition-colors transform-gpu"
                 />
               </div>
 
@@ -201,7 +201,7 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
                 id="invite-role"
                 value={role}
                 onChange={(e) => setRole(e.target.value as 'editor' | 'scanner')}
-                className="w-full px-3.5 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-amber-500/50 transition-all"
+                className="w-full px-3.5 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-amber-500/50 transition-colors transform-gpu"
               >
                 <option value="scanner">Scanner</option>
                 <option value="editor">Editor</option>
@@ -211,7 +211,7 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
             <button
               type="submit"
               disabled={isSubmitting || !email}
-              className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)] disabled:opacity-50 active-scale"
+              className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-colors transition-transform transform-gpu shadow-[0_0_15px_rgba(245,158,11,0.2)] disabled:opacity-50 active-scale"
             >
               {isSubmitting ? 'Adding...' : 'Invite Staff'}
             </button>

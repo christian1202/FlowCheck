@@ -34,9 +34,9 @@ export default function NewEventPage() {
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 fade-in-stagger">
       <div className="mb-6">
-        <Link 
+        <Link prefetch={false} 
           href="/events/all" 
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900/80 border border-white/10 text-xs font-mono text-slate-300 hover:text-white hover:bg-slate-800 hover:border-amber-500/30 transition-all active-scale"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900/80 border border-white/10 text-xs font-mono text-slate-300 hover:text-white hover:bg-slate-800 hover:border-amber-500/30 transition-colors transition-transform transform-gpu active-scale"
         >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
           <span>Back to All Events</span>
@@ -79,7 +79,7 @@ export default function NewEventPage() {
                     name="title"
                     id="title"
                     required
-                    className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-sans"
                     placeholder="e.g. Annual Tech Conference 2026"
                   />
                 </div>
@@ -100,7 +100,7 @@ export default function NewEventPage() {
                     name="description"
                     required
                     rows={4}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-sans"
                     placeholder="Event details, agenda, and attendee guidelines..."
                   />
                 </div>
@@ -123,7 +123,7 @@ export default function NewEventPage() {
                       name="date"
                       id="date"
                       required
-                      className="w-full px-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono [color-scheme:dark]"
+                      className="w-full px-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-mono [color-scheme:dark]"
                     />
                   </div>
                   {state?.error?.date && <p className="mt-2 text-xs font-mono text-red-400">{state.error.date[0]}</p>}
@@ -142,7 +142,7 @@ export default function NewEventPage() {
                       name="closesAt"
                       id="closesAt"
                       required
-                      className="w-full px-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono [color-scheme:dark]"
+                      className="w-full px-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-mono [color-scheme:dark]"
                     />
                   </div>
                   {state?.error?.closesAt && <p className="mt-2 text-xs font-mono text-red-400">{state.error.closesAt[0]}</p>}
@@ -161,7 +161,7 @@ export default function NewEventPage() {
                       name="maxAttendees"
                       id="maxAttendees"
                       min="1"
-                      className="w-full px-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
+                      className="w-full px-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-mono"
                       placeholder="e.g. 500 (Optional)"
                     />
                   </div>
@@ -186,7 +186,7 @@ export default function NewEventPage() {
                       name="location"
                       id="location"
                       required
-                      className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                      className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-sans"
                       placeholder="e.g. Main Hall, Tech Center"
                     />
                   </div>
@@ -208,14 +208,14 @@ export default function NewEventPage() {
                       name="mapLink"
                       id="mapLink"
                       required
-                      className="w-full pl-11 pr-24 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                      className="w-full pl-11 pr-24 py-3 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-sans"
                       placeholder="https://maps.app.goo.gl/..."
                     />
                     <a 
                       href="https://maps.google.com" 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="absolute right-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 text-[11px] font-mono transition-all flex items-center gap-1 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.1)]" 
+                      className="absolute right-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 text-[11px] font-mono transition-colors transition-transform transform-gpu flex items-center gap-1 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.1)]" 
                       title="Open Google Maps to search location"
                     >
                       <span>Find</span>
@@ -232,7 +232,7 @@ export default function NewEventPage() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-full sm:w-auto inline-flex justify-center items-center py-3.5 px-8 text-xs font-bold font-sans rounded-xl text-slate-950 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] active-scale disabled:opacity-50 disabled:cursor-not-allowed gap-2"
+                className="w-full sm:w-auto inline-flex justify-center items-center py-3.5 px-8 text-xs font-bold font-sans rounded-xl text-slate-950 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 transition-colors transition-transform transform-gpu shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] active-scale disabled:opacity-50 disabled:cursor-not-allowed gap-2"
               >
                 {isPending ? (
                   <>

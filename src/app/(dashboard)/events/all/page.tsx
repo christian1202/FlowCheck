@@ -32,7 +32,7 @@ export default async function AllEventsPage() {
             View and manage all your past, present, and future events.
           </p>
         </div>
-        <Link
+        <Link prefetch={false}
           href="/events/new"
           className="inline-flex items-center px-6 py-3 bg-primary text-on-primary font-label-sm rounded-lg hover:bg-tertiary-container transition-colors shadow-sm"
         >

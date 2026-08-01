@@ -13,13 +13,13 @@ export async function fetchAttendeesPage(filters: AttendeesFilters, page: number
   return attendees;
 }
 
-export async function fetchAttendeesStats(filters: AttendeesFilters) {
+export async function fetchAttendeesStats(eventId: string = 'all') {
   const adminId = await getAdminSessionId();
   if (!adminId) {
     throw new Error("Unauthorized");
   }
 
-  const stats = await getAttendeesStats(adminId, filters);
+  const stats = await getAttendeesStats(adminId, eventId);
   return stats;
 }
 

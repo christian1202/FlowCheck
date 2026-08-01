@@ -116,7 +116,7 @@ export default function SettingsForm({ initialName, email }: SettingsFormProps) 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Jane Doe"
-                className="w-full sm:max-w-md px-3.5 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-all font-sans"
+                className="w-full sm:max-w-md px-3.5 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors transform-gpu font-sans"
               />
             </div>
 
@@ -130,7 +130,7 @@ export default function SettingsForm({ initialName, email }: SettingsFormProps) 
               <button
                 type="submit"
                 disabled={isSavingName}
-                className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-1.5 active-scale disabled:opacity-50"
+                className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-colors transition-transform transform-gpu shadow-[0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-1.5 active-scale disabled:opacity-50"
               >
                 {isSavingName ? 'Saving...' : (
                   <>
@@ -160,7 +160,7 @@ export default function SettingsForm({ initialName, email }: SettingsFormProps) 
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="block w-full px-3.5 py-2.5 pr-10 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-all font-mono"
+                  className="block w-full px-3.5 py-2.5 pr-10 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors transform-gpu font-mono"
                 />
                 <button
                   type="button"
@@ -176,7 +176,7 @@ export default function SettingsForm({ initialName, email }: SettingsFormProps) 
                 <div className="mt-2 space-y-1.5 sm:max-w-md">
                   <div className="flex h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
                     <div 
-                      className={`h-full transition-all duration-300 ${getStrengthColor()}`}
+                      className={`h-full transition-colors transform-gpu duration-300 ${getStrengthColor()}`}
                       style={{ width: `${(passwordStrength / 5) * 100}%` }}
                     />
                   </div>
@@ -204,7 +204,7 @@ export default function SettingsForm({ initialName, email }: SettingsFormProps) 
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="block w-full px-3.5 py-2.5 pr-10 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-all font-mono"
+                  className="block w-full px-3.5 py-2.5 pr-10 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors transform-gpu font-mono"
                 />
                 <button
                   type="button"
@@ -227,7 +227,7 @@ export default function SettingsForm({ initialName, email }: SettingsFormProps) 
               <button
                 type="submit"
                 disabled={isSavingPassword || !password || !confirmPassword || passwordStrength < 4}
-                className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-1.5 active-scale disabled:opacity-50"
+                className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-colors transition-transform transform-gpu shadow-[0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-1.5 active-scale disabled:opacity-50"
               >
                 {isSavingPassword ? 'Updating...' : (
                   <>

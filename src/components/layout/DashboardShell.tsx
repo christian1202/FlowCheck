@@ -38,7 +38,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-slate-400 hover:text-white hover:bg-white/10 p-2 rounded-xl transition-all active-scale"
+            className="text-slate-400 hover:text-white hover:bg-white/10 p-2 rounded-xl transition-colors transition-transform transform-gpu active-scale"
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             <span className="material-symbols-outlined text-lg">
@@ -48,9 +48,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </div>
         
         <div className="px-3">
-          <Link 
-            href="/events/new" 
-            className={`bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] active-scale ${isCollapsed ? 'w-10 h-10 mx-auto px-0' : 'w-full px-4'}`}
+          <Link prefetch={false} 
+            href="/events/new"
+            className={`bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors transition-transform transform-gpu shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] active-scale ${isCollapsed ? 'w-10 h-10 mx-auto px-0' : 'w-full px-4'}`}
             title={isCollapsed ? "New Event" : undefined}
           >
             <span className="material-symbols-outlined text-lg">add_circle</span>
@@ -77,10 +77,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       </nav>
 
       {/* Main Content Area */}
-      <main className={`flex-1 flex flex-col min-h-screen transition-all duration-200 transform-gpu pb-24 md:pb-0 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+      <main className={`flex-1 flex flex-col min-h-screen transition-colors transform-gpu duration-200 transform-gpu pb-24 md:pb-0 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
         
-        {/* Mobile Top Header (hidden on desktop) */}
-        <header className="md:hidden glass-nav sticky top-0 z-20 flex justify-between items-center w-full px-4 h-14 border-b border-white/10 bg-slate-950/95">
+        {/* Mobile Header */}
+        <header className="md:hidden sticky top-0 z-20 flex justify-between items-center w-full px-4 h-14 border-b border-white/10 bg-slate-950 transform-gpu isolation-isolate">
           <div className="flex items-center gap-2.5">
             <div className="p-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
               <Image src="/images/flowchecklogo-final-bg-white-big.png" alt="FlowCheck" width={26} height={26} className="h-6 w-6" priority />
@@ -89,10 +89,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </div>
           <div className="flex items-center gap-1.5">
             <SystemInfoModal isCollapsed={true} />
-            <Link href="/events/new" className="text-amber-400 hover:bg-amber-500/10 p-2 rounded-xl transition-all active-scale flex items-center justify-center">
+            <Link prefetch={false} href="/events/new" className="text-amber-400 hover:bg-amber-500/10 p-2 rounded-xl transition-colors transition-transform transform-gpu active-scale flex items-center justify-center">
               <span className="material-symbols-outlined text-xl">add_circle</span>
             </Link>
-            <LogoutButton iconOnly={true} className="text-red-400 hover:bg-red-500/10 p-2 rounded-xl transition-all active-scale flex items-center justify-center" />
+            <LogoutButton iconOnly={true} className="text-red-400 hover:bg-red-500/10 p-2 rounded-xl transition-colors transition-transform transform-gpu active-scale flex items-center justify-center" />
           </div>
         </header>
 

@@ -63,19 +63,22 @@ export function getSqlClient(): PostgresClient {
     return globalForDb.conn;
   }
 
+  // Use Hyperdrive-specific optimizations (prepare: true, max: 1) only when running through Cloudflare.
+  // When running locally connecting directly to Supabase Supavisor pooler (port 5432/6543),
+  // prepare MUST be false, and we should rely on standard pg pooling defaults to avoid CONNECTION_ENDED.
+  const isDirectConnection = !hyperdrive;
+  
   const client = postgres(connectionString, {
-    // Hyperdrive can cache prepared statements. Direct local connections use
-    // the same setting safely with the transaction pooler.
-    prepare: true,
+    prepare: isDirectConnection ? false : true,
     fetch_types: false,
-    max: 1,
-    idle_timeout: 15,
-    max_lifetime: 60,
+    max: isDirectConnection ? undefined : 1,
+    idle_timeout: isDirectConnection ? undefined : 15,
+    max_lifetime: isDirectConnection ? undefined : 60,
     connect_timeout: 10,
     onnotice: () => {},
   });
 
-  if (!hyperdrive) {
+  if (isDirectConnection) {
     globalForDb.conn = client;
   }
 

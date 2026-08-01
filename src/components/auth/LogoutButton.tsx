@@ -22,7 +22,7 @@ export default function LogoutButton({ className, iconOnly }: { className?: stri
     router.refresh();
   };
 
-  const defaultClassName = "w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 transition-all active-scale";
+  const defaultClassName = "w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors transition-transform transform-gpu active-scale";
   const buttonClass = className || defaultClassName;
 
   const modalContent = (

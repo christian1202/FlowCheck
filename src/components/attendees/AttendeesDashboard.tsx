@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useTransition, useDeferredValue, memo } from 'react';
 import type { AttendeeWithEvent } from '@/data/attendees';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend
@@ -11,6 +11,53 @@ import { fetchAttendeesPage, fetchAttendeesStats } from '@/app/(dashboard)/atten
 import { useVirtualizer } from '@tanstack/react-virtual';
 import AsyncEventCombobox from './AsyncEventCombobox';
 
+const AttendeeRow = memo(function AttendeeRow({
+  attendee,
+  isLoaderRow,
+}: {
+  attendee?: AttendeeWithEvent;
+  isLoaderRow: boolean;
+}) {
+  return (
+    <div style={{ contain: 'content' }} className="h-[68px] max-h-[68px] overflow-hidden grid grid-cols-12 gap-4 px-6 items-center border-b border-slate-800 md:border-white/5 hover:bg-white/[0.03] transition-colors text-xs">
+      {isLoaderRow || !attendee ? (
+        <div className="col-span-12 flex justify-center py-4 text-slate-400 font-mono">
+          <Loader2 className="w-4 h-4 animate-spin mr-2 text-amber-400" /> Loading stream...
+        </div>
+      ) : (
+        <>
+          <div className="col-span-4 md:col-span-3 py-2">
+            <div className="font-bold text-white truncate">{attendee.name}</div>
+            <div className="text-slate-400 text-[11px] truncate font-mono">{attendee.email}</div>
+          </div>
+          <div className="col-span-3 md:col-span-3 py-2 hidden md:block text-slate-300 truncate">
+            {attendee.eventTitle}
+          </div>
+          <div className="col-span-4 md:col-span-2 py-2">
+            <div className="text-slate-200 truncate">{attendee.local || '-'}</div>
+            <div className="text-slate-400 text-[11px] truncate">{attendee.duty || '-'}</div>
+          </div>
+          <div className="col-span-4 md:col-span-2 py-2">
+            <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider ${
+              attendee.status === 'checked_in' 
+                ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' 
+                : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+            }`}>
+              {attendee.status === 'checked_in' ? 'Checked In' : 'Pending'}
+            </span>
+          </div>
+          <div className="hidden md:block md:col-span-2 py-2 text-slate-400 text-[11px] font-mono truncate">
+            {attendee.checkedInAt ? new Date(attendee.checkedInAt).toLocaleString('en-US', { hour12: true, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  return prevProps.isLoaderRow === nextProps.isLoaderRow && 
+         prevProps.attendee?.id === nextProps.attendee?.id;
+});
+
 export default function AttendeesDashboard({ 
   initialAttendees,
   initialStats,
@@ -20,11 +67,22 @@ export default function AttendeesDashboard({
   initialStats: { total: number; checkedIn: number; registered: number },
   uniqueEvents: { id: string; title: string }[]
 }) {
+  const [isPending, startTransition] = useTransition();
+
   const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+  const debouncedSearchTerm = useDebounce(deferredSearchTerm, 300);
   
   const [statusFilter, setStatusFilter] = useState<'all' | 'registered' | 'checked_in'>('all');
   const [eventFilter, setEventFilter] = useState<string>('all');
+  
+  const handleEventFilterChange = (val: string) => {
+    startTransition(() => setEventFilter(val));
+  };
+
+  const handleStatusFilterChange = (val: 'all' | 'registered' | 'checked_in') => {
+    startTransition(() => setStatusFilter(val));
+  };
   
   const [attendees, setAttendees] = useState<AttendeeWithEvent[]>(initialAttendees);
   const [stats, setStats] = useState(initialStats);
@@ -46,7 +104,9 @@ export default function AttendeesDashboard({
 
     let isMounted = true;
     const loadNewFilters = async () => {
-      setAttendees([]);
+      startTransition(() => {
+        setAttendees([]);
+      });
       setIsLoading(true);
       try {
         const filters = {
@@ -54,16 +114,16 @@ export default function AttendeesDashboard({
           eventId: eventFilter,
           status: statusFilter
         };
-        const [newStats, newAttendees] = await Promise.all([
-          fetchAttendeesStats(filters),
-          fetchAttendeesPage(filters, 1)
-        ]);
+        const newStats = await fetchAttendeesStats(eventFilter);
+        const newAttendees = await fetchAttendeesPage(filters, 1);
         
         if (isMounted) {
-          setStats(newStats);
-          setAttendees(newAttendees);
-          setPage(1);
-          setHasMore(newAttendees.length === 20);
+          startTransition(() => {
+            setStats(newStats);
+            setAttendees(newAttendees);
+            setPage(1);
+            setHasMore(newAttendees.length === 20);
+          });
         }
       } catch (err) {
         console.error(err);
@@ -78,30 +138,46 @@ export default function AttendeesDashboard({
   }, [debouncedSearchTerm, statusFilter, eventFilter]);
   
   // Load next page
+  const isFetchingRef = useRef(false);
+  
   const loadMore = useCallback(async () => {
-    if (isLoading || !hasMore) return;
+    if (isFetchingRef.current || !hasMore) return;
+    isFetchingRef.current = true;
     setIsLoading(true);
+    
     try {
       const nextPage = page + 1;
       const filters = { search: debouncedSearchTerm, eventId: eventFilter, status: statusFilter };
       const newAttendees = await fetchAttendeesPage(filters, nextPage);
       
-      setAttendees(prev => [...prev, ...newAttendees]);
-      setPage(nextPage);
-      setHasMore(newAttendees.length === 20);
+      startTransition(() => {
+        setAttendees(prev => {
+          // Avoid duplicate appends if strict mode double-invokes
+          const existingIds = new Set(prev.map(a => a.id));
+          const uniqueNew = newAttendees.filter(a => !existingIds.has(a.id));
+          return [...prev, ...uniqueNew];
+        });
+        setPage(nextPage);
+        setHasMore(newAttendees.length === 20);
+      });
     } catch (err) {
       console.error(err);
     } finally {
+      isFetchingRef.current = false;
       setIsLoading(false);
     }
-  }, [isLoading, hasMore, page, debouncedSearchTerm, eventFilter, statusFilter]);
+  }, [hasMore, page, debouncedSearchTerm, eventFilter, statusFilter]);
   
   // Virtualizer setup
   const parentRef = useRef<HTMLDivElement>(null);
+  
+  const estimateSize = useCallback(() => 68, []);
+  const virtualItemCount = hasMore ? attendees.length + 1 : attendees.length;
+  
   const rowVirtualizer = useVirtualizer({
-    count: hasMore ? attendees.length + 1 : attendees.length,
+    count: virtualItemCount,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 68,
+    estimateSize,
     overscan: 5,
   });
   
@@ -111,10 +187,10 @@ export default function AttendeesDashboard({
   useEffect(() => {
     if (lastItemIndex < 0) return;
     
-    if (lastItemIndex >= attendees.length - 1 && hasMore && !isLoading) {
+    if (lastItemIndex >= attendees.length - 1 && hasMore && !isFetchingRef.current) {
       loadMore();
     }
-  }, [lastItemIndex, attendees.length, hasMore, isLoading, loadMore]);
+  }, [lastItemIndex, attendees.length, hasMore, loadMore]);
   
   // Chart data
   const pieData = [
@@ -157,24 +233,24 @@ export default function AttendeesDashboard({
             placeholder="Search name, email, local..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 font-mono transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 font-mono transition-colors transform-gpu"
           />
         </div>
 
         <div className="flex w-full md:w-auto gap-3">
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <Filter className="text-slate-400 w-4 h-4 shrink-0 hidden md:block" />
+            <Filter className={`text-slate-400 w-4 h-4 shrink-0 hidden md:block ${isPending ? 'animate-pulse text-amber-500' : ''}`} />
             <AsyncEventCombobox 
               value={eventFilter} 
-              onChange={setEventFilter} 
+              onChange={handleEventFilterChange} 
               initialEvents={uniqueEvents} 
             />
           </div>
           
           <select 
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'registered' | 'checked_in')}
-            className="w-full md:w-36 bg-slate-950/60 border border-white/10 rounded-xl py-2.5 px-3 text-xs text-white font-mono focus:outline-none focus:border-amber-500/50 transition-all"
+            onChange={(e) => handleStatusFilterChange(e.target.value as 'all' | 'registered' | 'checked_in')}
+            className="w-full md:w-36 bg-slate-950/60 border border-white/10 rounded-xl py-2.5 px-3 text-xs text-white font-mono focus:outline-none focus:border-amber-500/50 transition-colors transform-gpu"
           >
             <option value="all">All Status</option>
             <option value="checked_in">Checked In</option>
@@ -184,7 +260,7 @@ export default function AttendeesDashboard({
           <button
             onClick={handleExportClick}
             disabled={isExporting}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)] disabled:opacity-50 shrink-0 active-scale"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-colors transition-transform transform-gpu shadow-[0_0_15px_rgba(245,158,11,0.2)] disabled:opacity-50 shrink-0 active-scale"
           >
             {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
             <span className="hidden md:inline">Export CSV</span>
@@ -246,10 +322,10 @@ export default function AttendeesDashboard({
       </div>
 
       {/* Virtualized grid: only visible rows plus overscan are mounted. */}
-      <div className="claude-card rounded-3xl border border-white/10 overflow-hidden h-[500px]">
-        <div ref={parentRef} className="h-full overflow-auto hide-scrollbar">
+      <div className={`claude-card rounded-3xl border border-white/10 overflow-hidden h-[500px] transition-opacity duration-200 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
+        <div ref={parentRef} className={`h-full overflow-auto touch-pan-y overscroll-contain hide-scrollbar ${rowVirtualizer.isScrolling ? 'pointer-events-none' : ''}`} style={{ contain: 'strict' }}>
           {/* Header is inside the scroll container so it remains sticky. */}
-          <div className="sticky top-0 z-10 bg-slate-950/95 text-slate-400 border-b border-white/10 grid grid-cols-12 gap-4 px-6 py-3.5 text-xs font-mono uppercase tracking-wider">
+          <div className="sticky top-0 z-10 bg-slate-950 transform-gpu isolation-isolate text-slate-400 border-b border-white/10 grid grid-cols-12 gap-4 px-6 py-3.5 text-xs font-mono uppercase tracking-wider">
           <div className="col-span-4 md:col-span-3">Attendee Name / Email</div>
           <div className="col-span-3 md:col-span-3 hidden md:block">Event</div>
           <div className="col-span-4 md:col-span-2">Local / Duty</div>
@@ -272,6 +348,7 @@ export default function AttendeesDashboard({
               {virtualItems.map((virtualRow) => {
                 const isLoaderRow = virtualRow.index > attendees.length - 1;
                 const attendee = attendees[virtualRow.index];
+                const transform = `translateY(${virtualRow.start}px)`;
 
                 return (
                   <div
@@ -281,42 +358,12 @@ export default function AttendeesDashboard({
                       top: 0,
                       left: 0,
                       width: '100%',
-                      height: `${virtualRow.size}px`,
-                      transform: `translateY(${virtualRow.start}px)`,
+                      height: virtualRow.size,
+                      transform,
                     }}
-                    className="grid grid-cols-12 gap-4 px-6 items-center border-b border-white/5 hover:bg-white/[0.03] transition-colors text-xs"
+                    className="w-full transform-gpu"
                   >
-                    {isLoaderRow ? (
-                      <div className="col-span-12 flex justify-center py-4 text-slate-400 font-mono">
-                        <Loader2 className="w-4 h-4 animate-spin mr-2 text-amber-400" /> Loading stream...
-                      </div>
-                    ) : (
-                      <>
-                        <div className="col-span-4 md:col-span-3 py-2">
-                          <div className="font-bold text-white truncate">{attendee.name}</div>
-                          <div className="text-slate-400 text-[11px] truncate font-mono">{attendee.email}</div>
-                        </div>
-                        <div className="col-span-3 md:col-span-3 py-2 hidden md:block text-slate-300 truncate">
-                          {attendee.eventTitle}
-                        </div>
-                        <div className="col-span-4 md:col-span-2 py-2">
-                          <div className="text-slate-200 truncate">{attendee.local || '-'}</div>
-                          <div className="text-slate-400 text-[11px] truncate">{attendee.duty || '-'}</div>
-                        </div>
-                        <div className="col-span-4 md:col-span-2 py-2">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider ${
-                            attendee.status === 'checked_in' 
-                              ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' 
-                              : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                          }`}>
-                            {attendee.status === 'checked_in' ? 'Checked In' : 'Pending'}
-                          </span>
-                        </div>
-                        <div className="hidden md:block md:col-span-2 py-2 text-slate-400 text-[11px] font-mono truncate">
-                          {attendee.checkedInAt ? new Date(attendee.checkedInAt).toLocaleString('en-US', { hour12: true, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
-                        </div>
-                      </>
-                    )}
+                    <AttendeeRow attendee={attendee} isLoaderRow={isLoaderRow} />
                   </div>
                 );
               })}
@@ -342,7 +389,7 @@ export default function AttendeesDashboard({
               </button>
               <button
                 onClick={handleExportCSV}
-                className="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 transition-colors transform-gpu shadow-[0_0_15px_rgba(245,158,11,0.2)]"
               >
                 Confirm Export
               </button>

@@ -77,7 +77,7 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                   id="title"
                   required
                   defaultValue={event.title}
-                  className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                  className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-sans"
                   placeholder="e.g. Annual Tech Summit 2026"
                 />
               </div>
@@ -99,7 +99,7 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                   rows={3}
                   required
                   defaultValue={event.description || ''}
-                  className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                  className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-sans"
                   placeholder="Describe your event..."
                 />
               </div>
@@ -120,7 +120,7 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                     id="date"
                     required
                     defaultValue={mounted ? formatDateForInput(event.date) : ''}
-                    className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono [color-scheme:dark]"
+                    className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-mono [color-scheme:dark]"
                   />
                 </div>
               </div>
@@ -137,7 +137,7 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                     name="closesAt"
                     id="closesAt"
                     defaultValue={mounted ? formatDateForInput(event.closesAt) : ''}
-                    className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono [color-scheme:dark]"
+                    className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-mono [color-scheme:dark]"
                   />
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                     name="location"
                     id="location"
                     defaultValue={event.location || ''}
-                    className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                    className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-sans"
                     placeholder="e.g. Grand Ballroom, Hilton"
                   />
                 </div>
@@ -181,14 +181,14 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                     name="mapLink"
                     id="mapLink"
                     defaultValue={event.mapLink || ''}
-                    className="w-full pl-11 pr-24 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans"
+                    className="w-full pl-11 pr-24 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-sans"
                     placeholder="https://maps.google.com/..."
                   />
                   <a 
                     href={event.mapLink || 'https://maps.google.com'} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="absolute right-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 text-[11px] font-mono transition-all flex items-center gap-1 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.1)]" 
+                    className="absolute right-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 text-[11px] font-mono transition-colors transition-transform transform-gpu flex items-center gap-1 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.1)]" 
                     title="Open Google Maps to search location"
                   >
                     <span>Find</span>
@@ -216,7 +216,7 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                     id="maxAttendees"
                     min={1}
                     defaultValue={event.maxAttendees || ''}
-                    className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
+                    className="w-full pl-11 pr-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-mono"
                     placeholder="Leave blank for unlimited"
                   />
                 </div>
@@ -231,7 +231,7 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                     name="status"
                     id="status"
                     defaultValue={event.status}
-                    className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono appearance-none cursor-pointer pr-10"
+                    className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-mono appearance-none cursor-pointer pr-10"
                   >
                     <option value="open" className="bg-slate-900 text-white">Open / Live</option>
                     <option value="closed" className="bg-slate-900 text-white">Closed / Finished</option>
@@ -249,7 +249,7 @@ export default function EditEventForm({ event }: { event: EventRow }) {
             <button
               type="submit"
               disabled={isPending}
-              className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] flex items-center gap-2 active-scale"
+              className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-colors transition-transform transform-gpu shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] flex items-center gap-2 active-scale"
             >
               {isPending ? (
                 <>

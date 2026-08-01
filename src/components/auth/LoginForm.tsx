@@ -135,7 +135,7 @@ export default function LoginForm() {
         <button
           type="button"
           onClick={() => resetState(true)}
-          className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-all active-scale ${
+          className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-colors transition-transform transform-gpu active-scale ${
             isLogin && !isForgotPassword 
               ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
               : 'text-slate-400 md:hover:text-white'
@@ -146,7 +146,7 @@ export default function LoginForm() {
         <button
           type="button"
           onClick={() => resetState(false)}
-          className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-all active-scale ${
+          className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-colors transition-transform transform-gpu active-scale ${
             !isLogin && !isForgotPassword 
               ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
               : 'text-slate-400 md:hover:text-white'
@@ -177,7 +177,7 @@ export default function LoginForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="block w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 px-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
+            className="block w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 px-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-mono"
             placeholder="admin@example.com"
           />
         </div>
@@ -208,7 +208,7 @@ export default function LoginForm() {
                   required={!isForgotPassword}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 pl-4 pr-10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
+                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 pl-4 pr-10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-mono"
                   placeholder="••••••••"
                 />
                 <button
@@ -229,7 +229,7 @@ export default function LoginForm() {
                 <div className="mt-2.5 space-y-1.5">
                   <div className="flex h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
                     <div 
-                      className={`h-full transition-all duration-500 ease-out ${getStrengthColor()}`}
+                      className={`h-full transition-colors transform-gpu duration-500 ease-out ${getStrengthColor()}`}
                       style={{ width: `${(passwordStrength / 5) * 100}%` }}
                     />
                   </div>
@@ -261,7 +261,7 @@ export default function LoginForm() {
                     required={!isLogin}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 pl-4 pr-10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
+                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 pl-4 pr-10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-colors transform-gpu font-mono"
                     placeholder="••••••••"
                   />
                   <button
@@ -285,7 +285,7 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-6 flex w-full justify-center items-center rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-4 py-3 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.25)] active-scale disabled:opacity-50 transition-all"
+          className="mt-6 flex w-full justify-center items-center rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-4 py-3 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.25)] active-scale disabled:opacity-50 transition-colors transition-transform transform-gpu"
         >
           {isLoading ? (
             isForgotPassword ? 'Sending link...' : (isLogin ? 'Signing in...' : 'Registering...')

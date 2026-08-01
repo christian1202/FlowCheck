@@ -297,7 +297,14 @@ export default function QRScanner({ eventId }: { eventId: string }) {
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
+        try {
+          const promise = scannerRef.current.stop();
+          if (promise && promise.catch) {
+            promise.catch(() => {});
+          }
+        } catch (err) {
+          // Suppress synchronous throw: "Cannot stop, scanner is not running or paused."
+        }
       }
     };
   }, []);
@@ -312,7 +319,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
         <div className="absolute top-4 right-4 z-20 flex gap-2.5">
           <button 
             onClick={toggleMirror} 
-            className={`px-3.5 py-2 rounded-xl bg-slate-900/95 md:bg-slate-900/80 md:backdrop-blur-md border text-xs font-mono transition-all flex items-center gap-1.5 active-scale ${
+            className={`px-3.5 py-2 rounded-xl bg-slate-900/95 md:bg-slate-900/80 md:backdrop-blur-md border text-xs font-mono transition-colors transition-transform transform-gpu flex items-center gap-1.5 active-scale ${
               isMirrored 
                 ? 'border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]' 
                 : 'border-white/10 text-slate-300 md:hover:text-white md:hover:bg-slate-800'
@@ -324,7 +331,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
           </button>
           <button 
             onClick={toggleCamera} 
-            className="px-3.5 py-2 rounded-xl bg-slate-900/95 md:bg-slate-900/80 md:backdrop-blur-md border border-white/10 text-xs font-mono text-slate-300 md:hover:text-white md:hover:bg-slate-800 transition-all flex items-center gap-1.5 active-scale"
+            className="px-3.5 py-2 rounded-xl bg-slate-900/95 md:bg-slate-900/80 md:backdrop-blur-md border border-white/10 text-xs font-mono text-slate-300 md:hover:text-white md:hover:bg-slate-800 transition-colors transition-transform transform-gpu flex items-center gap-1.5 active-scale"
             title="Switch front/rear camera"
           >
             <span className="material-symbols-outlined text-sm">cameraswitch</span>
@@ -333,7 +340,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
           {status !== 'idle' && (
              <button 
                onClick={stopScanner} 
-               className="px-3.5 py-2 rounded-xl bg-red-950/95 md:bg-red-950/80 md:backdrop-blur-md border border-red-500/40 text-xs font-mono text-red-300 md:hover:bg-red-900 transition-all flex items-center gap-1.5 active-scale"
+               className="px-3.5 py-2 rounded-xl bg-red-950/95 md:bg-red-950/80 md:backdrop-blur-md border border-red-500/40 text-xs font-mono text-red-300 md:hover:bg-red-900 transition-colors transition-transform transform-gpu flex items-center gap-1.5 active-scale"
              >
                <span className="material-symbols-outlined text-sm">stop_circle</span>
                <span>Stop</span>
@@ -369,7 +376,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
                <p className="text-xs text-slate-400 mb-6 text-center max-w-xs">Activate camera stream to scan attendee QR codes in real-time.</p>
                <button 
                  onClick={() => startScanner()} 
-                 className="bg-gradient-to-r from-amber-500 to-amber-600 md:hover:from-amber-400 md:hover:to-amber-500 text-slate-950 font-bold text-xs px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] flex items-center gap-2 active-scale"
+                 className="bg-gradient-to-r from-amber-500 to-amber-600 md:hover:from-amber-400 md:hover:to-amber-500 text-slate-950 font-bold text-xs px-6 py-3 rounded-xl transition-colors transition-transform transform-gpu shadow-[0_0_20px_rgba(245,158,11,0.25)] flex items-center gap-2 active-scale"
                >
                  <span className="material-symbols-outlined text-lg">videocam</span> 
                  <span>Start Optical Stream</span>
@@ -440,7 +447,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
 
       {/* Telemetry Log Sidebar */}
       <aside className="w-full md:w-80 bg-slate-950 border-l border-white/10 flex flex-col h-[40vh] md:h-full shrink-0 z-20">
-        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/95 md:bg-slate-900/60 md:backdrop-blur-md sticky top-0 z-10">
+        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900 transform-gpu isolation-isolate sticky top-0 z-10">
           <h2 className="text-xs font-mono uppercase tracking-widest text-slate-300 font-bold">Telemetry Stream</h2>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>

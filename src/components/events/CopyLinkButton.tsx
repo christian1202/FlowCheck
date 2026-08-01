@@ -101,7 +101,7 @@ export default function CopyLinkButton({ slug }: { slug: string }) {
           <button
             type="button"
             onClick={handleCopy}
-            className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)] whitespace-nowrap active-scale"
+            className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl transition-colors transition-transform transform-gpu shadow-[0_0_15px_rgba(245,158,11,0.2)] whitespace-nowrap active-scale"
             title="Copy Link"
           >
             {copied ? (

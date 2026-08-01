@@ -37,7 +37,7 @@ export default async function ScannerPage({
             This event is currently set to <strong>{event.status}</strong>.
           </p>
           <div className="mt-6">
-            <Link href={`/events/${event.id}/settings`} className="bg-surface-container-lowest text-on-surface font-label-sm px-6 py-2 rounded-full inline-block hover:bg-surface-container-high transition-colors">
+            <Link prefetch={false} href={`/events/${event.id}/settings`} className="bg-surface-container-lowest text-on-surface font-label-sm px-6 py-2 rounded-full inline-block hover:bg-surface-container-high transition-colors">
               Go to Event Settings
             </Link>
           </div>
@@ -50,7 +50,7 @@ export default async function ScannerPage({
     <div className="flex-1 relative h-full min-h-[calc(100vh-64px)] w-full flex flex-col bg-surface-bright overflow-hidden">
       {/* Mobile-only header back button (optional, since topnav is hidden on scanner if absolute) */}
       <div className="absolute top-4 left-4 z-50 md:hidden">
-        <Link href={`/events/${event.id}/settings`} className="w-touch-target h-touch-target bg-surface/95 rounded-full flex items-center justify-center shadow-md">
+        <Link prefetch={false} href={`/events/${event.id}/settings`} className="w-touch-target h-touch-target bg-surface/95 rounded-full flex items-center justify-center shadow-md">
           <span className="material-symbols-outlined text-primary">arrow_back</span>
         </Link>
       </div>

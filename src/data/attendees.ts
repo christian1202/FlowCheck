@@ -1,6 +1,7 @@
 import { getDb } from '@/lib/db';
 import { attendees, events, eventAdmins } from '@/lib/db/schema';
 import { eq, and, inArray, desc, ilike, or, sql } from 'drizzle-orm';
+import { unstable_cache } from 'next/cache';
 
 export type AttendeeWithEvent = {
   id: string;
@@ -42,31 +43,38 @@ function buildConditions(adminAllowedIds: string[], filters: AttendeesFilters) {
   return conditions;
 }
 
-export async function getAttendeesStats(adminId: string, filters: AttendeesFilters = {}) {
-  const db = getDb();
-  
-  const adminEvents = await db.select({ id: eventAdmins.eventId })
-    .from(eventAdmins)
-    .where(eq(eventAdmins.adminId, adminId));
+export const getAttendeesStats = unstable_cache(
+  async (adminId: string, eventId: string = 'all') => {
+    const db = getDb();
+    
+    const adminEvents = await db.select({ id: eventAdmins.eventId })
+      .from(eventAdmins)
+      .where(eq(eventAdmins.adminId, adminId));
 
-  const allowedIds = adminEvents.map(e => e.id);
-  if (allowedIds.length === 0) return { total: 0, checkedIn: 0, registered: 0 };
+    const allowedIds = adminEvents.map(e => e.id);
+    if (allowedIds.length === 0) return { total: 0, checkedIn: 0, registered: 0 };
 
-  const conditions = buildConditions(allowedIds, filters);
+    const conditions = [inArray(attendees.eventId, allowedIds)];
+    if (eventId && eventId !== 'all') {
+      conditions.push(eq(attendees.eventId, eventId));
+    }
 
-  const [{ total, checkedIn }] = await db.select({
-    total: sql<number>`count(*)`,
-    checkedIn: sql<number>`sum(case when ${attendees.status} = 'checked_in' then 1 else 0 end)`
-  })
-  .from(attendees)
-  .where(and(...conditions));
+    const [{ total, checkedIn }] = await db.select({
+      total: sql<number>`count(*)`,
+      checkedIn: sql<number>`sum(case when ${attendees.status} = 'checked_in' then 1 else 0 end)`
+    })
+    .from(attendees)
+    .where(and(...conditions));
 
-  return { 
-    total: Number(total || 0), 
-    checkedIn: Number(checkedIn || 0), 
-    registered: Number(total || 0) - Number(checkedIn || 0) 
-  };
-}
+    return { 
+      total: Number(total || 0), 
+      checkedIn: Number(checkedIn || 0), 
+      registered: Number(total || 0) - Number(checkedIn || 0) 
+    };
+  },
+  ['attendees-stats'],
+  { revalidate: 60, tags: ['attendees-stats'] }
+);
 
 export async function getAttendeesPaginated(
   adminId: string,

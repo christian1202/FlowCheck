@@ -1,0 +1,28 @@
+name: Supabase Keep-Alive Ping
+
+on:
+  # Runs automatically at 12:00 UTC every Wednesday
+  schedule:
+    - cron: '0 12 * * 3'
+  # Allows you to trigger this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  ping_database:
+    name: Ping REST API
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Execute cURL Request to Supabase
+        run: |
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          "${{ secrets.SUPABASE_URL }}/rest/v1/events?select=id&limit=1")
+          
+          echo "Supabase responded with HTTP Status: $HTTP_STATUS"
+          
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Error: Database did not return a 200 OK status."
+            exit 1
+          fi

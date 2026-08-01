@@ -12,7 +12,7 @@ export default async function EventsPage() {
     redirect('/login');
   }
   
-  let dashboardEvents = [];
+  let dashboardEvents: Awaited<ReturnType<typeof getRecentDashboardEvents>> = [];
   let error = null;
   let stats = { totalEvents: 0, activeEvents: 0, totalScans: 0 };
   
@@ -110,9 +110,9 @@ export default async function EventsPage() {
             <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400"></span> Recent Events
             </h3>
-            <Link 
+            <Link prefetch={false} 
               href="/events/all" 
-              className="text-xs font-medium text-amber-400 hover:text-amber-300 flex items-center gap-1 transition-all group"
+              className="text-xs font-medium text-amber-400 hover:text-amber-300 flex items-center gap-1 transition-colors transform-gpu group"
             >
               View All <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
             </Link>
@@ -125,9 +125,9 @@ export default async function EventsPage() {
               </div>
               <h3 className="text-xl font-bold text-white mb-1">No events found</h3>
               <p className="text-xs text-slate-400 mb-6 max-w-md">You haven&apos;t created any events yet. Get started by initializing your first stream.</p>
-              <Link
+              <Link prefetch={false}
                 href="/events/new"
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold text-xs rounded-xl active-scale transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)]"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold text-xs rounded-xl active-scale transition-colors transition-transform transform-gpu shadow-[0_0_20px_rgba(245,158,11,0.25)]"
               >
                 <span className="material-symbols-outlined mr-2 text-lg">add</span>
                 <span>Create New Event</span>
@@ -141,10 +141,10 @@ export default async function EventsPage() {
 
                 return (
                   <div key={event.id} className="block group h-full relative">
-                    <div className="claude-card rounded-3xl hover-lift p-6 flex flex-col h-full min-h-[300px] transition-all duration-300 relative overflow-hidden">
+                    <div className="claude-card rounded-3xl hover-lift p-6 flex flex-col h-full min-h-[300px] transition-colors transition-transform transform-gpu duration-300 relative overflow-hidden">
                       
                       {/* Full card link */}
-                      <Link href={`/events/${event.id}/settings`} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></Link>
+                      <Link prefetch={false} href={`/events/${event.id}/settings`} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></Link>
 
                       {/* Top: Status Pill */}
                       <div className="mb-4 relative z-10 flex justify-between items-center">

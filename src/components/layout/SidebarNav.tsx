@@ -6,9 +6,10 @@ import { usePathname } from 'next/navigation';
 interface SidebarNavProps {
   isCollapsed?: boolean;
   isHorizontal?: boolean;
+  onNavigate?: () => void;
 }
 
-export default function SidebarNav({ isCollapsed = false, isHorizontal = false }: SidebarNavProps) {
+export default function SidebarNav({ isCollapsed = false, isHorizontal = false, onNavigate }: SidebarNavProps) {
   const pathname = usePathname();
 
   const links = [
@@ -49,9 +50,9 @@ export default function SidebarNav({ isCollapsed = false, isHorizontal = false }
       <ul className="flex items-center justify-around w-full px-3">
         {links.map((link) => (
           <li key={link.href} className="flex-1">
-            <Link
+            <Link prefetch={false}
               href={link.href}
-              prefetch={false}
+              onClick={onNavigate}
               className={`flex flex-col items-center justify-center gap-1 py-1.5 w-full rounded-2xl active-scale transition-colors duration-150 transform-gpu ${
                 link.isActive
                   ? 'text-white font-medium'
@@ -87,9 +88,9 @@ export default function SidebarNav({ isCollapsed = false, isHorizontal = false }
     <ul className="space-y-2 px-3">
       {links.map((link) => (
         <li key={link.href} className="flex justify-center">
-          <Link
+          <Link prefetch={false}
             href={link.href}
-            prefetch={false}
+            onClick={onNavigate}
             title={isCollapsed ? link.label : undefined}
             className={`flex items-center text-xs tracking-wide transition-colors duration-150 active-scale transform-gpu ${
               isCollapsed

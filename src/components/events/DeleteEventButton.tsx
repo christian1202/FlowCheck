@@ -92,7 +92,7 @@ export default function DeleteEventButton({ eventId }: { eventId: string }) {
         type="button"
         onClick={() => setShowConfirm(true)}
         disabled={isDeleting}
-        className="w-full sm:w-auto inline-flex justify-center items-center py-2.5 px-5 text-xs font-bold rounded-xl text-red-400 bg-red-950/40 hover:bg-red-900/50 border border-red-500/30 hover:border-red-500/50 transition-all active-scale disabled:opacity-50 gap-2"
+        className="w-full sm:w-auto inline-flex justify-center items-center py-2.5 px-5 text-xs font-bold rounded-xl text-red-400 bg-red-950/40 hover:bg-red-900/50 border border-red-500/30 hover:border-red-500/50 transition-colors transition-transform transform-gpu active-scale disabled:opacity-50 gap-2"
       >
         <span className="material-symbols-outlined text-base">delete</span>
         <span>Delete Event</span>

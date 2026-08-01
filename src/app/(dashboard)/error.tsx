@@ -37,7 +37,7 @@ export default function DashboardError({
           >
             Try Again
           </button>
-          <Link
+          <Link prefetch={false}
             href="/"
             className="px-6 py-2 border border-error/30 rounded-lg font-label-sm hover:bg-error/10 transition-colors"
           >
