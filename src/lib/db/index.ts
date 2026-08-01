@@ -30,7 +30,7 @@ export function resetDb() {
   globalForDb.db = undefined;
 }
 
-export function getDb(): DrizzleDb {
+export function getSqlClient(): PostgresClient {
   // OpenNext exposes Cloudflare bindings through its request context, not
   // process.env. The fallback keeps direct Postgres usable in local Node work.
   let hyperdrive: HyperdriveBinding | undefined;
@@ -59,8 +59,8 @@ export function getDb(): DrizzleDb {
   // A Worker isolate can serve many requests. Do not retain a TCP client in a
   // global when using Hyperdrive; retained clients can exhaust Worker socket
   // resources and produce Error 1102. Hyperdrive maintains the upstream pool.
-  if (!hyperdrive && globalForDb.db) {
-    return globalForDb.db;
+  if (!hyperdrive && globalForDb.conn) {
+    return globalForDb.conn;
   }
 
   const client = postgres(connectionString, {
@@ -75,10 +75,25 @@ export function getDb(): DrizzleDb {
     onnotice: () => {},
   });
 
-  const db = drizzle(client);
-
   if (!hyperdrive) {
     globalForDb.conn = client;
+  }
+
+  return client;
+}
+
+export function getDb(): DrizzleDb {
+  if (globalForDb.db) return globalForDb.db;
+
+  const db = drizzle(getSqlClient());
+
+  // Only cache local Node clients. Worker requests receive a fresh Hyperdrive
+  // client so an isolate cannot retain database sockets across requests.
+  try {
+    if (!getCloudflareContext().env.HYPERDRIVE) {
+      globalForDb.db = db;
+    }
+  } catch {
     globalForDb.db = db;
   }
 

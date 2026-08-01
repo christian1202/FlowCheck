@@ -18,7 +18,7 @@ export default async function AttendeesPage() {
   
   try {
     const [attendeesResult, statsResult, eventsResult] = await Promise.all([
-      getAttendeesPaginated(adminId, {}, 1, 50),
+      getAttendeesPaginated(adminId, {}, 1, 20),
       getAttendeesStats(adminId, {}),
       getUniqueEventsForAdmin(adminId),
     ]);

@@ -75,7 +75,7 @@ export async function getAttendeesPaginated(
   adminId: string,
   filters: AttendeesFilters = {},
   page: number = 1,
-  limit: number = 50
+  limit: number = 20
 ): Promise<AttendeeWithEvent[]> {
   const db = getDb();
   
@@ -107,42 +107,6 @@ export async function getAttendeesPaginated(
   .orderBy(desc(attendees.registeredAt))
   .limit(limit)
   .offset(offset);
-
-  return rows as AttendeeWithEvent[];
-}
-
-export async function getAllAttendeesForExport(
-  adminId: string,
-  filters: AttendeesFilters = {}
-): Promise<AttendeeWithEvent[]> {
-  const db = getDb();
-  
-  const adminEvents = await db.select({ id: eventAdmins.eventId })
-    .from(eventAdmins)
-    .where(eq(eventAdmins.adminId, adminId));
-
-  const allowedIds = adminEvents.map(e => e.id);
-  if (allowedIds.length === 0) return [];
-
-  const conditions = buildConditions(allowedIds, filters);
-
-  const rows = await db.select({
-    id: attendees.id,
-    eventId: attendees.eventId,
-    eventTitle: events.title,
-    name: attendees.name,
-    email: attendees.email,
-    local: attendees.local,
-    duty: attendees.duty,
-    status: attendees.status,
-    registeredAt: attendees.registeredAt,
-    checkedInAt: attendees.checkedInAt,
-  })
-  .from(attendees)
-  .innerJoin(events, eq(attendees.eventId, events.id))
-  .where(and(...conditions))
-  .orderBy(desc(attendees.registeredAt))
-  .limit(1000); // Cloudflare Workers CPU safeguard: never pull more than 1000 rows
 
   return rows as AttendeeWithEvent[];
 }

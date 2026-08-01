@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { Search, Filter, Loader2, Download } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { fetchAttendeesPage, fetchAttendeesStats, fetchAllAttendeesForExport } from '@/app/(dashboard)/attendees/actions';
+import { fetchAttendeesPage, fetchAttendeesStats } from '@/app/(dashboard)/attendees/actions';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 export default function AttendeesDashboard({ 
@@ -29,7 +29,7 @@ export default function AttendeesDashboard({
   const [stats, setStats] = useState(initialStats);
   
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(initialAttendees.length === 50);
+  const [hasMore, setHasMore] = useState(initialAttendees.length === 20);
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -61,7 +61,7 @@ export default function AttendeesDashboard({
           setStats(newStats);
           setAttendees(newAttendees);
           setPage(1);
-          setHasMore(newAttendees.length === 50);
+          setHasMore(newAttendees.length === 20);
         }
       } catch (err) {
         console.error(err);
@@ -86,7 +86,7 @@ export default function AttendeesDashboard({
       
       setAttendees(prev => [...prev, ...newAttendees]);
       setPage(nextPage);
-      setHasMore(newAttendees.length === 50);
+      setHasMore(newAttendees.length === 20);
     } catch (err) {
       console.error(err);
     } finally {
@@ -129,37 +129,11 @@ export default function AttendeesDashboard({
     if (isExporting) return;
     setIsExporting(true);
     try {
-      const filters = { search: debouncedSearchTerm, eventId: eventFilter, status: statusFilter };
-      const allData = await fetchAllAttendeesForExport(filters);
-      
-      // Convert to CSV
-      const headers = ['Name', 'Email', 'Event', 'Local', 'Duty', 'Status', 'Registered At', 'Checked In At'];
-      const csvRows = [headers.join(',')];
-      
-      for (const row of allData) {
-        const values = [
-          `"${(row.name || '').replace(/"/g, '""')}"`,
-          `"${(row.email || '').replace(/"/g, '""')}"`,
-          `"${(row.eventTitle || '').replace(/"/g, '""')}"`,
-          `"${(row.local || '').replace(/"/g, '""')}"`,
-          `"${(row.duty || '').replace(/"/g, '""')}"`,
-          `"${row.status}"`,
-          `"${row.registeredAt ? new Date(row.registeredAt).toISOString() : ''}"`,
-          `"${row.checkedInAt ? new Date(row.checkedInAt).toISOString() : ''}"`
-        ];
-        csvRows.push(values.join(','));
-      }
-      
-      const csvString = csvRows.join('\n');
-      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `attendees_export_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const params = new URLSearchParams();
+      if (debouncedSearchTerm) params.set('search', debouncedSearchTerm);
+      if (eventFilter !== 'all') params.set('eventId', eventFilter);
+      if (statusFilter !== 'all') params.set('status', statusFilter);
+      window.location.assign(`/api/export-attendees?${params.toString()}`);
     } catch (err) {
       console.error('Failed to export CSV', err);
       alert('Failed to export CSV. Please try again.');
@@ -274,22 +248,18 @@ export default function AttendeesDashboard({
         </div>
       </div>
 
-      {/* Virtualized Table */}
-      <div className="claude-card rounded-3xl border border-white/10 overflow-hidden flex flex-col h-[500px]">
-        {/* Table Header */}
-        <div className="bg-slate-950/80 text-slate-400 border-b border-white/10 grid grid-cols-12 gap-4 px-6 py-3.5 text-xs font-mono uppercase tracking-wider">
+      {/* Virtualized grid: only visible rows plus overscan are mounted. */}
+      <div className="claude-card rounded-3xl border border-white/10 overflow-hidden h-[500px]">
+        <div ref={parentRef} className="h-full overflow-auto hide-scrollbar">
+          {/* Header is inside the scroll container so it remains sticky. */}
+          <div className="sticky top-0 z-10 bg-slate-950/95 text-slate-400 border-b border-white/10 grid grid-cols-12 gap-4 px-6 py-3.5 text-xs font-mono uppercase tracking-wider">
           <div className="col-span-4 md:col-span-3">Attendee Name / Email</div>
           <div className="col-span-3 md:col-span-3 hidden md:block">Event</div>
           <div className="col-span-4 md:col-span-2">Local / Duty</div>
           <div className="col-span-4 md:col-span-2">Status</div>
           <div className="hidden md:block md:col-span-2">Timestamp</div>
-        </div>
-        
-        {/* Body */}
-        <div 
-          ref={parentRef}
-          className="flex-1 overflow-auto hide-scrollbar"
-        >
+          </div>
+
           {attendees.length === 0 ? (
             <div className="flex items-center justify-center h-full text-slate-500 text-xs font-mono p-6">
               {isLoading ? 'Loading records...' : 'No attendee records found matching your criteria.'}
