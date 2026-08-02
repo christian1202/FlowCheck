@@ -4,7 +4,7 @@ import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getAttendeesPaginated, getAttendeesStats, getUniqueEventsForAdmin, type AttendeeWithEvent } from '@/data/attendees';
 import AttendeesDashboard from '@/components/attendees/AttendeesDashboard';
-import AttendeesLoading from './loading';
+import AttendeesSkeleton from '@/components/ui/skeletons/AttendeesSkeleton';
 
 async function AttendeesContent({ adminId }: { adminId: string }) {
   let initialAttendees: AttendeeWithEvent[] = [];
@@ -68,10 +68,9 @@ export default async function AttendeesPage() {
         </div>
       </div>
 
-      <Suspense fallback={<AttendeesLoading />}>
+      <Suspense fallback={<AttendeesSkeleton />}>
         <AttendeesContent adminId={adminId} />
       </Suspense>
     </div>
   );
 }
-

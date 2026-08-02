@@ -5,7 +5,7 @@ import { getDashboardStats, getRecentDashboardEvents } from '@/data/dashboard';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
-import EventsLoading from './loading';
+import EventsSkeleton from '@/components/ui/skeletons/EventsSkeleton';
 
 async function DashboardContent({ adminId }: { adminId: string }) {
   let dashboardEvents: Awaited<ReturnType<typeof getRecentDashboardEvents>> = [];
@@ -225,7 +225,7 @@ export default async function EventsPage() {
         </div>
       </div>
 
-      <Suspense fallback={<EventsLoading />}>
+      <Suspense fallback={<EventsSkeleton />}>
         <DashboardContent adminId={adminId} />
       </Suspense>
     </div>

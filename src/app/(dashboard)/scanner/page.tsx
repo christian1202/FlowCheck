@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { getEventsPaginated, type EventWithRole } from '@/data/events';
 import EventsList from '@/components/events/EventsList';
 import { fetchEventsPage } from '@/app/(dashboard)/events/all/actions';
-import EventsLoading from '../events/loading';
+import EventsSkeleton from '@/components/ui/skeletons/EventsSkeleton';
 
 async function ScannerSelectContent({ adminId }: { adminId: string }) {
   let initialEvents: EventWithRole[] = [];
@@ -57,7 +57,7 @@ export default async function ScannerSelectPage() {
         </div>
       </div>
 
-      <Suspense fallback={<EventsLoading />}>
+      <Suspense fallback={<EventsSkeleton />}>
         <ScannerSelectContent adminId={adminId} />
       </Suspense>
     </div>

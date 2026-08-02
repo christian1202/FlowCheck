@@ -6,7 +6,7 @@ import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import EventsList from '@/components/events/EventsList';
 import { fetchEventsPage } from './actions';
-import EventsLoading from '../loading';
+import EventsSkeleton from '@/components/ui/skeletons/EventsSkeleton';
 
 async function AllEventsContent({ adminId }: { adminId: string }) {
   let initialEvents: EventWithRole[] = [];
@@ -65,7 +65,7 @@ export default async function AllEventsPage() {
         </Link>
       </div>
 
-      <Suspense fallback={<EventsLoading />}>
+      <Suspense fallback={<EventsSkeleton />}>
         <AllEventsContent adminId={adminId} />
       </Suspense>
     </div>
