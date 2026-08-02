@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-const QRScannerDynamic = dynamic(() => import('./QRScanner'), { 
+const QRScannerDynamic = dynamic(() => import('./QRReader'), { 
   ssr: false,
   loading: () => (
     <div className="flex flex-col md:flex-row h-full min-h-[82vh] w-full absolute inset-0 pt-14 md:pt-0 text-slate-100 bg-black">

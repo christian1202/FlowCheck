@@ -2,34 +2,36 @@ import { getDb } from '@/lib/db';
 import { events, eventAdmins, attendees } from '@/lib/db/schema';
 import { eq, desc, sql } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 import { getTotalScansForAdmin } from './scanner';
 
-export const getDashboardStats = unstable_cache(
-  async (adminId: string) => {
-    const db = getDb();
-    
-    // Using a single query to get total and active events for this admin
-    const [stats] = await db.select({
-      totalEvents: sql<number>`count(*)`.mapWith(Number),
-      activeEvents: sql<number>`count(case when ${events.status} = 'open' and (${events.closesAt} is null or ${events.closesAt} > now()) then 1 else null end)`.mapWith(Number),
-    })
-    .from(eventAdmins)
-    .innerJoin(events, eq(eventAdmins.eventId, events.id))
-    .where(eq(eventAdmins.adminId, adminId));
+export const getDashboardStats = (adminId: string) =>
+  unstable_cache(
+    async () => {
+      const db = getDb();
+      
+      // Single-pass aggregated query for totalEvents, activeEvents, and totalScans
+      const [stats] = await db.select({
+        totalEvents: sql<number>`count(distinct ${events.id})`.mapWith(Number),
+        activeEvents: sql<number>`count(distinct case when ${events.status} = 'open' and (${events.closesAt} is null or ${events.closesAt} > now()) then ${events.id} else null end)`.mapWith(Number),
+        totalScans: sql<number>`count(${attendees.id}) FILTER (WHERE ${attendees.status} = 'checked_in')`.mapWith(Number),
+      })
+      .from(eventAdmins)
+      .innerJoin(events, eq(eventAdmins.eventId, events.id))
+      .leftJoin(attendees, eq(attendees.eventId, events.id))
+      .where(eq(eventAdmins.adminId, adminId));
 
-    const totalScans = await getTotalScansForAdmin(adminId);
+      return {
+        totalEvents: stats?.totalEvents || 0,
+        activeEvents: stats?.activeEvents || 0,
+        totalScans: stats?.totalScans || 0,
+      };
+    },
+    ['dashboard-stats', adminId],
+    { revalidate: 60, tags: ['dashboard-stats', `dashboard-${adminId}`] }
+  )();
 
-    return {
-      totalEvents: stats?.totalEvents || 0,
-      activeEvents: stats?.activeEvents || 0,
-      totalScans,
-    };
-  },
-  ['dashboard-stats'],
-  { revalidate: 60, tags: ['dashboard-stats'] }
-);
-
-export async function getRecentDashboardEvents(adminId: string) {
+export const getRecentDashboardEvents = cache(async (adminId: string) => {
   const db = getDb();
   
   const rows = await db
@@ -43,14 +45,17 @@ export async function getRecentDashboardEvents(adminId: string) {
       status: events.status,
       closesAt: events.closesAt,
       mapLink: events.mapLink,
-      registeredCount: sql<number>`(SELECT count(*) FROM ${attendees} WHERE ${attendees.eventId} = ${events.id})`.mapWith(Number),
-      checkedInCount: sql<number>`(SELECT count(*) FROM ${attendees} WHERE ${attendees.eventId} = ${events.id} AND ${attendees.status} = 'checked_in')`.mapWith(Number),
+      registeredCount: sql<number>`count(${attendees.id})`.mapWith(Number),
+      checkedInCount: sql<number>`count(${attendees.id}) FILTER (WHERE ${attendees.status} = 'checked_in')`.mapWith(Number),
     })
     .from(eventAdmins)
     .innerJoin(events, eq(eventAdmins.eventId, events.id))
+    .leftJoin(attendees, eq(attendees.eventId, events.id))
     .where(eq(eventAdmins.adminId, adminId))
+    .groupBy(events.id, eventAdmins.addedAt)
     .orderBy(desc(events.date))
     .limit(6);
 
   return rows;
-}
+});
+

@@ -1,18 +1,12 @@
+import { Suspense } from 'react';
+import { connection } from 'next/server';
 import { getEventById } from '@/data/events';
 import { getAdminSessionId } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import EditEventForm from '@/components/events/EditEventForm';
 
-export default async function EditEventPage({
-  params,
-}: Readonly<{
-  params: Promise<{ id: string }>;
-}>) {
-  const { id } = await params;
-  const adminId = await getAdminSessionId();
-  if (!adminId) redirect('/login');
-
+async function EditEventContent({ id, adminId }: { id: string; adminId: string }) {
   const event = await getEventById(id, adminId).catch((err) => {
     if (err instanceof Error && err.message === 'Unauthorized') redirect('/events');
     notFound();
@@ -25,6 +19,19 @@ export default async function EditEventPage({
     redirect(`/events/${id}/settings`);
   }
 
+  return <EditEventForm event={event} />;
+}
+
+export default async function EditEventPage({
+  params,
+}: Readonly<{
+  params: Promise<{ id: string }>;
+}>) {
+  await connection();
+  const { id } = await params;
+  const adminId = await getAdminSessionId();
+  if (!adminId) redirect('/login');
+
   return (
     <div className="max-w-3xl mx-auto p-container-margin md:p-section-padding">
       <div className="mb-6">
@@ -34,7 +41,16 @@ export default async function EditEventPage({
         </Link>
       </div>
 
-      <EditEventForm event={event} />
+      <Suspense fallback={
+        <div className="glass-panel p-8 rounded-3xl animate-pulse space-y-6">
+          <div className="h-8 bg-slate-800 rounded w-1/3"></div>
+          <div className="h-12 bg-slate-800 rounded w-full"></div>
+          <div className="h-12 bg-slate-800 rounded w-full"></div>
+        </div>
+      }>
+        <EditEventContent id={id} adminId={adminId} />
+      </Suspense>
     </div>
   );
 }
+

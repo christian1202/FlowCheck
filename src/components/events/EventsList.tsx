@@ -26,7 +26,7 @@ const EventCard = memo(function EventCard({
       <div className="claude-card rounded-3xl hover-lift p-6 flex flex-col h-full min-h-[280px] transition-colors duration-150 transform-gpu relative overflow-hidden">
         
         {/* Link */}
-        <Link prefetch={false} href={`/events/${event.id}${linkSuffix}`} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></Link>
+        <Link href={`/events/${event.id}${linkSuffix}`} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></Link>
 
         {/* Top: Status */}
         <div className="mb-4 relative z-10">
@@ -121,8 +121,7 @@ export default function EventsList({
   const [isPending, startTransition] = useTransition();
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const deferredSearchTerm = useDeferredValue(searchTerm);
-  const debouncedSearchTerm = useDebounce(deferredSearchTerm, 300);
+  const debouncedSearchTerm = useDebounce(searchTerm, 200);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -159,7 +158,6 @@ export default function EventsList({
     if (!fetchPages) return;
     let isMounted = true;
     const loadNewSearch = async () => {
-      startTransition(() => setEvents([]));
       setIsLoading(true);
       try {
         const newEvents = await fetchAction(1, 20, debouncedSearchTerm);

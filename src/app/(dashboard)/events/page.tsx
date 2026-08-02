@@ -1,17 +1,13 @@
+import { Suspense } from 'react';
 import { connection } from 'next/server';
 import Link from 'next/link';
 import { getDashboardStats, getRecentDashboardEvents } from '@/data/dashboard';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
+import EventsLoading from './loading';
 
-export default async function EventsPage() {
-  await connection();
-  const adminId = await getAdminSessionId();
-  if (!adminId) {
-    redirect('/login');
-  }
-  
+async function DashboardContent({ adminId }: { adminId: string }) {
   let dashboardEvents: Awaited<ReturnType<typeof getRecentDashboardEvents>> = [];
   let error = null;
   let stats = { totalEvents: 0, activeEvents: 0, totalScans: 0 };
@@ -28,31 +24,16 @@ export default async function EventsPage() {
     error = err instanceof Error ? err.message : 'Unknown error';
   }
 
-  return (
-    <div className="p-4 sm:p-6 md:p-8 lg:p-10 flex-1 fade-in-stagger w-full max-w-7xl mx-auto text-slate-100">
-      
-      {/* Header Greeting */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono mb-3">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            LIVE OPERATIONS CENTER
-          </div>
-          <h2 className="font-display-lg-mobile md:font-display-lg tracking-tight text-white gradient-text">
-            Dashboard Overview
-          </h2>
-          <p className="text-sm md:text-base text-slate-400 mt-1.5 max-w-2xl">
-            Real-time status across all active event streams, attendee registrations, and scanner nodes.
-          </p>
-        </div>
+  if (error) {
+    return (
+      <div className="bg-red-950/90 md:bg-red-950/60 text-red-300 p-4 rounded-2xl mb-8 text-xs font-mono border border-red-500/30 md:backdrop-blur-xl">
+        Error loading events: {error}
       </div>
+    );
+  }
 
-      {error && (
-        <div className="bg-red-950/90 md:bg-red-950/60 text-red-300 p-4 rounded-2xl mb-8 text-xs font-mono border border-red-500/30 md:backdrop-blur-xl">
-          Error loading events: {error}
-        </div>
-      )}
-
+  return (
+    <>
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
         
@@ -118,7 +99,7 @@ export default async function EventsPage() {
             </Link>
           </div>
 
-          {dashboardEvents.length === 0 && !error ? (
+          {dashboardEvents.length === 0 ? (
             <div className="text-center claude-card rounded-3xl p-12 flex flex-col items-center">
               <div className="h-20 w-20 bg-white/[0.04] border border-white/10 rounded-full flex items-center justify-center mb-4 text-slate-400">
                 <span className="material-symbols-outlined text-4xl">event_note</span>
@@ -144,7 +125,7 @@ export default async function EventsPage() {
                     <div className="claude-card rounded-3xl hover-lift p-6 flex flex-col h-full min-h-[300px] transition-colors transition-transform transform-gpu duration-300 relative overflow-hidden">
                       
                       {/* Full card link */}
-                      <Link prefetch={false} href={`/events/${event.id}/settings`} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></Link>
+                      <Link href={`/events/${event.id}/settings`} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></Link>
 
                       {/* Top: Status Pill */}
                       <div className="mb-4 relative z-10 flex justify-between items-center">
@@ -214,6 +195,39 @@ export default async function EventsPage() {
           )}
         </div>
       </div>
+    </>
+  );
+}
+
+export default async function EventsPage() {
+  await connection();
+  const adminId = await getAdminSessionId();
+  if (!adminId) {
+    redirect('/login');
+  }
+
+  return (
+    <div className="p-4 sm:p-6 md:p-8 lg:p-10 flex-1 fade-in-stagger w-full max-w-7xl mx-auto text-slate-100">
+      
+      {/* Header Greeting - streams immediately */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono mb-3">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            LIVE OPERATIONS CENTER
+          </div>
+          <h2 className="font-display-lg-mobile md:font-display-lg tracking-tight text-white gradient-text">
+            Dashboard Overview
+          </h2>
+          <p className="text-sm md:text-base text-slate-400 mt-1.5 max-w-2xl">
+            Real-time status across all active event streams, attendee registrations, and scanner nodes.
+          </p>
+        </div>
+      </div>
+
+      <Suspense fallback={<EventsLoading />}>
+        <DashboardContent adminId={adminId} />
+      </Suspense>
     </div>
   );
 }

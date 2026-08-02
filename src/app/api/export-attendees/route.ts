@@ -1,8 +1,7 @@
 import { Readable } from 'node:stream';
 import { getAdminSessionId } from '@/lib/auth';
 import { getDb, getSqlClient } from '@/lib/db';
-import { eventAdmins } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { getAdminAllowedEventIds } from '@/data/attendees';
 
 const encoder = new TextEncoder();
 const PAGE_SIZE = 100;
@@ -25,12 +24,7 @@ export async function GET(request: Request) {
     return new Response('Invalid status filter', { status: 400 });
   }
 
-  const db = getDb();
-  const managedEvents = await db
-    .select({ id: eventAdmins.eventId })
-    .from(eventAdmins)
-    .where(eq(eventAdmins.adminId, adminId));
-  const eventIds = managedEvents.map((event) => event.id);
+  const eventIds = await getAdminAllowedEventIds(adminId);
 
   if (eventIds.length === 0) {
     return new Response('Name,Email,Event,Local,Duty,Status,Registered At,Checked In At\n', {
@@ -42,7 +36,7 @@ export async function GET(request: Request) {
   const eventFilter = eventId ? sql`and a.event_id = ${eventId}` : sql``;
   const statusFilter = status ? sql`and a.status = ${status}` : sql``;
   const searchFilter = search
-    ? sql`and (a.name ilike ${`%${search}%`} or a.email ilike ${`%${search}%`} or a.local ilike ${`%${search}%`})`
+    ? sql`and to_tsvector('english', a.name || ' ' || a.email || ' ' || coalesce(a.local, '')) @@ websearch_to_tsquery('english', ${search})`
     : sql``;
 
   const query = sql`

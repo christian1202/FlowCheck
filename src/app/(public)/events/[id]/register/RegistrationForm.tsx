@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useRef, useTransition, useCallback, useEffect, memo } from 'react';
+import dynamic from 'next/dynamic';
 import { submitRegistrationAction, lookupAttendeeAction } from '@/actions/registration';
-import SystemInfoModal from '@/components/layout/SystemInfoModal';
 import Image from 'next/image';
 import QRCode from 'qrcode';
+
+const SystemInfoModal = dynamic(() => import('@/components/layout/SystemInfoModal'), { ssr: false });
 
 type FormErrors = {
   form?: string[];

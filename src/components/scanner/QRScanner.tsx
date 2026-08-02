@@ -145,12 +145,12 @@ export default function QRScanner({ eventId }: { eventId: string }) {
     } finally {
       setStatus('result');
 
-      // Auto-unlock software lock after 1.8s so camera keeps streaming without freezing
+      // Fast auto-unlock software lock (800ms) so camera keeps streaming seamlessly for high-throughput scanning
       setTimeout(() => {
         setStatus('scanning');
         setCurrentOverlay('none');
         isProcessingRef.current = false;
-      }, 1800);
+      }, 800);
     }
   };
 

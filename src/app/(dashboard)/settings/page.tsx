@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { connection } from 'next/server';
 import { getAdminSessionId } from '@/lib/auth';
 import { getDb } from '@/lib/db';
@@ -6,23 +7,34 @@ import { eq } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
 import SettingsForm from '@/components/settings/SettingsForm';
 
-export default async function SettingsPage() {
-  await connection();
+async function SettingsContent({ adminId }: { adminId: string }) {
   const db = getDb();
-  const adminId = await getAdminSessionId();
-  if (!adminId) {
-    redirect('/login');
-  }
-
-  // Fetch current admin profile from DB using Drizzle
+  
+  // Project only required fields instead of SELECT *
   const [user] = await db
-    .select()
+    .select({
+      fullName: admins.fullName,
+      email: admins.email,
+    })
     .from(admins)
     .where(eq(admins.id, adminId))
     .limit(1);
 
   if (!user) {
-    // Failsafe in case of sync issues
+    redirect('/login');
+  }
+
+  return (
+    <div className="glass-panel p-6 md:p-8 rounded-3xl">
+      <SettingsForm initialName={user.fullName || ''} email={user.email} />
+    </div>
+  );
+}
+
+export default async function SettingsPage() {
+  await connection();
+  const adminId = await getAdminSessionId();
+  if (!adminId) {
     redirect('/login');
   }
 
@@ -35,9 +47,14 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <div className="glass-panel p-6 md:p-8 rounded-3xl">
-        <SettingsForm initialName={user.fullName || ''} email={user.email} />
-      </div>
+      <Suspense fallback={
+        <div className="glass-panel p-6 md:p-8 rounded-3xl animate-pulse space-y-4">
+          <div className="h-10 bg-slate-800 rounded w-full"></div>
+          <div className="h-10 bg-slate-800 rounded w-full"></div>
+        </div>
+      }>
+        <SettingsContent adminId={adminId} />
+      </Suspense>
     </div>
   );
 }

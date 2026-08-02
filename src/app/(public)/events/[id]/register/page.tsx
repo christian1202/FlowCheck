@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import { notFound } from 'next/navigation';
 import { getEventBySlug } from '@/data/events';
 import RegistrationForm from './RegistrationForm';
@@ -10,6 +11,7 @@ export default async function RegisterPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await connection();
   const { id } = await params;
   const event = await getEventBySlug(id);
 

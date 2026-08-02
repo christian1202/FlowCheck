@@ -44,6 +44,7 @@ export const eventAdmins = pgTable('event_admins', {
   addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
 }, (t) => ({
   pk: primaryKey({ columns: [t.eventId, t.adminId] }),
+  idxAdminId: index('idx_event_admins_admin_id').on(t.adminId),
 }));
 
 export const attendees = pgTable('attendees', {
@@ -66,7 +67,8 @@ export const attendees = pgTable('attendees', {
   idxName: index('idx_attendee_name').on(t.name),
   idxEmail: index('idx_attendee_email').on(t.email),
   idxEvent: index('idx_attendee_event').on(t.eventId),
-  idxEventStatus: index('idx_attendees_event_status').on(t.eventId, t.status),
+  idxEventRegistered: index('idx_attendees_event_registered').on(t.eventId, t.registeredAt),
+  idxEventStatusRegistered: index('idx_attendees_event_status_registered').on(t.eventId, t.status, t.registeredAt),
   idxSearchVector: index('idx_attendee_search').using('gin', sql`to_tsvector('english', ${t.name} || ' ' || ${t.email} || ' ' || coalesce(${t.local}, ''))`),
 }));
 

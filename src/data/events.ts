@@ -4,6 +4,8 @@ import { eq, and, desc, ilike, sql, or } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 import type { CreateEventInput, UpdateEventInput } from '@/lib/validators/events';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 
 export type EventRole = 'owner' | 'editor' | 'scanner';
 export type EventRow = InferSelectModel<typeof events>;
@@ -18,7 +20,7 @@ export type EventWithRole = EventRow & {
  * HTTPS API rather than the Postgres TCP client, which can hang a Worker when
  * Hyperdrive has not been configured.
  */
-export async function getScannerEventsForAdmin(adminId: string): Promise<EventWithRole[]> {
+export const getScannerEventsForAdmin = cache(async (adminId: string): Promise<EventWithRole[]> => {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from('event_admins')
@@ -52,7 +54,7 @@ export async function getScannerEventsForAdmin(adminId: string): Promise<EventWi
       adminRole: row.role as EventRole,
     } satisfies EventWithRole];
   });
-}
+});
 
 /**
  * Generate a unique slug from a title
@@ -69,9 +71,12 @@ function generateSlug(title: string): string {
 export async function createEvent(data: CreateEventInput, adminId: string): Promise<EventRow> {
   const db = getDb();
   const slug = generateSlug(data.title);
+  const eventId = crypto.randomUUID();
+  const now = new Date();
 
   return await db.transaction(async (tx) => {
     const [newEvent] = await tx.insert(events).values({
+      id: eventId,
       title: data.title,
       slug,
       description: data.description || null,
@@ -82,10 +87,11 @@ export async function createEvent(data: CreateEventInput, adminId: string): Prom
       closesAt: data.closesAt ? new Date(data.closesAt) : null,
       createdBy: adminId,
       status: 'draft',
+      createdAt: now,
     }).returning();
 
     await tx.insert(eventAdmins).values({
-      eventId: newEvent.id,
+      eventId: eventId,
       adminId: adminId,
       role: 'owner',
     });
@@ -94,18 +100,20 @@ export async function createEvent(data: CreateEventInput, adminId: string): Prom
   });
 }
 
-export async function getEventsForAdmin(adminId: string): Promise<EventWithRole[]> {
+export const getEventsForAdmin = cache(async (adminId: string): Promise<EventWithRole[]> => {
   const db = getDb();
   const rows = await db
     .select({
       role: eventAdmins.role,
       event: events,
-      registeredCount: sql<number>`(SELECT count(*) FROM ${attendees} WHERE ${attendees.eventId} = ${events.id})`.mapWith(Number),
-      checkedInCount: sql<number>`(SELECT count(*) FROM ${attendees} WHERE ${attendees.eventId} = ${events.id} AND ${attendees.status} = 'checked_in')`.mapWith(Number),
+      registeredCount: sql<number>`count(${attendees.id})`.mapWith(Number),
+      checkedInCount: sql<number>`count(${attendees.id}) FILTER (WHERE ${attendees.status} = 'checked_in')`.mapWith(Number),
     })
     .from(eventAdmins)
     .innerJoin(events, eq(eventAdmins.eventId, events.id))
+    .leftJoin(attendees, eq(attendees.eventId, events.id))
     .where(eq(eventAdmins.adminId, adminId))
+    .groupBy(events.id, eventAdmins.role, eventAdmins.addedAt)
     .orderBy(desc(eventAdmins.addedAt))
     .limit(100);
 
@@ -115,38 +123,49 @@ export async function getEventsForAdmin(adminId: string): Promise<EventWithRole[
     registeredCount: row.registeredCount,
     checkedInCount: row.checkedInCount,
   }));
-}
+});
 
-export async function getEventsPaginated(
+export const getEventsPaginated = cache(async (
   adminId: string, 
   page: number = 1, 
   limit: number = 20, 
   search?: string
-): Promise<EventWithRole[]> {
+): Promise<EventWithRole[]> => {
   const db = getDb();
   const offset = (page - 1) * limit;
 
-  const ftsQuery = search 
-    ? search.trim().split(/\\s+/).filter(Boolean).map(w => `${w}:*`).join(' & ') 
-    : '';
+  const queryText = search ? search.trim() : '';
 
-  const conditions = search && ftsQuery 
-    ? and(
-        eq(eventAdmins.adminId, adminId), 
-        sql`to_tsvector('english', ${events.title} || ' ' || coalesce(${events.location}, '')) @@ to_tsquery('english', ${ftsQuery})`
-      ) 
+  let searchCondition = undefined;
+  if (queryText) {
+    const formattedQuery = queryText
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((term) => `${term.replace(/[^a-zA-Z0-9]/g, '')}:*`)
+      .filter((term) => term !== ':*')
+      .join(' & ');
+
+    searchCondition = formattedQuery
+      ? sql`to_tsvector('english', ${events.title} || ' ' || coalesce(${events.location}, '')) @@ to_tsquery('english', ${formattedQuery})`
+      : undefined;
+  }
+
+  const conditions = searchCondition 
+    ? and(eq(eventAdmins.adminId, adminId), searchCondition) 
     : eq(eventAdmins.adminId, adminId);
 
   const rows = await db
     .select({
       role: eventAdmins.role,
       event: events,
-      registeredCount: sql<number>`(SELECT count(*) FROM ${attendees} WHERE ${attendees.eventId} = ${events.id})`.mapWith(Number),
-      checkedInCount: sql<number>`(SELECT count(*) FROM ${attendees} WHERE ${attendees.eventId} = ${events.id} AND ${attendees.status} = 'checked_in')`.mapWith(Number),
+      registeredCount: sql<number>`count(${attendees.id})`.mapWith(Number),
+      checkedInCount: sql<number>`count(${attendees.id}) FILTER (WHERE ${attendees.status} = 'checked_in')`.mapWith(Number),
     })
     .from(eventAdmins)
     .innerJoin(events, eq(eventAdmins.eventId, events.id))
+    .leftJoin(attendees, eq(attendees.eventId, events.id))
     .where(conditions)
+    .groupBy(events.id, eventAdmins.role)
     .orderBy(desc(events.createdAt))
     .limit(limit)
     .offset(offset);
@@ -157,9 +176,9 @@ export async function getEventsPaginated(
     registeredCount: row.registeredCount,
     checkedInCount: row.checkedInCount,
   }));
-}
+});
 
-export async function getEventById(eventId: string, adminId: string): Promise<EventWithRole> {
+export const getEventById = cache(async (eventId: string, adminId: string): Promise<EventWithRole> => {
   const db = getDb();
   const rows = await db
     .select({
@@ -179,20 +198,10 @@ export async function getEventById(eventId: string, adminId: string): Promise<Ev
     ...rows[0].event,
     adminRole: rows[0].role as EventRole,
   };
-}
+});
 
 export async function updateEvent(eventId: string, adminId: string, data: UpdateEventInput): Promise<EventRow> {
   const db = getDb();
-  // Verify access first
-  const access = await db
-    .select({ role: eventAdmins.role })
-    .from(eventAdmins)
-    .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.adminId, adminId)))
-    .limit(1);
-
-  if (access.length === 0 || access[0].role === 'scanner') {
-    throw new Error('Unauthorized');
-  }
 
   const update: Partial<typeof events.$inferInsert> = {};
   if (data.title !== undefined) update.title = data.title;
@@ -204,61 +213,88 @@ export async function updateEvent(eventId: string, adminId: string, data: Update
   if (data.closesAt !== undefined) update.closesAt = data.closesAt ? new Date(data.closesAt) : null;
   if (data.status !== undefined) update.status = data.status;
 
+  if (Object.keys(update).length === 0) {
+    const [existing] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+    if (!existing) throw new Error('Event not found');
+    return existing;
+  }
+
   const [updated] = await db
     .update(events)
     .set(update)
-    .where(eq(events.id, eventId))
+    .where(
+      and(
+        eq(events.id, eventId),
+        sql`EXISTS (
+          SELECT 1 FROM ${eventAdmins} 
+          WHERE ${eventAdmins.eventId} = ${events.id} 
+            AND ${eventAdmins.adminId} = ${adminId} 
+            AND ${eventAdmins.role} IN ('owner', 'editor')
+        )`
+      )
+    )
     .returning();
+
+  if (!updated) {
+    throw new Error('Unauthorized or event not found');
+  }
 
   return updated;
 }
 
 export async function deleteEvent(eventId: string, adminId: string): Promise<void> {
   const db = getDb();
-  const access = await db
-    .select({ role: eventAdmins.role })
-    .from(eventAdmins)
-    .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.adminId, adminId)))
-    .limit(1);
-
-  if (access.length === 0 || access[0].role === 'scanner') {
-    throw new Error('Unauthorized');
-  }
-
-  await db.delete(events).where(eq(events.id, eventId));
+  await db
+    .delete(events)
+    .where(
+      and(
+        eq(events.id, eventId),
+        sql`EXISTS (
+          SELECT 1 FROM ${eventAdmins} 
+          WHERE ${eventAdmins.eventId} = ${events.id} 
+            AND ${eventAdmins.adminId} = ${adminId} 
+            AND ${eventAdmins.role} IN ('owner', 'editor')
+        )`
+      )
+    );
 }
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function getEventBySlug(slugOrId: string) {
-  const db = getDb();
-  const isUuid = UUID_REGEX.test(slugOrId);
-  const condition = isUuid 
-    ? or(eq(events.slug, slugOrId), eq(events.id, slugOrId))
-    : eq(events.slug, slugOrId);
+export const getEventBySlug = (slugOrId: string) =>
+  unstable_cache(
+    async () => {
+      const db = getDb();
+      const isUuid = UUID_REGEX.test(slugOrId);
+      const condition = isUuid 
+        ? or(eq(events.slug, slugOrId), eq(events.id, slugOrId))
+        : eq(events.slug, slugOrId);
 
-  const [event] = await db
-    .select({
-      id: events.id,
-      title: events.title,
-      slug: events.slug,
-      description: events.description,
-      date: events.date,
-      location: events.location,
-      mapLink: events.mapLink,
-      status: events.status,
-      closesAt: events.closesAt,
-      maxAttendees: events.maxAttendees,
-      currentAttendees: events.currentAttendees,
-    })
-    .from(events)
-    .where(condition)
-    .limit(1);
+      const [event] = await db
+        .select({
+          id: events.id,
+          title: events.title,
+          slug: events.slug,
+          description: events.description,
+          date: events.date,
+          location: events.location,
+          mapLink: events.mapLink,
+          status: events.status,
+          closesAt: events.closesAt,
+          maxAttendees: events.maxAttendees,
+          currentAttendees: events.currentAttendees,
+        })
+        .from(events)
+        .where(condition)
+        .limit(1);
 
-  return event || null;
-}
+      return event || null;
+    },
+    ['event-by-slug', slugOrId],
+    { revalidate: 30, tags: ['event-by-slug', `slug-${slugOrId}`] }
+  )();
 
-export async function getEventTeam(eventId: string) {
+export const getEventTeam = cache(async (eventId: string) => {
   const db = getDb();
   const rows = await db
     .select({
@@ -278,12 +314,12 @@ export async function getEventTeam(eventId: string) {
     email: row.email,
     fullName: row.fullName,
   }));
-}
+});
 
-export async function searchAdminEvents(adminId: string, query: string) {
+export const searchAdminEvents = cache(async (adminId: string, query: string) => {
   const db = getDb();
   
-  const ftsQuery = query.trim().split(/\\s+/).filter(Boolean).map(w => `${w}:*`).join(' & ');
+  const ftsQuery = query.trim().split(/\s+/).filter(Boolean).map(w => `${w}:*`).join(' & ');
   
   const conditions = ftsQuery 
     ? and(
@@ -301,4 +337,4 @@ export async function searchAdminEvents(adminId: string, query: string) {
     .limit(20);
 
   return rows;
-}
+});

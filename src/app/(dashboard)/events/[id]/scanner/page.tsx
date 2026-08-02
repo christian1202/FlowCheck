@@ -1,21 +1,12 @@
+import { Suspense } from 'react';
+import { connection } from 'next/server';
 import { getEventById } from '@/data/events';
 import { notFound, redirect } from 'next/navigation';
-import QRScannerDynamic from '@/components/scanner/QRScannerDynamic';
 import Link from 'next/link';
 import { getAdminSessionId } from '@/lib/auth';
+import QRScannerDynamic from '@/components/scanner/QRScannerDynamic';
 
-export default async function ScannerPage({
-  params,
-}: Readonly<{
-  params: Promise<{ id: string }>;
-}>) {
-  const { id } = await params;
-  
-  const adminId = await getAdminSessionId();
-  if (!adminId) {
-    redirect('/login');
-  }
-  
+async function EventScannerContent({ id, adminId }: { id: string; adminId: string }) {
   let event;
   try {
     event = await getEventById(id, adminId);
@@ -48,7 +39,6 @@ export default async function ScannerPage({
 
   return (
     <div className="flex-1 relative h-full min-h-[calc(100vh-64px)] w-full flex flex-col bg-surface-bright overflow-hidden">
-      {/* Mobile-only header back button (optional, since topnav is hidden on scanner if absolute) */}
       <div className="absolute top-4 left-4 z-50 md:hidden">
         <Link prefetch={false} href={`/events/${event.id}/settings`} className="w-touch-target h-touch-target bg-surface/95 rounded-full flex items-center justify-center shadow-md">
           <span className="material-symbols-outlined text-primary">arrow_back</span>
@@ -59,3 +49,28 @@ export default async function ScannerPage({
     </div>
   );
 }
+
+export default async function ScannerPage({
+  params,
+}: Readonly<{
+  params: Promise<{ id: string }>;
+}>) {
+  await connection();
+  const { id } = await params;
+  
+  const adminId = await getAdminSessionId();
+  if (!adminId) {
+    redirect('/login');
+  }
+
+  return (
+    <Suspense fallback={
+      <div className="flex-1 flex items-center justify-center p-8 text-slate-400 font-mono text-sm animate-pulse">
+        Initializing Scanner...
+      </div>
+    }>
+      <EventScannerContent id={id} adminId={adminId} />
+    </Suspense>
+  );
+}
+

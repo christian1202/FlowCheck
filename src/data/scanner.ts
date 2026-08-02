@@ -2,6 +2,8 @@ import { getDb } from '@/lib/db';
 import { attendees, events, eventAdmins, scanLogs } from '@/lib/db/schema';
 import { eq, and, inArray, sql } from 'drizzle-orm';
 import { enqueueSheetSync } from '@/lib/queue/producer';
+import { cache } from 'react';
+import { getAdminAllowedEventIds } from './attendees';
 
 export type ScanResultResponse = {
   result: 'success' | 'duplicate' | 'invalid_event' | 'event_closed' | 'invalid_ticket' | 'unauthorized';
@@ -19,50 +21,57 @@ export async function processScan(
   scanToken: string
 ): Promise<ScanResultResponse> {
   const db = getDb();
-  // Use transaction to ensure data integrity
-  return await db.transaction(async (tx) => {
-    // 1. Verify admin has access to this event (as scanner, editor, or owner)
-    const adminAccess = await tx.select({ role: eventAdmins.role })
+  
+  // 1. Execute atomic DB transaction
+  const scanResult = await db.transaction(async (tx) => {
+    // Consolidated single read query for admin authorization & event status
+    const [accessRow] = await tx
+      .select({
+        role: eventAdmins.role,
+        status: events.status,
+        closesAt: events.closesAt,
+      })
       .from(eventAdmins)
+      .innerJoin(events, eq(eventAdmins.eventId, events.id))
       .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.adminId, adminId)))
       .limit(1);
 
-    if (adminAccess.length === 0) {
-      return { result: 'unauthorized' };
+    if (!accessRow) {
+      return { result: 'unauthorized' as const };
     }
 
-    // 2. Check if event is open (cannot scan if draft/archived)
-    const [event] = await tx.select({ status: events.status, closesAt: events.closesAt })
-      .from(events)
-      .where(eq(events.id, eventId))
-      .limit(1);
-
-    if (!event || event.status === 'draft' || event.status === 'archived') {
-      return { result: 'invalid_event' };
+    if (accessRow.status === 'draft' || accessRow.status === 'archived') {
+      return { result: 'invalid_event' as const };
     }
 
-    if (event.closesAt && new Date() > new Date(event.closesAt)) {
-      // Event timer has expired
-      return { result: 'event_closed' };
+    if (accessRow.closesAt && new Date() > new Date(accessRow.closesAt)) {
+      return { result: 'event_closed' as const };
     }
 
-    // 3. Find attendee by scanToken
-    const [attendee] = await tx.select()
+    // Find attendee by scanToken with minimal column projection
+    const [attendee] = await tx.select({
+      id: attendees.id,
+      eventId: attendees.eventId,
+      name: attendees.name,
+      local: attendees.local,
+      duty: attendees.duty,
+      status: attendees.status,
+      checkedInAt: attendees.checkedInAt,
+    })
       .from(attendees)
       .where(eq(attendees.scanToken, scanToken))
       .limit(1);
 
     if (!attendee) {
-      // Log invalid scan attempt
       await tx.insert(scanLogs).values({
         eventId,
         scannedBy: adminId,
         result: 'invalid_ticket'
       });
-      return { result: 'invalid_ticket' };
+      return { result: 'invalid_ticket' as const };
     }
 
-    // 4. Ensure attendee belongs to this specific event
+    // Ensure attendee belongs to this specific event
     if (attendee.eventId !== eventId) {
       await tx.insert(scanLogs).values({
         eventId,
@@ -70,10 +79,10 @@ export async function processScan(
         scannedBy: adminId,
         result: 'invalid_event'
       });
-      return { result: 'invalid_event' };
+      return { result: 'invalid_event' as const };
     }
 
-    // 5. Check if already checked in
+    // Check if already checked in
     if (attendee.status === 'checked_in') {
       await tx.insert(scanLogs).values({
         eventId,
@@ -82,7 +91,7 @@ export async function processScan(
         result: 'duplicate'
       });
       return { 
-        result: 'duplicate',
+        result: 'duplicate' as const,
         attendee: {
           name: attendee.name,
           local: attendee.local,
@@ -92,7 +101,7 @@ export async function processScan(
       };
     }
 
-    // 6. Update attendee status to checked_in
+    // Update attendee status to checked_in
     const now = new Date();
     await tx.update(attendees)
       .set({ 
@@ -102,7 +111,7 @@ export async function processScan(
       })
       .where(eq(attendees.id, attendee.id));
 
-    // 7. Log success scan
+    // Log success scan
     await tx.insert(scanLogs).values({
       eventId,
       attendeeId: attendee.id,
@@ -110,11 +119,8 @@ export async function processScan(
       result: 'success'
     });
 
-    // Enqueue the Google Sheets sync
-    await enqueueSheetSync(eventId);
-
     return {
-      result: 'success',
+      result: 'success' as const,
       attendee: {
         name: attendee.name,
         local: attendee.local,
@@ -123,31 +129,36 @@ export async function processScan(
       }
     };
   });
+
+  // 2. Enqueue Google Sheets sync OUTSIDE transaction boundary with isolated error handling
+  if (scanResult.result === 'success') {
+    try {
+      await enqueueSheetSync(eventId);
+    } catch (syncErr) {
+      console.error('Sheet sync queueing failed post-scan:', syncErr);
+    }
+  }
+
+  return scanResult;
 }
 
-export async function getTotalScansForAdmin(adminId: string): Promise<number> {
+export const getTotalScansForAdmin = cache(async (adminId: string): Promise<number> => {
   const db = getDb();
   
-  // Find all events this admin manages
-  const adminEvents = await db.select({ eventId: eventAdmins.eventId })
-    .from(eventAdmins)
-    .where(eq(eventAdmins.adminId, adminId));
+  const allowedIds = await getAdminAllowedEventIds(adminId);
+  if (allowedIds.length === 0) return 0;
 
-  if (adminEvents.length === 0) return 0;
-
-  const eventIds = adminEvents.map(e => e.eventId);
-
-  // Architectural safeguard: use SQL count(*) instead of fetching all rows
   const [{ count }] = await db.select({
     count: sql<number>`count(*)`
   })
     .from(attendees)
     .where(
       and(
-        inArray(attendees.eventId, eventIds),
+        inArray(attendees.eventId, allowedIds),
         eq(attendees.status, 'checked_in')
       )
     );
 
   return Number(count || 0);
-}
+});
+

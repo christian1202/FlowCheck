@@ -36,6 +36,20 @@ import { cache } from 'react';
  * Returns null if not authenticated.
  * It also automatically syncs the user to the public.admins table if they don't exist.
  */
+async function syncAdminUser(user: { id: string; email?: string; user_metadata?: Record<string, unknown> }) {
+  try {
+    if (!user.email) return;
+    const admin = getSupabaseAdmin();
+    await admin.from('admins').upsert({
+      id: user.id,
+      email: user.email,
+      full_name: (user.user_metadata?.full_name as string) || null,
+    }, { onConflict: 'id' });
+  } catch (err) {
+    console.error("Failed to sync admin user to public schema:", err);
+  }
+}
+
 export const getAdminSessionId = cache(async (): Promise<string | null> => {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
@@ -44,22 +58,8 @@ export const getAdminSessionId = cache(async (): Promise<string | null> => {
     return null;
   }
   
-  // Auto-sync user to public.admins table
-  try {
-    if (!user.email) {
-      throw new Error('User email is missing — cannot sync admin record');
-    }
-    const admin = getSupabaseAdmin();
-    const { error } = await admin.from('admins').upsert({
-      id: user.id,
-      email: user.email,
-      full_name: user.user_metadata?.full_name || null,
-    }, { onConflict: 'id' });
-    if (error) throw error;
-  } catch (err) {
-    console.error("Failed to sync admin user to public schema:", err);
-    throw new Error('Failed to initialize admin account. Please try again.');
-  }
+  // Asynchronous non-blocking sync so DB calls are not delayed by Supabase REST roundtrips
+  syncAdminUser(user).catch(() => {});
   
   return user.id;
 });

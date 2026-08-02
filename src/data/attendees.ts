@@ -2,6 +2,7 @@ import { getDb } from '@/lib/db';
 import { attendees, events, eventAdmins } from '@/lib/db/schema';
 import { eq, and, inArray, desc, ilike, or, sql } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 
 export type AttendeeWithEvent = {
   id: string;
@@ -22,20 +23,35 @@ export type AttendeesFilters = {
   status?: string;
 };
 
+export const getAdminAllowedEventIds = cache(async (adminId: string): Promise<string[]> => {
+  const db = getDb();
+  const adminEvents = await db.select({ id: eventAdmins.eventId })
+    .from(eventAdmins)
+    .where(eq(eventAdmins.adminId, adminId));
+  return adminEvents.map(e => e.id);
+});
+
 function buildConditions(adminAllowedIds: string[], filters: AttendeesFilters) {
-  const conditions = [inArray(attendees.eventId, adminAllowedIds)];
+  const conditions = [];
   
   if (filters.eventId && filters.eventId !== 'all') {
-    conditions.push(eq(attendees.eventId, filters.eventId));
+    if (adminAllowedIds.includes(filters.eventId)) {
+      conditions.push(eq(attendees.eventId, filters.eventId));
+    } else {
+      conditions.push(sql`1 = 0`);
+    }
+  } else {
+    conditions.push(inArray(attendees.eventId, adminAllowedIds));
   }
+
   if (filters.status && filters.status !== 'all') {
     conditions.push(eq(attendees.status, filters.status as 'registered' | 'checked_in' | 'cancelled'));
   }
   if (filters.search) {
-    const ftsQuery = filters.search.trim().split(/\\s+/).filter(Boolean).map(w => `${w}:*`).join(' & ');
-    if (ftsQuery) {
+    const queryText = filters.search.trim();
+    if (queryText) {
       conditions.push(
-        sql`to_tsvector('english', ${attendees.name} || ' ' || ${attendees.email} || ' ' || coalesce(${attendees.local}, '')) @@ to_tsquery('english', ${ftsQuery})`
+        sql`to_tsvector('english', ${attendees.name} || ' ' || ${attendees.email} || ' ' || coalesce(${attendees.local}, '')) @@ websearch_to_tsquery('english', ${queryText})`
       );
     }
   }
@@ -43,52 +59,51 @@ function buildConditions(adminAllowedIds: string[], filters: AttendeesFilters) {
   return conditions;
 }
 
-export const getAttendeesStats = unstable_cache(
-  async (adminId: string, eventId: string = 'all') => {
-    const db = getDb();
-    
-    const adminEvents = await db.select({ id: eventAdmins.eventId })
-      .from(eventAdmins)
-      .where(eq(eventAdmins.adminId, adminId));
+export const getAttendeesStats = (adminId: string, eventId: string = 'all') =>
+  unstable_cache(
+    async () => {
+      const db = getDb();
+      
+      const allowedIds = await getAdminAllowedEventIds(adminId);
+      if (allowedIds.length === 0) return { total: 0, checkedIn: 0, registered: 0 };
 
-    const allowedIds = adminEvents.map(e => e.id);
-    if (allowedIds.length === 0) return { total: 0, checkedIn: 0, registered: 0 };
+      const conditions = [];
+      if (eventId && eventId !== 'all') {
+        if (allowedIds.includes(eventId)) {
+          conditions.push(eq(attendees.eventId, eventId));
+        } else {
+          return { total: 0, checkedIn: 0, registered: 0 };
+        }
+      } else {
+        conditions.push(inArray(attendees.eventId, allowedIds));
+      }
 
-    const conditions = [inArray(attendees.eventId, allowedIds)];
-    if (eventId && eventId !== 'all') {
-      conditions.push(eq(attendees.eventId, eventId));
-    }
+      const [{ total, checkedIn }] = await db.select({
+        total: sql<number>`count(*)`.mapWith(Number),
+        checkedIn: sql<number>`count(*) FILTER (WHERE ${attendees.status} = 'checked_in')`.mapWith(Number),
+      })
+      .from(attendees)
+      .where(and(...conditions));
 
-    const [{ total, checkedIn }] = await db.select({
-      total: sql<number>`count(*)`,
-      checkedIn: sql<number>`sum(case when ${attendees.status} = 'checked_in' then 1 else 0 end)`
-    })
-    .from(attendees)
-    .where(and(...conditions));
+      return { 
+        total: Number(total || 0), 
+        checkedIn: Number(checkedIn || 0), 
+        registered: Number(total || 0) - Number(checkedIn || 0) 
+      };
+    },
+    ['attendees-stats', adminId, eventId],
+    { revalidate: 60, tags: ['attendees-stats', `admin-${adminId}`, `event-${eventId}`] }
+  )();
 
-    return { 
-      total: Number(total || 0), 
-      checkedIn: Number(checkedIn || 0), 
-      registered: Number(total || 0) - Number(checkedIn || 0) 
-    };
-  },
-  ['attendees-stats'],
-  { revalidate: 60, tags: ['attendees-stats'] }
-);
-
-export async function getAttendeesPaginated(
+export const getAttendeesPaginated = cache(async (
   adminId: string,
   filters: AttendeesFilters = {},
   page: number = 1,
   limit: number = 20
-): Promise<AttendeeWithEvent[]> {
+): Promise<AttendeeWithEvent[]> => {
   const db = getDb();
   
-  const adminEvents = await db.select({ id: eventAdmins.eventId })
-    .from(eventAdmins)
-    .where(eq(eventAdmins.adminId, adminId));
-
-  const allowedIds = adminEvents.map(e => e.id);
+  const allowedIds = await getAdminAllowedEventIds(adminId);
   if (allowedIds.length === 0) return [];
 
   const conditions = buildConditions(allowedIds, filters);
@@ -114,9 +129,9 @@ export async function getAttendeesPaginated(
   .offset(offset);
 
   return rows as AttendeeWithEvent[];
-}
+});
 
-export async function getUniqueEventsForAdmin(adminId: string) {
+export const getUniqueEventsForAdmin = cache(async (adminId: string) => {
   const db = getDb();
   const adminEventsList = await db.select({ id: events.id, title: events.title })
     .from(events)
@@ -126,4 +141,5 @@ export async function getUniqueEventsForAdmin(adminId: string) {
     .limit(200);
     
   return adminEventsList;
-}
+});
+

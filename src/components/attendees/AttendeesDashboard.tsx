@@ -1,15 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useTransition, useDeferredValue, memo } from 'react';
+import dynamic from 'next/dynamic';
 import type { AttendeeWithEvent } from '@/data/attendees';
-import { 
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend
-} from 'recharts';
 import { Search, Filter, Loader2, Download } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { fetchAttendeesPage, fetchAttendeesStats } from '@/app/(dashboard)/attendees/actions';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import AsyncEventCombobox from './AsyncEventCombobox';
+
+const AttendeesChart = dynamic(() => import('./AttendeesChart'), {
+  ssr: false,
+  loading: () => <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs font-mono">Loading chart telemetry...</div>,
+});
 
 const AttendeeRow = memo(function AttendeeRow({
   attendee,
@@ -71,8 +74,7 @@ export default function AttendeesDashboard({
 
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const deferredSearchTerm = useDeferredValue(searchTerm);
-  const debouncedSearchTerm = useDebounce(deferredSearchTerm, 300);
+  const debouncedSearchTerm = useDebounce(searchTerm, 200);
   
   const [statusFilter, setStatusFilter] = useState<'all' | 'registered' | 'checked_in'>('all');
   const [eventFilter, setEventFilter] = useState<string>('all');
@@ -113,9 +115,6 @@ export default function AttendeesDashboard({
 
     let isMounted = true;
     const loadNewFilters = async () => {
-      startTransition(() => {
-        setAttendees([]);
-      });
       setIsLoading(true);
       try {
         const filters = {
@@ -123,8 +122,10 @@ export default function AttendeesDashboard({
           eventId: eventFilter,
           status: statusFilter
         };
-        const newStats = await fetchAttendeesStats(eventFilter);
-        const newAttendees = await fetchAttendeesPage(filters, 1);
+        const [newStats, newAttendees] = await Promise.all([
+          fetchAttendeesStats(eventFilter),
+          fetchAttendeesPage(filters, 1),
+        ]);
         
         if (isMounted) {
           startTransition(() => {
@@ -200,12 +201,6 @@ export default function AttendeesDashboard({
       loadMore();
     }
   }, [lastItemIndex, attendees.length, hasMore, loadMore]);
-  
-  // Chart data
-  const pieData = [
-    { name: 'Checked In', value: stats.checkedIn, color: '#10b981' },
-    { name: 'Pending', value: stats.registered, color: '#f59e0b' },
-  ];
 
   const handleExportClick = () => {
     setShowExportModal(true);
@@ -295,37 +290,7 @@ export default function AttendeesDashboard({
         <div className="claude-card p-5 rounded-3xl border border-white/10 md:col-span-2 min-h-[250px] flex flex-col">
           <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 mb-2">Check-in Status Distribution</h3>
           <div className="flex-1 w-full min-h-[190px]">
-            {stats.total === 0 ? (
-              <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs font-mono">
-                No telemetry available
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="38%"
-                    innerRadius={46}
-                    outerRadius={66}
-                    paddingAngle={6}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(0,0,0,0.5)" />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
-                  />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    height={36} 
-                    wrapperStyle={{ fontSize: '11px', fontFamily: 'monospace', paddingTop: '8px' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
+            <AttendeesChart stats={stats} />
           </div>
         </div>
       </div>

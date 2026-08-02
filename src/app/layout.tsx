@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
+import { Geist, Outfit, JetBrains_Mono } from "next/font/google";
 import "material-symbols";
 import "./globals.css";
 
-const inter = Inter({
+const geist = Geist({
   variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
@@ -42,13 +42,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${geist.variable} ${outfit.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <head>
-        <link rel="icon" href="/images/flowchecklogo-final-bg-white-big.png" type="image/png" />
-        <link rel="shortcut icon" href="/images/flowchecklogo-final-bg-white-big.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/images/flowchecklogo-final-bg-white-big.png" />
-      </head>
       <body className="bg-background text-on-background min-h-screen overflow-x-hidden">{children}</body>
     </html>
   );

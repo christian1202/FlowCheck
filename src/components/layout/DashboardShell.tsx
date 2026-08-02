@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import LogoutButton from '@/components/auth/LogoutButton';
 import SidebarNav from '@/components/layout/SidebarNav';
-import SystemInfoModal from '@/components/layout/SystemInfoModal';
+
+const SystemInfoModal = dynamic(() => import('@/components/layout/SystemInfoModal'), { ssr: false });
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);

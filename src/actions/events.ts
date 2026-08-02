@@ -28,15 +28,12 @@ export type CreateEventState = {
 };
 
 export async function createEventAction(prevState: CreateEventState | null, formData: FormData): Promise<CreateEventState> {
-  let adminId: string;
-  try {
-    adminId = await getAdminId();
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unauthorized';
-    return { error: { form: [message] } };
+  const adminId = await getAdminSessionId();
+  if (!adminId) {
+    return { error: { form: ['Unauthorized'] } };
   }
   
-  // Extract and coerce data
+  // Extract and coerce data efficiently
   const rawData = {
     title: formData.get('title'),
     description: formData.get('description'),
@@ -59,14 +56,15 @@ export async function createEventAction(prevState: CreateEventState | null, form
     return { error: { form: [message] } };
   }
 
-  revalidatePath('/events'); // revalidate the dashboard
+  revalidatePath('/events', 'page');
   return { success: true };
 }
 
 export type UpdateEventState = CreateEventState;
 
 export async function updateEventAction(eventId: string, _prevState: unknown, formData: FormData): Promise<UpdateEventState> {
-  const adminId = await getAdminId();
+  const adminId = await getAdminSessionId();
+  if (!adminId) return { error: { form: ['Unauthorized'] } };
   
   const rawData = {
     title: formData.get('title') || undefined,
@@ -78,7 +76,6 @@ export async function updateEventAction(eventId: string, _prevState: unknown, fo
     closesAt: formData.get('closesAt') || undefined,
   };
 
-  // Filter out undefined values to allow partial updates
   const cleanedData = Object.fromEntries(Object.entries(rawData).filter(([, v]) => v !== undefined));
 
   const validated = updateEventSchema.safeParse(cleanedData);
@@ -88,8 +85,8 @@ export async function updateEventAction(eventId: string, _prevState: unknown, fo
 
   try {
     await updateEvent(eventId, adminId, validated.data);
-    revalidatePath(`/events/${eventId}`);
-    revalidatePath('/events');
+    revalidatePath(`/events/${eventId}`, 'page');
+    revalidatePath('/events', 'page');
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to update event';
@@ -98,12 +95,12 @@ export async function updateEventAction(eventId: string, _prevState: unknown, fo
 }
 
 export async function publishEventAction(eventId: string) {
-  const adminId = await getAdminId();
+  const adminId = await getAdminSessionId();
+  if (!adminId) return { error: 'Unauthorized' };
   try {
-    // We update the status. In Phase 5, we will trigger the Google Sheet creation here.
     await updateEvent(eventId, adminId, { status: 'open' });
-    revalidatePath(`/events/${eventId}`);
-    revalidatePath('/events');
+    revalidatePath(`/events/${eventId}`, 'page');
+    revalidatePath('/events', 'page');
     return { success: true };
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Failed to publish event' };
@@ -111,10 +108,11 @@ export async function publishEventAction(eventId: string) {
 }
 
 export async function deleteEventAction(eventId: string) {
-  const adminId = await getAdminId();
+  const adminId = await getAdminSessionId();
+  if (!adminId) return { error: 'Unauthorized' };
   try {
     await deleteEvent(eventId, adminId);
-    revalidatePath('/events');
+    revalidatePath('/events', 'page');
     return { success: true };
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Failed to delete event' };
