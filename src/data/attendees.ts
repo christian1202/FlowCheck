@@ -1,6 +1,6 @@
 import { getDb } from '@/lib/db';
 import { attendees, events, eventAdmins } from '@/lib/db/schema';
-import { eq, and, inArray, desc, ilike, or, sql } from 'drizzle-orm';
+import { eq, and, inArray, desc, sql } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
 import { cache } from 'react';
 
@@ -95,51 +95,76 @@ export const getAttendeesStats = (adminId: string, eventId: string = 'all') =>
     { revalidate: 60, tags: ['attendees-stats', `admin-${adminId}`, `event-${eventId}`] }
   )();
 
-export const getAttendeesPaginated = cache(async (
+export const getAttendeesPaginated = (
   adminId: string,
   filters: AttendeesFilters = {},
   page: number = 1,
   limit: number = 20
-): Promise<AttendeeWithEvent[]> => {
-  const db = getDb();
-  
-  const allowedIds = await getAdminAllowedEventIds(adminId);
-  if (allowedIds.length === 0) return [];
+): Promise<AttendeeWithEvent[]> =>
+  unstable_cache(
+    async () => {
+      const db = getDb();
 
-  const conditions = buildConditions(allowedIds, filters);
-  const offset = (page - 1) * limit;
+      const allowedIds = await getAdminAllowedEventIds(adminId);
+      if (allowedIds.length === 0) return [];
 
-  const rows = await db.select({
-    id: attendees.id,
-    eventId: attendees.eventId,
-    eventTitle: events.title,
-    name: attendees.name,
-    email: attendees.email,
-    local: attendees.local,
-    duty: attendees.duty,
-    status: attendees.status,
-    registeredAt: attendees.registeredAt,
-    checkedInAt: attendees.checkedInAt,
-  })
-  .from(attendees)
-  .innerJoin(events, eq(attendees.eventId, events.id))
-  .where(and(...conditions))
-  .orderBy(desc(attendees.registeredAt))
-  .limit(limit)
-  .offset(offset);
+      const conditions = buildConditions(allowedIds, filters);
+      const offset = (page - 1) * limit;
 
-  return rows as AttendeeWithEvent[];
-});
+      const rows = await db.select({
+        id: attendees.id,
+        eventId: attendees.eventId,
+        eventTitle: events.title,
+        name: attendees.name,
+        email: attendees.email,
+        local: attendees.local,
+        duty: attendees.duty,
+        status: attendees.status,
+        registeredAt: attendees.registeredAt,
+        checkedInAt: attendees.checkedInAt,
+      })
+      .from(attendees)
+      .innerJoin(events, eq(attendees.eventId, events.id))
+      .where(and(...conditions))
+      .orderBy(desc(attendees.registeredAt))
+      .limit(limit)
+      .offset(offset);
 
-export const getUniqueEventsForAdmin = cache(async (adminId: string) => {
-  const db = getDb();
-  const adminEventsList = await db.select({ id: events.id, title: events.title })
-    .from(events)
-    .innerJoin(eventAdmins, eq(events.id, eventAdmins.eventId))
-    .where(eq(eventAdmins.adminId, adminId))
-    .orderBy(desc(events.createdAt))
-    .limit(200);
-    
-  return adminEventsList;
-});
+      return rows as AttendeeWithEvent[];
+    },
+    [
+      'attendees-paginated',
+      adminId,
+      String(page),
+      String(limit),
+      filters.eventId ?? 'all',
+      filters.status ?? 'all',
+      (filters.search ?? '').trim(),
+    ],
+    {
+      revalidate: 30,
+      tags: [
+        'attendees-paginated',
+        `admin-${adminId}`,
+        ...(filters.eventId && filters.eventId !== 'all' ? [`event-${filters.eventId}`] : []),
+      ],
+    }
+  )();
+
+export const getUniqueEventsForAdmin = (adminId: string) =>
+  unstable_cache(
+    async () => {
+      const db = getDb();
+      const adminEventsList = await db.select({ id: events.id, title: events.title })
+        .from(events)
+        .innerJoin(eventAdmins, eq(events.id, eventAdmins.eventId))
+        .where(eq(eventAdmins.adminId, adminId))
+        .orderBy(desc(events.createdAt))
+        .limit(200);
+
+      return adminEventsList;
+    },
+    ['unique-events', adminId],
+    { revalidate: 30, tags: ['unique-events', `admin-${adminId}`] }
+  )();
 

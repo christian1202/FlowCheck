@@ -1,13 +1,24 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import PrefetchLink from '@/components/ui/PrefetchLink';
+import { warmDashboard, warmAllEvents, warmAttendees } from '@/actions/prefetch';
 
 interface SidebarNavProps {
   isCollapsed?: boolean;
   isHorizontal?: boolean;
   onNavigate?: () => void;
 }
+
+// Warm the target page's data caches on first hover. /settings and /events/new
+// are light (single-row lookup / static form) — route prefetch only.
+const warmByHref: Record<string, (() => Promise<void>) | undefined> = {
+  '/events': warmDashboard,
+  '/events/all': warmAllEvents,
+  '/attendees': warmAttendees,
+  '/scanner': warmAllEvents,
+  '/settings': undefined,
+};
 
 export default function SidebarNav({ isCollapsed = false, isHorizontal = false, onNavigate }: SidebarNavProps) {
   const pathname = usePathname();
@@ -50,8 +61,9 @@ export default function SidebarNav({ isCollapsed = false, isHorizontal = false, 
       <ul className="flex items-center justify-around w-full px-3">
         {links.map((link) => (
           <li key={link.href} className="flex-1">
-            <Link prefetch={false}
+            <PrefetchLink
               href={link.href}
+              warm={warmByHref[link.href]}
               onClick={onNavigate}
               className={`flex flex-col items-center justify-center gap-1 py-1.5 w-full rounded-2xl active-scale transition-colors duration-150 transform-gpu ${
                 link.isActive
@@ -77,7 +89,7 @@ export default function SidebarNav({ isCollapsed = false, isHorizontal = false, 
               >
                 {link.label}
               </span>
-            </Link>
+            </PrefetchLink>
           </li>
         ))}
       </ul>
@@ -88,8 +100,9 @@ export default function SidebarNav({ isCollapsed = false, isHorizontal = false, 
     <ul className="space-y-2 px-3">
       {links.map((link) => (
         <li key={link.href} className="flex justify-center">
-          <Link prefetch={false}
+          <PrefetchLink
             href={link.href}
+            warm={warmByHref[link.href]}
             onClick={onNavigate}
             title={isCollapsed ? link.label : undefined}
             className={`flex items-center text-xs tracking-wide transition-colors duration-150 active-scale transform-gpu ${
@@ -114,7 +127,7 @@ export default function SidebarNav({ isCollapsed = false, isHorizontal = false, 
               {link.icon}
             </span>
             {!isCollapsed && <span className="font-medium truncate">{link.label}</span>}
-          </Link>
+          </PrefetchLink>
         </li>
       ))}
     </ul>

@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { admins, eventAdmins } from '@/lib/db/schema';
 import { eq, and, or, ilike } from 'drizzle-orm';
 import { getAdminSessionId } from '@/lib/auth';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 export async function addEventAdmin(eventId: string, email: string, role: 'editor' | 'scanner') {
   const db = getDb();
@@ -29,11 +29,39 @@ export async function addEventAdmin(eventId: string, email: string, role: 'edito
     return { error: 'You do not have permission to add team members to this event.' };
   }
 
+  // Capture before any awaits — TS resets property narrowing across await.
+  const currentRole = currentAccess[0].role;
+
   if (targetUsers.length === 0) {
     return { error: 'User not found. Please ask them to create an account first before inviting them.' };
   }
 
   const targetUserId = targetUsers[0].id;
+
+  // 2b. Role-integrity guard: the upsert below overwrites an existing member's
+  // role. Never let a non-owner modify an owner's role (an editor could
+  // otherwise demote the owner, then remove them and seize the event), and
+  // never demote the only owner of an event.
+  const [existingTargetAccess] = await db
+    .select({ role: eventAdmins.role })
+    .from(eventAdmins)
+    .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.adminId, targetUserId)))
+    .limit(1);
+
+  if (existingTargetAccess && existingTargetAccess.role === 'owner' && currentRole !== 'owner') {
+    return { error: 'Only an event owner can change the role of another owner.' };
+  }
+  if (existingTargetAccess && existingTargetAccess.role === 'owner') {
+    // The role parameter can only be 'editor' | 'scanner' (never 'owner'), so
+    // this branch is always a demotion — refuse if it would leave zero owners.
+    const allOwners = await db
+      .select({ adminId: eventAdmins.adminId })
+      .from(eventAdmins)
+      .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.role, 'owner')));
+    if (allOwners.length <= 1) {
+      return { error: 'Cannot demote the only owner of the event.' };
+    }
+  }
 
   // 3. Upsert into event_admins (insert or update role if they already exist)
   try {
@@ -47,8 +75,9 @@ export async function addEventAdmin(eventId: string, email: string, role: 'edito
         target: [eventAdmins.eventId, eventAdmins.adminId],
         set: { role },
       });
-      
+
     revalidatePath(`/events/${eventId}/settings`);
+    revalidateTag(`event-${eventId}`, 'seconds'); // invalidate cached event-by-id (adminRole) + event-team
     return { success: true };
   } catch (err) {
     console.error('Error adding event admin:', err);
@@ -101,8 +130,9 @@ export async function removeEventAdmin(eventId: string, targetAdminId: string) {
   try {
     await db.delete(eventAdmins)
       .where(and(eq(eventAdmins.eventId, eventId), eq(eventAdmins.adminId, targetAdminId)));
-      
+
     revalidatePath(`/events/${eventId}/settings`);
+    revalidateTag(`event-${eventId}`, 'seconds'); // invalidate cached event-by-id (adminRole) + event-team
     return { success: true };
   } catch (err) {
     console.error('Error removing event admin:', err);

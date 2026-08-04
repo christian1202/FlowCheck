@@ -12,10 +12,14 @@ FlowCheck provides streamlined event management, public pre-registration, QR cod
 | **QR Ticket Generation & Ticket Lookup** | Attendees | No | ✅ Live |
 | **Google OAuth Login** | Event Admins / Staff | Yes | ✅ Live |
 | **Event Creation & Editing** | Event Admins | Yes (`owner` / `editor`) | ✅ Live |
-| **Team Management** | Event Admins | Yes (`owner`) | ✅ Live |
+| **Team Management** | Event Admins | Yes (`owner` / `editor`; role-integrity guards protect owners) | ✅ Live |
 | **QR Code Scanner PWA** | Door Scanners | Yes (`owner` / `editor` / `scanner`) | ✅ Live |
 | **Web Audio API Feedback** | Door Scanners | Yes | ✅ Live |
 | **Attendee Dashboard & Filtering** | Event Admins | Yes | ✅ Live |
+| **Attendee CSV Export** | Event Admins | Yes | ✅ Live |
+| **Google Sheets Sync** | Event Admins | Yes (cron + queue) | ✅ Live |
+| **Hover Prefetch (instant navigation)** | Event Admins | Yes | ✅ Live |
+| **Edge-Cached Registration Pages (ISR)** | Attendees / Public Users | No | ✅ Live |
 
 ---
 
@@ -44,3 +48,9 @@ FlowCheck provides streamlined event management, public pre-registration, QR cod
 - Live tracking of registered vs checked-in attendees.
 - Filter by status (`registered`, `checked_in`), search by attendee name or email.
 - Real-time statistics and check-in timeline.
+- CSV export (`/api/export-attendees`, admin-scoped) and automatic Google Sheets sync.
+
+### 5. Performance Features
+- **Hover prefetch**: hovering any dashboard link or event card prefetches the route and warms the target page's data caches (KV-backed), so navigation paints near-instantly.
+- **Edge-cached registration pages**: public `/events/[slug]/register` pages are ISR-cached at the edge (~30–60s) and invalidated on publish/update/delete.
+- **Data caching**: all page-facing queries run through tenant-scoped `unstable_cache` (30–60s TTL) with `revalidateTag` invalidation on every mutation.

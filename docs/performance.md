@@ -4,6 +4,24 @@
 
 ---
 
+## Execution Status (updated 2026-08)
+
+| Phase | Status | Notes |
+|---|---|---|
+| Phase 1 — Streaming & TTFB | ✅ Done | `loading.tsx` + nested `<Suspense>` boundaries on every dashboard route (events, events/all, attendees, scanner, settings) |
+| Phase 2 — Remount fix | ✅ Done | Root layout is static; `DashboardShell` (client) persists across navigations; no manifest/logo re-fetch loop remains |
+| Phase 3 — Client isolation & bundles | ✅ Done | `images.unoptimized: true`, `poweredByHeader: false`, `next/dynamic` for QR scanner/system modal, React Compiler enabled |
+| Phase 4 — Auth staticization | ✅ Done | Route protection lives in `src/middleware.ts` (Supabase SSR); dashboard pages intentionally stay dynamic via `await connection()` |
+| Phase 5 — DB query optimization | ✅ Done | Explicit column projections, `cache()`/`unstable_cache` dedupe, GIN expression indexes in schema (`idx_event_search`, `idx_attendee_search`, composite indexes) |
+| Phase 6 — Client rendering | ✅ Done | `@tanstack/react-virtual` events grid, debounced search (`useDebounce` + `useTransition`), memoized rows, lazy modals |
+| Phase 7 — (new) Persistent caching | ✅ Done | KV incremental + tag cache on Cloudflare; see `architecture.md` ADR-6 |
+| Phase 8 — (new) Hover prefetch | ✅ Done | `PrefetchLink`/`useHoverPrefetch` + warm-up server actions; see `architecture.md` ADR-7 |
+| Phase 9 — (new) ISR register page | ✅ Done | `force-static` + `revalidate = 60` on `/events/[slug]/register`; see `architecture.md` ADR-8 |
+
+**Key follow-ups still open:** Cloudflare WAF rate-limit rule for `POST /events/*/register` (deployment config), and re-verifying the 2.5s attendees query is gone with `EXPLAIN ANALYZE` on realistic data volume.
+
+---
+
 ## 0. ROLE & OPERATING MODE
 
 You are acting as a **senior Next.js performance engineer** doing a production refactor on a live app called **FlowCheck**, deployed on **Cloudflare** (Workers/Pages, free-tier CPU limits) with **Supabase PostgreSQL** as the database and **Drizzle ORM** as the query layer.

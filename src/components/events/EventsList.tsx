@@ -1,32 +1,41 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useTransition, useDeferredValue, memo } from 'react';
-import Link from 'next/link';
+import { useState, useEffect, useRef, useCallback, useTransition, useMemo, memo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Search, Loader2 } from 'lucide-react';
+import PrefetchLink from '@/components/ui/PrefetchLink';
 import { useDebounce } from '@/hooks/useDebounce';
-import { fetchEventsPage } from '@/app/(dashboard)/events/all/actions';
 import type { EventWithRole } from '@/data/events';
 import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
 
 type FetchEventsAction = (page: number, limit: number, search?: string) => Promise<EventWithRole[]>;
+type WarmEventAction = (eventId: string) => Promise<void>;
 
 const EventCard = memo(function EventCard({
   event,
   linkSuffix,
+  warmEvent,
 }: {
   event: EventWithRole;
   linkSuffix: string;
+  warmEvent?: WarmEventAction;
 }) {
   const displayStatus = getEventDisplayStatus(event.status, event.closesAt);
   const statusClasses = getEventStatusStyles(displayStatus);
 
+  // Stable per-event warm closure so the custom memo comparator below stays
+  // effective (plain client closure — never crosses the server boundary).
+  const warm = useMemo(
+    () => (warmEvent ? () => warmEvent(event.id) : undefined),
+    [warmEvent, event.id]
+  );
+
   return (
     <div className="block group h-full fade-in-stagger relative">
       <div className="claude-card rounded-3xl hover-lift p-6 flex flex-col h-full min-h-[280px] transition-colors duration-150 transform-gpu relative overflow-hidden">
-        
-        {/* Link */}
-        <Link href={`/events/${event.id}${linkSuffix}`} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></Link>
+
+        {/* Link — prefetches route + warms event data caches on hover */}
+        <PrefetchLink href={`/events/${event.id}${linkSuffix}`} warm={warm} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></PrefetchLink>
 
         {/* Top: Status */}
         <div className="mb-4 relative z-10">
@@ -35,9 +44,15 @@ const EventCard = memo(function EventCard({
           </span>
         </div>
 
-        {/* Title */}
+        {/* Title — YouTube-style clickable link (own hover state, above the card overlay) */}
         <div className="mb-4 flex-1 relative z-10">
-          <h4 className="text-base font-bold text-white mb-1.5 line-clamp-2 group-hover:text-amber-300 transition-colors">{event.title}</h4>
+          <PrefetchLink
+            href={`/events/${event.id}${linkSuffix}`}
+            warm={warm}
+            className="relative z-20 block"
+          >
+            <h4 className="text-base font-bold text-white mb-1.5 line-clamp-2 group-hover:text-amber-300 hover:text-amber-400 hover:underline decoration-amber-400/60 decoration-2 underline-offset-4 transition-colors">{event.title}</h4>
+          </PrefetchLink>
           {event.description && (
             <p className="text-xs text-slate-400 line-clamp-2">
               {event.description}
@@ -100,22 +115,25 @@ const EventCard = memo(function EventCard({
     </div>
   );
 }, (prevProps, nextProps) => {
-  return prevProps.linkSuffix === nextProps.linkSuffix && 
+  return prevProps.linkSuffix === nextProps.linkSuffix &&
          prevProps.event.id === nextProps.event.id &&
          prevProps.event.status === nextProps.event.status &&
-         prevProps.event.checkedInCount === nextProps.event.checkedInCount;
+         prevProps.event.checkedInCount === nextProps.event.checkedInCount &&
+         prevProps.warmEvent === nextProps.warmEvent;
 });
 
-export default function EventsList({ 
-  initialEvents, 
-  linkSuffix = '/settings', 
+export default function EventsList({
+  initialEvents,
+  linkSuffix = '/settings',
   fetchPages = true,
-  fetchAction
-}: { 
-  initialEvents: EventWithRole[], 
-  linkSuffix?: string, 
+  fetchAction,
+  warmEvent
+}: {
+  initialEvents: EventWithRole[],
+  linkSuffix?: string,
   fetchPages?: boolean,
-  fetchAction: FetchEventsAction
+  fetchAction: FetchEventsAction,
+  warmEvent?: WarmEventAction
 }) {
   "use no memo";
   const [isPending, startTransition] = useTransition();
@@ -289,7 +307,7 @@ export default function EventsList({
                     </div>
                   ) : (
                     rowEvents.map(event => (
-                      <EventCard key={event.id} event={event} linkSuffix={linkSuffix} />
+                      <EventCard key={event.id} event={event} linkSuffix={linkSuffix} warmEvent={warmEvent} />
                     ))
                   )}
                   </div>

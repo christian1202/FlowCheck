@@ -6,7 +6,9 @@ import { submitRegistrationAction, lookupAttendeeAction } from '@/actions/regist
 import Image from 'next/image';
 import QRCode from 'qrcode';
 
-const SystemInfoModal = dynamic(() => import('@/components/layout/SystemInfoModal'), { ssr: false });
+// Note: no `ssr: false` — the modal is mount-guarded (renders null until hydrated),
+// and ssr:false here would force the whole register route dynamic, defeating ISR.
+const SystemInfoModal = dynamic(() => import('@/components/layout/SystemInfoModal'));
 
 type FormErrors = {
   form?: string[];

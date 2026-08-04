@@ -1,12 +1,13 @@
 import { Suspense } from 'react';
 import { connection } from 'next/server';
-import Link from 'next/link';
 import { getEventsPaginated, type EventWithRole } from '@/data/events';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import EventsList from '@/components/events/EventsList';
 import { fetchEventsPage } from './actions';
 import EventsSkeleton from '@/components/ui/skeletons/EventsSkeleton';
+import PrefetchLink from '@/components/ui/PrefetchLink';
+import { warmEventSettings } from '@/actions/prefetch';
 
 async function AllEventsContent({ adminId }: { adminId: string }) {
   let initialEvents: EventWithRole[] = [];
@@ -28,7 +29,7 @@ async function AllEventsContent({ adminId }: { adminId: string }) {
 
   return (
     <div className="w-full">
-      <EventsList initialEvents={initialEvents} fetchAction={fetchEventsPage} />
+      <EventsList initialEvents={initialEvents} fetchAction={fetchEventsPage} warmEvent={warmEventSettings} />
     </div>
   );
 }
@@ -56,13 +57,13 @@ export default async function AllEventsPage() {
             View and manage all your active, upcoming, and past event streams.
           </p>
         </div>
-        <Link prefetch={false}
+        <PrefetchLink
           href="/events/new"
           className="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold text-xs rounded-xl active-scale transition-colors shadow-[0_0_20px_rgba(245,158,11,0.25)]"
         >
           <span className="material-symbols-outlined mr-2 text-lg">add</span>
           <span>New Event</span>
-        </Link>
+        </PrefetchLink>
       </div>
 
       <Suspense fallback={<EventsSkeleton />}>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import Link from 'next/link';
+import PrefetchLink from '@/components/ui/PrefetchLink';
 
 export default function DashboardError({
   error,
@@ -37,12 +37,12 @@ export default function DashboardError({
           >
             Try Again
           </button>
-          <Link prefetch={false}
+          <PrefetchLink
             href="/"
             className="px-6 py-2 border border-error/30 rounded-lg font-label-sm hover:bg-error/10 transition-colors"
           >
             Go Home
-          </Link>
+          </PrefetchLink>
         </div>
       </div>
     </div>

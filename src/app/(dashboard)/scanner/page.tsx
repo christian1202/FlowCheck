@@ -6,6 +6,7 @@ import { getEventsPaginated, type EventWithRole } from '@/data/events';
 import EventsList from '@/components/events/EventsList';
 import { fetchEventsPage } from '@/app/(dashboard)/events/all/actions';
 import EventsSkeleton from '@/components/ui/skeletons/EventsSkeleton';
+import { warmEventScanner } from '@/actions/prefetch';
 
 async function ScannerSelectContent({ adminId }: { adminId: string }) {
   let initialEvents: EventWithRole[] = [];
@@ -27,7 +28,7 @@ async function ScannerSelectContent({ adminId }: { adminId: string }) {
 
   return (
     <div className="flex-1 min-h-0 relative">
-      <EventsList initialEvents={initialEvents} linkSuffix="/scanner" fetchPages={true} fetchAction={fetchEventsPage} />
+      <EventsList initialEvents={initialEvents} linkSuffix="/scanner" fetchPages={true} fetchAction={fetchEventsPage} warmEvent={warmEventScanner} />
     </div>
   );
 }

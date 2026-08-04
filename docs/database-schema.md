@@ -34,8 +34,11 @@ erDiagram
         text location
         text map_link
         integer max_attendees
+        integer current_attendees
         event_status status
         timestamp closes_at
+        text google_sheet_id
+        text google_sheet_url
         timestamp created_at
     }
 
@@ -104,8 +107,10 @@ Maps directly to `auth.users.id` from Supabase Auth.
 - `location`: `text`
 - `mapLink`: `text`
 - `maxAttendees`: `integer`
+- `currentAttendees`: `integer` (Default: `0`, Not Null) — atomic counter incremented inside the registration transaction
 - `status`: `event_status` (Default: `'draft'`)
 - `closesAt`: `timestamp with time zone`
+- `googleSheetId` / `googleSheetUrl`: `text` — linked Google attendance sheet (set by the sheet-sync cron)
 - `createdAt`: `timestamp with time zone` (Default: `now()`)
 
 ### 3. `event_admins`
@@ -139,5 +144,24 @@ Audit log of every QR code scan attempt.
 - `attendeeId`: `uuid` (Foreign Key → `attendees.id`, On Delete Set Null)
 - `eventId`: `uuid` (Foreign Key → `events.id`, On Delete Cascade)
 - `scannedBy`: `uuid` (Foreign Key → `admins.id`)
-- `result`: `scan_result` — `'success'`, `'duplicate'`, `'invalid_event'`, `'invalid_ticket'`
+- `result`: `scan_result` — `'success'`, `'duplicate'`, `'invalid_event'`, `'invalid_ticket'`, `'unauthorized'`, `'event_closed'` (code-side union)
 - `scannedAt`: `timestamp with time zone` (Default: `now()`)
+
+---
+
+## Indexes (defined in `src/lib/db/schema.ts`)
+
+| Table | Index | Columns / Expression |
+|---|---|---|
+| `events` | `idx_event_title` | `title` |
+| `events` | `idx_event_search` (GIN) | `to_tsvector('english', title \|\| ' ' \|\| coalesce(location, ''))` |
+| `event_admins` | `idx_event_admins_admin_id` | `admin_id` |
+| `attendees` | `unq_event_email` (unique) | `(event_id, email)` — duplicate registration guard |
+| `attendees` | `idx_scan_token_event` | `(scan_token, event_id)` — scanner lookup |
+| `attendees` | `idx_attendee_name` / `idx_attendee_email` | `name` / `email` |
+| `attendees` | `idx_attendee_event` | `event_id` |
+| `attendees` | `idx_attendees_event_registered` | `(event_id, registered_at)` |
+| `attendees` | `idx_attendees_event_status_registered` | `(event_id, status, registered_at)` |
+| `attendees` | `idx_attendee_search` (GIN) | `to_tsvector('english', name \|\| ' ' \|\| email \|\| ' ' \|\| coalesce(local, ''))` |
+
+The GIN expression indexes serve the full-text queries (the queries use the same `to_tsvector` expressions).

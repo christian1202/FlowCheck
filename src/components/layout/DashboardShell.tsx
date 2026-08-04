@@ -2,10 +2,10 @@
 
 import { useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import Image from 'next/image';
 import LogoutButton from '@/components/auth/LogoutButton';
 import SidebarNav from '@/components/layout/SidebarNav';
+import PrefetchLink from '@/components/ui/PrefetchLink';
 
 const SystemInfoModal = dynamic(() => import('@/components/layout/SystemInfoModal'), { ssr: false });
 
@@ -50,14 +50,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </div>
         
         <div className="px-3">
-          <Link prefetch={false} 
+          <PrefetchLink
             href="/events/new"
             className={`bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors transition-transform transform-gpu shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] active-scale ${isCollapsed ? 'w-10 h-10 mx-auto px-0' : 'w-full px-4'}`}
             title={isCollapsed ? "New Event" : undefined}
           >
             <span className="material-symbols-outlined text-lg">add_circle</span>
             {!isCollapsed && <span className="tracking-wide">New Event</span>}
-          </Link>
+          </PrefetchLink>
         </div>
         
         <div className="flex-1 mt-4 overflow-y-auto hide-scrollbar">
@@ -91,9 +91,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </div>
           <div className="flex items-center gap-1.5">
             <SystemInfoModal isCollapsed={true} />
-            <Link prefetch={false} href="/events/new" className="text-amber-400 hover:bg-amber-500/10 p-2 rounded-xl transition-colors transition-transform transform-gpu active-scale flex items-center justify-center">
+            <PrefetchLink href="/events/new" className="text-amber-400 hover:bg-amber-500/10 p-2 rounded-xl transition-colors transition-transform transform-gpu active-scale flex items-center justify-center">
               <span className="material-symbols-outlined text-xl">add_circle</span>
-            </Link>
+            </PrefetchLink>
             <LogoutButton iconOnly={true} className="text-red-400 hover:bg-red-500/10 p-2 rounded-xl transition-colors transition-transform transform-gpu active-scale flex items-center justify-center" />
           </div>
         </header>

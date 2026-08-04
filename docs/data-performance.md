@@ -4,6 +4,22 @@
 
 ---
 
+## Execution Status (updated 2026-08)
+
+| Phase | Status | Notes |
+|---|---|---|
+| Phase 1 — Cache-leak fixes | ✅ Done | `getAttendeesStats` key `['attendees-stats', adminId, eventId]`, `getDashboardStats` key `['dashboard-stats', adminId]`; every cache key now embeds `adminId`/`eventId` |
+| Phase 2 — Permission-lookup caching | ✅ Done | `getAdminAllowedEventIds = cache(...)` in `src/data/attendees.ts`, used by stats/paginated/export paths |
+| Phase 3 — FTS optimization | ✅ Done (different shape) | GIN **expression** indexes in schema (`idx_event_search`, `idx_attendee_search`) instead of a stored `fts_vector` column; queries use the same `to_tsvector` expressions so they hit the indexes. `websearch_to_tsquery` for attendees; event search strips non-alphanumerics (`buildEventSearchCondition`) |
+| Phase 4 — N+1 elimination | ✅ Done | `getEventsPaginated` (and the removed `getEventsForAdmin`) use a single `LEFT JOIN` + `GROUP BY` + `FILTER` aggregate — no correlated subqueries |
+| Phase 5 — ACID registration | ✅ Done | `registerAttendee`: single transaction, `SELECT … FOR UPDATE` row lock, `current_attendees` atomic increment, `cleanEmail` normalization, queue enqueued after commit |
+| Phase 6 — `processScan` consolidation | ✅ Done | One consolidated joined read inside the transaction; `enqueueSheetSync` after commit; scan + registration revalidate `event-…`/`admin-…` cache tags |
+| (new) Persistent cache on Cloudflare | ✅ Done | The "dummy" incremental/tag cache was replaced with KV-backed caches (`open-next.config.ts`); previously `unstable_cache` and `revalidateTag` were no-ops in production |
+
+**Remaining gap vs. this doc's original spec:** the `fts_vector` generated column was not added — GIN expression indexes cover the same queries. If search performance degrades at scale, revisit with `EXPLAIN ANALYZE`.
+
+---
+
 ## 0. ROLE & OPERATING MODE
 
 You are acting as a **senior backend/database engineer doing a DevSecOps-grade refactor** of the data access layer for a multi-tenant event/attendance app. The stack is **Next.js Server Components/Server Actions**, **Drizzle ORM**, and **Supabase PostgreSQL**, using Next's `unstable_cache` for cross-request caching and React's `cache()` for per-request dedupe. Tenancy is scoped by `adminId` (and further by `eventId` for some resources).

@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 import { createEvent, updateEvent, deleteEvent } from '@/data/events';
 import { createEventSchema, updateEventSchema } from '@/lib/validators/events';
@@ -57,6 +57,7 @@ export async function createEventAction(prevState: CreateEventState | null, form
   }
 
   revalidatePath('/events', 'page');
+  revalidateTag(`admin-${adminId}`, 'seconds'); // data caches: dashboard stats, event lists, unique events
   return { success: true };
 }
 
@@ -84,9 +85,14 @@ export async function updateEventAction(eventId: string, _prevState: unknown, fo
   }
 
   try {
-    await updateEvent(eventId, adminId, validated.data);
+    const updated = await updateEvent(eventId, adminId, validated.data);
     revalidatePath(`/events/${eventId}`, 'page');
     revalidatePath('/events', 'page');
+    revalidateTag(`admin-${adminId}`, 'seconds');
+    revalidateTag(`event-${eventId}`, 'seconds');
+    // public register page (getEventBySlug): slug-form links + id-form URLs
+    if (updated?.slug) revalidateTag(`slug-${updated.slug}`, 'seconds');
+    revalidateTag(`slug-${eventId}`, 'seconds');
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to update event';
@@ -98,9 +104,14 @@ export async function publishEventAction(eventId: string) {
   const adminId = await getAdminSessionId();
   if (!adminId) return { error: 'Unauthorized' };
   try {
-    await updateEvent(eventId, adminId, { status: 'open' });
+    const updated = await updateEvent(eventId, adminId, { status: 'open' });
     revalidatePath(`/events/${eventId}`, 'page');
     revalidatePath('/events', 'page');
+    revalidateTag(`admin-${adminId}`, 'seconds');
+    revalidateTag(`event-${eventId}`, 'seconds');
+    // public register page (getEventBySlug): slug-form links + id-form URLs
+    if (updated?.slug) revalidateTag(`slug-${updated.slug}`, 'seconds');
+    revalidateTag(`slug-${eventId}`, 'seconds');
     return { success: true };
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Failed to publish event' };
@@ -111,8 +122,11 @@ export async function deleteEventAction(eventId: string) {
   const adminId = await getAdminSessionId();
   if (!adminId) return { error: 'Unauthorized' };
   try {
-    await deleteEvent(eventId, adminId);
+    const deleted = await deleteEvent(eventId, adminId);
     revalidatePath('/events', 'page');
+    revalidateTag(`admin-${adminId}`, 'seconds');
+    revalidateTag(`event-${eventId}`, 'seconds');
+    if (deleted?.slug) revalidateTag(`slug-${deleted.slug}`, 'seconds'); // public register page (getEventBySlug)
     return { success: true };
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Failed to delete event' };

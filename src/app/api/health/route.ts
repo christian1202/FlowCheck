@@ -22,7 +22,8 @@ export async function GET() {
     auth: { status: 'untested' },
   };
 
-  // Test database connectivity
+  // Test database connectivity (error details logged server-side only — raw DB
+  // errors can leak connection info to unauthenticated callers)
   try {
     const { getDb } = await import('@/lib/db');
     const db = getDb();
@@ -30,8 +31,8 @@ export async function GET() {
     const data = await db.select({ id: events.id }).from(events).limit(1);
     results.db = { status: 'ok', rowCount: data.length };
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    results.db = { status: 'error', error: message };
+    console.error('health db check error:', err);
+    results.db = { status: 'error' };
   }
 
   // Test Supabase auth connectivity
@@ -42,8 +43,8 @@ export async function GET() {
     if (error) throw new Error(error.message);
     results.auth = { status: 'ok', rowCount: data.length };
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    results.auth = { status: 'error', error: message };
+    console.error('health auth check error:', err);
+    results.auth = { status: 'error' };
   }
 
   const allOk = results.db.status === 'ok' && results.auth.status === 'ok';

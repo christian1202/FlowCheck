@@ -1,17 +1,25 @@
-import { connection } from 'next/server';
 import { notFound } from 'next/navigation';
 import { getEventBySlug } from '@/data/events';
 import RegistrationForm from './RegistrationForm';
 import Image from 'next/image';
 
+// ISR: the rendered HTML is cached (in the KV incremental cache on Cloudflare)
+// for 60s per event path, so public visitors hitting a shared link get a fast,
+// edge-cached page instead of a full DB render per request.
+// The page is invalidated immediately on publish/update via
+// revalidateTag(`slug-${slug}`) in the event actions.
+// Note: `dynamic = 'force-static'` is required — in Next 15/16 a dynamic-segment
+// route without generateStaticParams is otherwise always rendered on demand and
+// `revalidate` is ignored. With force-static, each path renders on first request
+// and is then cached for `revalidate` seconds.
 export const revalidate = 60;
+export const dynamic = 'force-static';
 
 export default async function RegisterPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await connection();
   const { id } = await params;
   const event = await getEventBySlug(id);
 

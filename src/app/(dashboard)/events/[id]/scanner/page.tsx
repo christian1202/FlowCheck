@@ -2,9 +2,10 @@ import { Suspense } from 'react';
 import { connection } from 'next/server';
 import { getEventById } from '@/data/events';
 import { notFound, redirect } from 'next/navigation';
-import Link from 'next/link';
 import { getAdminSessionId } from '@/lib/auth';
 import QRScannerDynamic from '@/components/scanner/QRScannerDynamic';
+import PrefetchLink from '@/components/ui/PrefetchLink';
+import { warmEventSettings } from '@/actions/prefetch';
 
 async function EventScannerContent({ id, adminId }: { id: string; adminId: string }) {
   let event;
@@ -28,9 +29,9 @@ async function EventScannerContent({ id, adminId }: { id: string; adminId: strin
             This event is currently set to <strong>{event.status}</strong>.
           </p>
           <div className="mt-6">
-            <Link prefetch={false} href={`/events/${event.id}/settings`} className="bg-surface-container-lowest text-on-surface font-label-sm px-6 py-2 rounded-full inline-block hover:bg-surface-container-high transition-colors">
+            <PrefetchLink href={`/events/${event.id}/settings`} warm={warmEventSettings.bind(null, event.id)} className="bg-surface-container-lowest text-on-surface font-label-sm px-6 py-2 rounded-full inline-block hover:bg-surface-container-high transition-colors">
               Go to Event Settings
-            </Link>
+            </PrefetchLink>
           </div>
         </div>
       </div>
@@ -40,9 +41,9 @@ async function EventScannerContent({ id, adminId }: { id: string; adminId: strin
   return (
     <div className="flex-1 relative h-full min-h-[calc(100vh-64px)] w-full flex flex-col bg-surface-bright overflow-hidden">
       <div className="absolute top-4 left-4 z-50 md:hidden">
-        <Link prefetch={false} href={`/events/${event.id}/settings`} className="w-touch-target h-touch-target bg-surface/95 rounded-full flex items-center justify-center shadow-md">
+        <PrefetchLink href={`/events/${event.id}/settings`} warm={warmEventSettings.bind(null, event.id)} className="w-touch-target h-touch-target bg-surface/95 rounded-full flex items-center justify-center shadow-md">
           <span className="material-symbols-outlined text-primary">arrow_back</span>
-        </Link>
+        </PrefetchLink>
       </div>
 
       <QRScannerDynamic eventId={event.id} />

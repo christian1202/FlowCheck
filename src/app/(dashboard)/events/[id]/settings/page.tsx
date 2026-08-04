@@ -3,11 +3,12 @@ import { getEventById, getEventTeam } from '@/data/events';
 import { getAdminSessionId } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
 import { publishEventAction } from '@/actions/events';
-import Link from 'next/link';
 import TeamManagement, { TeamMember } from '@/components/events/TeamManagement';
 import CopyLinkButton from '@/components/events/CopyLinkButton';
 import DeleteEventButton from '@/components/events/DeleteEventButton';
 import LocalTimeDisplay from '@/components/ui/LocalTimeDisplay';
+import PrefetchLink from '@/components/ui/PrefetchLink';
+import { warmAllEvents, warmEventEdit, warmEventScanner } from '@/actions/prefetch';
 import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
 
 export default async function EventSettingsPage({
@@ -43,13 +44,14 @@ export default async function EventSettingsPage({
   return (
     <div className="p-4 sm:p-6 md:p-8 flex-1 fade-in-stagger w-full max-w-5xl mx-auto space-y-8 text-slate-100">
       <div className="mb-2">
-        <Link prefetch={false} 
-          href="/events/all" 
+        <PrefetchLink
+          href="/events/all"
+          warm={warmAllEvents}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900/80 border border-white/10 text-xs font-mono text-slate-300 hover:text-white hover:bg-slate-800 hover:border-amber-500/30 transition-colors transition-transform transform-gpu active-scale"
         >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
           <span>Back to All Events</span>
-        </Link>
+        </PrefetchLink>
       </div>
 
       {/* Hero Header Glass Panel */}
@@ -170,23 +172,25 @@ export default async function EventSettingsPage({
             {/* Operational Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 items-center flex-wrap pt-2">
               {!isScanner && (
-                <Link prefetch={false}
+                <PrefetchLink
                   href={`/events/${event.id}/edit`}
+                  warm={warmEventEdit.bind(null, event.id)}
                   className="w-full sm:w-auto inline-flex justify-center items-center py-2.5 px-5 border border-white/10 rounded-xl text-xs font-bold text-slate-200 bg-slate-900/80 hover:bg-slate-800 hover:text-white hover:border-amber-500/30 transition-colors transition-transform transform-gpu active-scale gap-2"
                 >
                   <span className="material-symbols-outlined text-base text-amber-400">edit</span>
                   <span>Edit Event</span>
-                </Link>
+                </PrefetchLink>
               )}
-              
+
               {event.status === 'open' && (
-                <Link prefetch={false}
+                <PrefetchLink
                   href={`/events/${event.id}/scanner`}
+                  warm={warmEventScanner.bind(null, event.id)}
                   className="w-full sm:w-auto inline-flex justify-center items-center py-2.5 px-5 border border-emerald-500/30 rounded-xl text-xs font-bold text-emerald-300 bg-emerald-950/40 hover:bg-emerald-900/50 hover:border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-colors transition-transform transform-gpu active-scale gap-2"
                 >
                   <span className="material-symbols-outlined text-base">qr_code_scanner</span>
                   <span>Open Scanner</span>
-                </Link>
+                </PrefetchLink>
               )}
               
               <div className="hidden sm:block flex-1"></div>

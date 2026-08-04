@@ -1,6 +1,7 @@
 import { getDb } from '@/lib/db';
 import { attendees, events } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
+import { revalidateTag } from 'next/cache';
 import type { RegistrationInput } from '@/lib/validators/registration';
 import { enqueueSheetSync } from '@/lib/queue/producer';
 
@@ -102,6 +103,10 @@ export async function registerAttendee(
   } catch (syncErr) {
     console.error('Sheet sync queueing failed post-registration:', syncErr);
   }
+
+  // Registration changes attendee counts — invalidate event-scoped data caches
+  // (stats, paginated lists). Admin dashboards for other admins self-refresh via TTL.
+  revalidateTag(`event-${eventId}`, 'seconds');
 
   return { success: true, scanToken };
 }

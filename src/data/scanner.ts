@@ -1,9 +1,7 @@
 import { getDb } from '@/lib/db';
 import { attendees, events, eventAdmins, scanLogs } from '@/lib/db/schema';
-import { eq, and, inArray, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { enqueueSheetSync } from '@/lib/queue/producer';
-import { cache } from 'react';
-import { getAdminAllowedEventIds } from './attendees';
 
 export type ScanResultResponse = {
   result: 'success' | 'duplicate' | 'invalid_event' | 'event_closed' | 'invalid_ticket' | 'unauthorized';
@@ -141,24 +139,4 @@ export async function processScan(
 
   return scanResult;
 }
-
-export const getTotalScansForAdmin = cache(async (adminId: string): Promise<number> => {
-  const db = getDb();
-  
-  const allowedIds = await getAdminAllowedEventIds(adminId);
-  if (allowedIds.length === 0) return 0;
-
-  const [{ count }] = await db.select({
-    count: sql<number>`count(*)`
-  })
-    .from(attendees)
-    .where(
-      and(
-        inArray(attendees.eventId, allowedIds),
-        eq(attendees.status, 'checked_in')
-      )
-    );
-
-  return Number(count || 0);
-});
 

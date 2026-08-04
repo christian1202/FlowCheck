@@ -1,60 +1,35 @@
 import { Hono } from 'hono';
-import { getDb } from '@/lib/db';
-import { events } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
 import { registerAttendee } from '@/data/registration';
 import { registrationSchema } from '@/lib/validators/registration';
 
+// NOTE: previously this file also exposed unauthenticated `GET /api/events` and
+// `GET /api/events/:id` returning full event rows for every event (including
+// drafts, Google sheet IDs, and creator UUIDs). Those were removed — nothing in
+// the app used them, and they leaked data to anonymous callers.
+// Only the public pre-registration endpoint remains (validated, capacity-checked).
 const app = new Hono().basePath('/api');
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const routes = app
-  .get('/hello', (c) => {
-    return c.json({ message: 'Hello from Hono Edge!' });
-  })
-  .get('/events', async (c) => {
-    try {
-      const db = getDb();
-      const allEvents = await db.select().from(events).limit(100);
-      return c.json(allEvents);
-    } catch (e) {
-      console.error(e);
-      return c.json({ error: 'Internal Server Error' }, 500);
+const routes = app.post('/events/:id/register', async (c) => {
+  const eventId = c.req.param('id');
+  try {
+    const body = await c.req.json();
+    const validated = registrationSchema.safeParse(body);
+    if (!validated.success) {
+      return c.json({ error: validated.error.flatten().fieldErrors }, 400);
     }
-  })
-  .get('/events/:id', async (c) => {
-    const id = c.req.param('id');
-    try {
-      const db = getDb();
-      const [event] = await db.select().from(events).where(eq(events.id, id)).limit(1);
-      if (!event) return c.json({ error: 'Event not found' }, 404);
-      return c.json(event);
-    } catch (e) {
-      console.error(e);
-      return c.json({ error: 'Internal Server Error' }, 500);
+
+    const result = await registerAttendee(validated.data, eventId);
+
+    if (!result.success) {
+      return c.json({ error: result.error }, 409);
     }
-  })
-  .post('/events/:id/register', async (c) => {
-    const eventId = c.req.param('id');
-    try {
-      const body = await c.req.json();
-      const validated = registrationSchema.safeParse(body);
-      if (!validated.success) {
-        return c.json({ error: validated.error.flatten().fieldErrors }, 400);
-      }
 
-      const result = await registerAttendee(validated.data, eventId);
-
-      if (!result.success) {
-        return c.json({ error: result.error }, 409);
-      }
-
-      return c.json({ success: true, scanToken: result.scanToken }, 201);
-    } catch (e) {
-      console.error('Registration endpoint error:', e);
-      return c.json({ error: 'Internal Server Error' }, 500);
-    }
-  });
+    return c.json({ success: true, scanToken: result.scanToken }, 201);
+  } catch (e) {
+    console.error('Registration endpoint error:', e);
+    return c.json({ error: 'Internal Server Error' }, 500);
+  }
+});
 
 export type AppType = typeof routes;
 

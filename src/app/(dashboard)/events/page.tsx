@@ -1,11 +1,12 @@
 import { Suspense } from 'react';
 import { connection } from 'next/server';
-import Link from 'next/link';
 import { getDashboardStats, getRecentDashboardEvents } from '@/data/dashboard';
 import { getAdminSessionId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getEventDisplayStatus, getEventStatusStyles } from '@/lib/statusUtils';
 import EventsSkeleton from '@/components/ui/skeletons/EventsSkeleton';
+import PrefetchLink from '@/components/ui/PrefetchLink';
+import { warmAllEvents, warmEventSettings } from '@/actions/prefetch';
 
 async function DashboardContent({ adminId }: { adminId: string }) {
   let dashboardEvents: Awaited<ReturnType<typeof getRecentDashboardEvents>> = [];
@@ -91,12 +92,13 @@ async function DashboardContent({ adminId }: { adminId: string }) {
             <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400"></span> Recent Events
             </h3>
-            <Link prefetch={false} 
-              href="/events/all" 
+            <PrefetchLink
+              href="/events/all"
+              warm={warmAllEvents}
               className="text-xs font-medium text-amber-400 hover:text-amber-300 flex items-center gap-1 transition-colors transform-gpu group"
             >
               View All <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
-            </Link>
+            </PrefetchLink>
           </div>
 
           {dashboardEvents.length === 0 ? (
@@ -106,13 +108,13 @@ async function DashboardContent({ adminId }: { adminId: string }) {
               </div>
               <h3 className="text-xl font-bold text-white mb-1">No events found</h3>
               <p className="text-xs text-slate-400 mb-6 max-w-md">You haven&apos;t created any events yet. Get started by initializing your first stream.</p>
-              <Link prefetch={false}
+              <PrefetchLink
                 href="/events/new"
                 className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold text-xs rounded-xl active-scale transition-colors transition-transform transform-gpu shadow-[0_0_20px_rgba(245,158,11,0.25)]"
               >
                 <span className="material-symbols-outlined mr-2 text-lg">add</span>
                 <span>Create New Event</span>
-              </Link>
+              </PrefetchLink>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -124,8 +126,8 @@ async function DashboardContent({ adminId }: { adminId: string }) {
                   <div key={event.id} className="block group h-full relative">
                     <div className="claude-card rounded-3xl hover-lift p-6 flex flex-col h-full min-h-[300px] transition-colors transition-transform transform-gpu duration-300 relative overflow-hidden">
                       
-                      {/* Full card link */}
-                      <Link href={`/events/${event.id}/settings`} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></Link>
+                      {/* Full card link — prefetches route + warms event data on hover */}
+                      <PrefetchLink href={`/events/${event.id}/settings`} warm={warmEventSettings.bind(null, event.id)} className="absolute inset-0 z-10" aria-label={`View settings for ${event.title}`}></PrefetchLink>
 
                       {/* Top: Status Pill */}
                       <div className="mb-4 relative z-10 flex justify-between items-center">
@@ -134,9 +136,15 @@ async function DashboardContent({ adminId }: { adminId: string }) {
                         </span>
                       </div>
 
-                      {/* Title & Description */}
+                      {/* Title & Description — YouTube-style clickable link (own hover state, above the card overlay) */}
                       <div className="mb-4 flex-1 relative z-10">
-                        <h4 className="text-base font-bold text-white mb-1.5 line-clamp-2 group-hover:text-amber-300 transition-colors">{event.title}</h4>
+                        <PrefetchLink
+                          href={`/events/${event.id}/settings`}
+                          warm={warmEventSettings.bind(null, event.id)}
+                          className="relative z-20 block"
+                        >
+                          <h4 className="text-base font-bold text-white mb-1.5 line-clamp-2 group-hover:text-amber-300 hover:text-amber-400 hover:underline decoration-amber-400/60 decoration-2 underline-offset-4 transition-colors">{event.title}</h4>
+                        </PrefetchLink>
                         {event.description && (
                           <p className="text-xs text-slate-400 line-clamp-2">
                             {event.description}

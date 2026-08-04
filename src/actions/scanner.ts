@@ -1,6 +1,7 @@
 'use server';
 
 import { processScan } from '@/data/scanner';
+import { revalidateTag } from 'next/cache';
 
 import { getAdminSessionId } from '@/lib/auth';
 
@@ -18,7 +19,14 @@ export async function scanTicketAction(eventId: string, scanToken: string) {
   try {
     const adminId = await getAdminId();
     const result = await processScan(eventId, adminId, scanToken);
-    
+
+    // Check-ins change attendee counts everywhere (dashboard, lists, stats),
+    // so invalidate the data caches for this event and scanning admin.
+    if (result?.result === 'success') {
+      revalidateTag(`event-${eventId}`, 'seconds');
+      revalidateTag(`admin-${adminId}`, 'seconds');
+    }
+
     return { data: result };
   } catch (err: unknown) {
     console.error('Scan Action Error:', err);
