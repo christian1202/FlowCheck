@@ -121,3 +121,5 @@ Implement CSRF (Cross-Site Request Forgery) protection on all state-changing POS
 Rule: Never concatenate raw user input into database queries or shell execution commands.
 
 Implementation: Always use an ORM (Prisma, Drizzle) or a Query Builder (Kysely) that inherently uses parameterized queries/prepared statements. If writing raw SQL, enforce the use of parameterized bindings (e.g., SELECT * FROM users WHERE email = $1).    
+
+test.
