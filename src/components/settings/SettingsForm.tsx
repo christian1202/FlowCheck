@@ -105,7 +105,7 @@ export default function SettingsForm({ initialName, email }: SettingsFormProps) 
                 disabled
                 className="w-full sm:max-w-md px-3.5 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-xs text-slate-400 font-mono cursor-not-allowed"
               />
-              <p className="mt-1 text-[11px] font-mono text-slate-500">Your account email address is read-only.</p>
+              <p className="mt-1 text-xs font-mono text-slate-500">Your account email address is read-only.</p>
             </div>
 
             <div>
@@ -165,8 +165,9 @@ export default function SettingsForm({ initialName, email }: SettingsFormProps) 
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-0 pr-2 pl-2 flex items-center text-slate-400 hover:text-white transition-colors"
                   tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -180,7 +181,7 @@ export default function SettingsForm({ initialName, email }: SettingsFormProps) 
                       style={{ width: `${(passwordStrength / 5) * 100}%` }}
                     />
                   </div>
-                  <div className="flex justify-between items-center text-[10px] font-mono">
+                  <div className="flex justify-between items-center text-[11px] font-mono">
                     <span className={`font-bold uppercase tracking-wider ${passwordStrength < 4 ? 'text-red-400' : 'text-emerald-400'}`}>
                       {getStrengthText()}
                     </span>
@@ -209,7 +210,7 @@ export default function SettingsForm({ initialName, email }: SettingsFormProps) 
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-0 pr-2 pl-2 flex items-center text-slate-400 hover:text-white transition-colors"
                   tabIndex={-1}
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

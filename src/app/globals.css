@@ -299,6 +299,18 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevents iOS auto font-inflation on rotated/zoomed viewports */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Safe-area insets (requires viewport-fit=cover — set in app/layout.tsx).
+   Used by the mobile bottom nav (pb-safe) and fixed overlays on notched phones. */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
 }
 
 button, a, input, select, textarea, .claude-card {

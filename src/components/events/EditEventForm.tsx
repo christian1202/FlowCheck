@@ -81,7 +81,7 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                   placeholder="e.g. Annual Tech Summit 2026"
                 />
               </div>
-              {state?.error?.title && <p className="mt-1 text-[11px] font-mono text-red-400">{state.error.title[0]}</p>}
+              {state?.error?.title && <p className="mt-1 text-xs font-mono text-red-400">{state.error.title[0]}</p>}
             </div>
 
             {/* Description */}
@@ -188,7 +188,7 @@ export default function EditEventForm({ event }: { event: EventRow }) {
                     href={event.mapLink || 'https://maps.google.com'} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="absolute right-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 text-[11px] font-mono transition-colors transition-transform transform-gpu flex items-center gap-1 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.1)]" 
+                    className="absolute right-1.5 px-2.5 min-h-10 flex items-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 text-xs font-mono transition-colors transition-transform transform-gpu gap-1 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.1)]"
                     title="Open Google Maps to search location"
                   >
                     <span>Find</span>

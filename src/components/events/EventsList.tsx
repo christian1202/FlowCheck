@@ -39,7 +39,7 @@ const EventCard = memo(function EventCard({
 
         {/* Top: Status */}
         <div className="mb-4 relative z-10">
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest ${statusClasses}`}>
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-mono uppercase tracking-widest ${statusClasses}`}>
             {displayStatus}
           </span>
         </div>
@@ -69,7 +69,7 @@ const EventCard = memo(function EventCard({
             <div className="flex flex-col gap-0.5">
               <span>{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
               {event.closesAt && (
-                <span className="text-[10px] text-slate-500 font-mono">Closes: {new Date(event.closesAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                <span className="text-[11px] text-slate-500 font-mono">Closes: {new Date(event.closesAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
               )}
             </div>
           </div>
@@ -99,7 +99,7 @@ const EventCard = memo(function EventCard({
         <div className="pt-4 border-t border-slate-800 md:border-white/10 relative z-10">
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Attendance Rate</span>
+              <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Attendance Rate</span>
               <span className="font-mono text-amber-400 font-bold">{event.checkedInCount || 0} / {event.registeredCount || 0}</span>
             </div>
             <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800 md:border-white/5">
@@ -257,7 +257,7 @@ export default function EventsList({
 
       <div 
         ref={parentRef}
-        className={`overflow-auto touch-pan-y overscroll-contain h-[650px] md:h-[750px] w-full hide-scrollbar transition-opacity duration-200 ${isPending ? 'opacity-50' : 'opacity-100'} ${rowVirtualizer.isScrolling ? 'pointer-events-none' : ''}`}
+        className={`overflow-auto touch-pan-y overscroll-contain h-[calc(100dvh-15rem)] min-h-[420px] md:h-[750px] w-full hide-scrollbar transition-opacity duration-200 ${isPending ? 'opacity-50' : 'opacity-100'} ${rowVirtualizer.isScrolling ? 'pointer-events-none' : ''}`}
         style={{ contain: 'strict' }}
       >
         {events.length === 0 ? (

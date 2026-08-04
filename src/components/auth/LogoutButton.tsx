@@ -45,7 +45,7 @@ export default function LogoutButton({ className, iconOnly }: { className?: stri
           <button 
             onClick={() => !isLoggingOut && setShowConfirm(false)}
             disabled={isLoggingOut}
-            className="p-1.5 rounded-xl hover:bg-white/10 transition-colors text-slate-400 hover:text-white disabled:opacity-50"
+            className="p-2.5 rounded-xl hover:bg-white/10 transition-colors text-slate-400 hover:text-white disabled:opacity-50"
             title="Close"
           >
             <X className="w-5 h-5" />
@@ -62,7 +62,7 @@ export default function LogoutButton({ className, iconOnly }: { className?: stri
           <button
             onClick={() => setShowConfirm(false)}
             disabled={isLoggingOut}
-            className="px-4 py-2 rounded-xl text-xs font-mono text-slate-400 hover:text-white hover:bg-white/10 transition-colors active-scale disabled:opacity-50"
+            className="px-4 min-h-11 rounded-xl text-xs font-mono text-slate-400 hover:text-white hover:bg-white/10 transition-colors active-scale disabled:opacity-50"
           >
             Cancel
           </button>

@@ -40,7 +40,7 @@ function SystemInfoModal({ isCollapsed, className, iconOnly }: SystemInfoModalPr
           </div>
           <button 
             onClick={() => setIsOpen(false)}
-            className="p-1.5 rounded-xl hover:bg-white/10 transition-colors text-slate-400 hover:text-white"
+            className="p-2.5 rounded-xl hover:bg-white/10 transition-colors text-slate-400 hover:text-white"
             title="Close"
           >
             <X className="w-5 h-5" />
@@ -99,7 +99,7 @@ function SystemInfoModal({ isCollapsed, className, iconOnly }: SystemInfoModalPr
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-bold text-white">Christian Jay Basinillo</p>
-                <p className="text-[11px] text-slate-400 font-mono">Creator & Lead Developer</p>
+                <p className="text-xs text-slate-400 font-mono">Creator & Lead Developer</p>
               </div>
               <div className="flex gap-2 w-full sm:w-auto">
                 <a
@@ -130,7 +130,7 @@ function SystemInfoModal({ isCollapsed, className, iconOnly }: SystemInfoModalPr
 
         {/* Footer Support Message */}
         <div className="px-4 py-3 bg-slate-950/90 border-t border-white/10 text-center shrink-0">
-          <p className="text-[11px] text-slate-400 flex items-center justify-center gap-1 flex-wrap">
+          <p className="text-xs text-slate-400 flex items-center justify-center gap-1 flex-wrap">
             <span>Found a bug or issue? Reach out on</span>
             <a
               href="https://www.facebook.com/xristianx.basinillo/"

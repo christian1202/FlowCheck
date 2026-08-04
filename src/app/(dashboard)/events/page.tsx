@@ -44,7 +44,7 @@ async function DashboardContent({ adminId }: { adminId: string }) {
             <div className="h-11 w-11 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-[22px]">calendar_month</span>
             </div>
-            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Global</span>
+            <span className="text-[11px] font-mono text-slate-500 uppercase tracking-widest">Global</span>
           </div>
           <div>
             <h4 className="text-xs font-mono uppercase tracking-widest text-slate-400 mb-1">Total Events</h4>
@@ -59,7 +59,7 @@ async function DashboardContent({ adminId }: { adminId: string }) {
               <span className="material-symbols-outlined text-[22px]">play_circle</span>
             </div>
             {stats.activeEvents > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live Now
               </span>
             )}
@@ -76,7 +76,7 @@ async function DashboardContent({ adminId }: { adminId: string }) {
             <div className="h-11 w-11 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-[22px]">barcode_scanner</span>
             </div>
-            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Scans</span>
+            <span className="text-[11px] font-mono text-slate-500 uppercase tracking-widest">Scans</span>
           </div>
           <div>
             <h4 className="text-xs font-mono uppercase tracking-widest text-slate-400 mb-1">Total Scans</h4>
@@ -131,7 +131,7 @@ async function DashboardContent({ adminId }: { adminId: string }) {
 
                       {/* Top: Status Pill */}
                       <div className="mb-4 relative z-10 flex justify-between items-center">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest ${statusClasses}`}>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-mono uppercase tracking-widest ${statusClasses}`}>
                           {displayStatus}
                         </span>
                       </div>
@@ -183,7 +183,7 @@ async function DashboardContent({ adminId }: { adminId: string }) {
                       <div className="pt-4 border-t border-white/10 relative z-10">
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Attendance Rate</span>
+                            <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Attendance Rate</span>
                             <span className="font-mono text-amber-400 font-bold">{event.checkedInCount || 0} / {event.registeredCount || 0}</span>
                           </div>
                           <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-white/5">

@@ -1,7 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Outfit, JetBrains_Mono } from "next/font/google";
 import "material-symbols";
 import "./globals.css";
+
+// viewportFit: 'cover' enables env(safe-area-inset-*) so the mobile bottom nav
+// and fixed overlays can pad around iPhone home indicators / rounded corners.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 const geist = Geist({
   variable: "--font-sans",

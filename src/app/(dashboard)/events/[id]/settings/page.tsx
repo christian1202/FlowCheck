@@ -63,7 +63,7 @@ export default async function EventSettingsPage({
               Manage operational details and publication status for <span className="font-semibold text-slate-200">{event.title}</span>.
             </p>
           </div>
-          <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-mono uppercase tracking-widest ${statusClasses}`}>
+          <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-widest ${statusClasses}`}>
             {displayStatus === 'Open' && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>}
             <span>{displayStatus}</span>
           </span>
@@ -75,13 +75,13 @@ export default async function EventSettingsPage({
             
             {/* Title */}
             <div className="sm:col-span-1 p-3.5 rounded-xl bg-slate-950/50 border border-white/5">
-              <dt className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-1">Title</dt>
+              <dt className="text-[11px] font-mono uppercase tracking-widest text-slate-500 mb-1">Title</dt>
               <dd className="text-xs font-bold text-white truncate">{event.title}</dd>
             </div>
 
             {/* Date */}
             <div className="sm:col-span-1 p-3.5 rounded-xl bg-slate-950/50 border border-white/5">
-              <dt className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-1">Start Date & Time</dt>
+              <dt className="text-[11px] font-mono uppercase tracking-widest text-slate-500 mb-1">Start Date & Time</dt>
               <dd className="text-xs font-semibold text-slate-200 flex items-center gap-2 font-mono">
                 <span className="material-symbols-outlined text-sm text-amber-400">calendar_month</span>
                 <LocalTimeDisplay date={event.date} />
@@ -90,7 +90,7 @@ export default async function EventSettingsPage({
 
             {/* Location */}
             <div className="sm:col-span-1 p-3.5 rounded-xl bg-slate-950/50 border border-white/5">
-              <dt className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-1">Venue Location</dt>
+              <dt className="text-[11px] font-mono uppercase tracking-widest text-slate-500 mb-1">Venue Location</dt>
               <dd className="text-xs font-semibold text-slate-200 flex items-center justify-between gap-2">
                 <span className="flex items-center gap-2 truncate">
                   <span className="material-symbols-outlined text-sm text-amber-400 shrink-0">location_on</span>
@@ -101,7 +101,7 @@ export default async function EventSettingsPage({
                     href={event.mapLink} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 text-[11px] font-mono transition-colors transition-transform transform-gpu flex items-center gap-1 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.1)]" 
+                    className="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 text-xs font-mono transition-colors transition-transform transform-gpu flex items-center gap-1 shrink-0 active-scale shadow-[0_0_10px_rgba(245,158,11,0.1)]" 
                     title="View on Google Maps"
                   >
                     <span>Map</span>
@@ -113,7 +113,7 @@ export default async function EventSettingsPage({
 
             {/* Capacity */}
             <div className="sm:col-span-1 p-3.5 rounded-xl bg-slate-950/50 border border-white/5">
-              <dt className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-1">Capacity Limit</dt>
+              <dt className="text-[11px] font-mono uppercase tracking-widest text-slate-500 mb-1">Capacity Limit</dt>
               <dd className="text-xs font-semibold text-slate-200 flex items-center gap-2 font-mono">
                 <span className="material-symbols-outlined text-sm text-amber-400">group</span>
                 <span>{event.maxAttendees ? `${event.maxAttendees} attendees` : 'Unlimited'}</span>
@@ -122,14 +122,14 @@ export default async function EventSettingsPage({
 
             {/* Description */}
             <div className="sm:col-span-2 p-3.5 rounded-xl bg-slate-950/50 border border-white/5">
-              <dt className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-1">Description</dt>
+              <dt className="text-[11px] font-mono uppercase tracking-widest text-slate-500 mb-1">Description</dt>
               <dd className="text-xs text-slate-300 whitespace-pre-wrap leading-relaxed font-sans">{event.description || 'No description provided.'}</dd>
             </div>
 
             {/* Auto Closes At */}
             {event.closesAt && (
               <div className="sm:col-span-2 p-3.5 rounded-xl bg-slate-950/50 border border-white/5">
-                <dt className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-1 flex items-center gap-1.5">
+                <dt className="text-[11px] font-mono uppercase tracking-widest text-slate-500 mb-1 flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-xs text-amber-400">schedule</span>
                   <span>Auto-Closes At</span>
                 </dt>

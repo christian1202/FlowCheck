@@ -40,7 +40,7 @@ const ForgotQrButton = memo(function ForgotQrButton({
       type="button" 
       onClick={handleClick}
       disabled={disabled}
-      className={`text-xs font-mono text-amber-400 hover:text-amber-300 transition-colors duration-75 touch-manipulation select-none disabled:opacity-50 ${active ? 'opacity-70 scale-95' : ''}`}
+      className={`text-xs font-mono text-amber-400 hover:text-amber-300 transition-colors duration-75 touch-manipulation select-none disabled:opacity-50 min-h-11 inline-flex items-center px-1 -ml-1 ${active ? 'opacity-70 scale-95' : ''}`}
     >
       Forgot QR ticket code?
     </button>
@@ -247,11 +247,11 @@ export default function RegistrationForm({
               type="button" 
               onClick={() => step < 3 && !isStepPending && goToStep(1)} 
               disabled={step >= 3 || isStepPending} 
-              className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-75 touch-manipulation select-none ${step >= 1 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 border border-white/10'} ${step < 3 ? 'hover:scale-110' : ''} ${isStepPending ? 'opacity-60' : ''}`}
+              className={`relative z-10 flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-75 touch-manipulation select-none ${step >= 1 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 border border-white/10'} ${step < 3 ? 'hover:scale-110' : ''} ${isStepPending ? 'opacity-60' : ''}`}
             >
               <span className="text-xs font-mono">1</span>
             </button>
-            <span className={`mt-2.5 text-[11px] font-mono text-center uppercase tracking-wider ${step >= 1 ? 'text-amber-400 font-bold' : 'text-slate-500'}`}>Basic Info</span>
+            <span className={`mt-2.5 text-xs font-mono text-center uppercase tracking-wider ${step >= 1 ? 'text-amber-400 font-bold' : 'text-slate-500'}`}>Basic Info</span>
           </li>
           
           {/* Step 2 */}
@@ -263,25 +263,25 @@ export default function RegistrationForm({
               type="button" 
               onClick={() => step < 3 && !isStepPending && goToStep(2)} 
               disabled={step >= 3 || isStepPending} 
-              className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-75 touch-manipulation select-none ${step >= 2 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 border border-white/10'} ${step < 3 ? 'hover:scale-110' : ''} ${isStepPending ? 'opacity-60' : ''}`}
+              className={`relative z-10 flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-75 touch-manipulation select-none ${step >= 2 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 border border-white/10'} ${step < 3 ? 'hover:scale-110' : ''} ${isStepPending ? 'opacity-60' : ''}`}
             >
               <span className="text-xs font-mono">2</span>
             </button>
-            <span className={`mt-2.5 text-[11px] font-mono text-center uppercase tracking-wider ${step >= 2 ? 'text-amber-400 font-bold' : 'text-slate-500'}`}>Group Info</span>
+            <span className={`mt-2.5 text-xs font-mono text-center uppercase tracking-wider ${step >= 2 ? 'text-amber-400 font-bold' : 'text-slate-500'}`}>Group Info</span>
           </li>
 
           {/* Step 3 */}
           <li className="relative flex-1 flex flex-col items-center group">
-            <button type="button" disabled className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-75 touch-manipulation select-none ${step >= 3 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 border border-white/10'}`}>
+            <button type="button" disabled className={`relative z-10 flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-75 touch-manipulation select-none ${step >= 3 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 border border-white/10'}`}>
               <span className="text-xs font-mono">3</span>
             </button>
-            <span className={`mt-2.5 text-[11px] font-mono text-center uppercase tracking-wider ${step >= 3 ? 'text-amber-400 font-bold' : 'text-slate-500'}`}>Confirm</span>
+            <span className={`mt-2.5 text-xs font-mono text-center uppercase tracking-wider ${step >= 3 ? 'text-amber-400 font-bold' : 'text-slate-500'}`}>Confirm</span>
           </li>
         </ol>
       </nav>
 
       {/* Form Container */}
-      <div className="relative min-h-[320px]">
+      <div className="relative min-h-[280px] sm:min-h-[320px]">
         {errors.form && (step === 1 || step === 2) && (
            <div className="mb-6 bg-red-950/60 text-red-300 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border border-red-500/30 text-xs font-mono">
              <div className="flex items-center gap-3">
@@ -319,13 +319,13 @@ export default function RegistrationForm({
               <div>
                 <label htmlFor="name" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">Full Name</label>
                 <input type="text" id="name" name="name" required className={`block w-full rounded-xl border ${errors.name ? 'border-red-400' : 'border-white/10'} bg-slate-950/60 py-2.5 px-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors duration-75 font-sans`} placeholder="Juan dela Cruz" />
-                {errors.name && <p className="mt-1 text-[11px] font-mono text-red-400 flex items-center gap-1">{errors.name[0]}</p>}
+                {errors.name && <p className="mt-1 text-xs font-mono text-red-400 flex items-center gap-1">{errors.name[0]}</p>}
               </div>
               
               <div>
                 <label htmlFor="email" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">Email Address</label>
                 <input type="email" id="email" name="email" required className={`block w-full rounded-xl border ${errors.email ? 'border-red-400' : 'border-white/10'} bg-slate-950/60 py-2.5 px-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors duration-75 font-mono`} placeholder="juan@example.com" />
-                {errors.email && <p className="mt-1 text-[11px] font-mono text-red-400 flex items-center gap-1">{errors.email[0]}</p>}
+                {errors.email && <p className="mt-1 text-xs font-mono text-red-400 flex items-center gap-1">{errors.email[0]}</p>}
               </div>
 
               <div className="pt-6 flex justify-between items-center">
@@ -355,13 +355,13 @@ export default function RegistrationForm({
                 <div>
                   <label htmlFor="local" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">Local</label>
                   <input type="text" id="local" name="local" required className={`block w-full rounded-xl border ${errors.local ? 'border-red-400' : 'border-white/10'} bg-slate-950/60 py-2.5 px-4 text-xs text-white focus:outline-none focus:border-amber-500/50 transition-colors duration-75 font-sans`} placeholder="e.g. Mabolo" />
-                  {errors.local && <p className="mt-1 text-[11px] font-mono text-red-400 flex items-center gap-1">{errors.local[0]}</p>}
+                  {errors.local && <p className="mt-1 text-xs font-mono text-red-400 flex items-center gap-1">{errors.local[0]}</p>}
                 </div>
                 
                 <div>
                   <label htmlFor="district" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">District</label>
                   <input type="text" id="district" name="district" required className={`block w-full rounded-xl border ${errors.district ? 'border-red-400' : 'border-white/10'} bg-slate-950/60 py-2.5 px-4 text-xs text-white focus:outline-none focus:border-amber-500/50 transition-colors duration-75 font-sans`} placeholder="e.g. North" />
-                  {errors.district && <p className="mt-1 text-[11px] font-mono text-red-400 flex items-center gap-1">{errors.district[0]}</p>}
+                  {errors.district && <p className="mt-1 text-xs font-mono text-red-400 flex items-center gap-1">{errors.district[0]}</p>}
                 </div>
               </div>
 
@@ -369,13 +369,13 @@ export default function RegistrationForm({
                 <div>
                   <label htmlFor="zone" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">Zone</label>
                   <input type="text" id="zone" name="zone" required className={`block w-full rounded-xl border ${errors.zone ? 'border-red-400' : 'border-white/10'} bg-slate-950/60 py-2.5 px-4 text-xs text-white focus:outline-none focus:border-amber-500/50 transition-colors duration-75 font-mono`} placeholder="e.g. 1" />
-                  {errors.zone && <p className="mt-1 text-[11px] font-mono text-red-400 flex items-center gap-1">{errors.zone[0]}</p>}
+                  {errors.zone && <p className="mt-1 text-xs font-mono text-red-400 flex items-center gap-1">{errors.zone[0]}</p>}
                 </div>
                 
                 <div>
                   <label htmlFor="duty" className="block text-xs font-mono uppercase tracking-widest text-slate-400 mb-1.5">Duty (Tungkulin)</label>
                   <input type="text" id="duty" name="duty" required className={`block w-full rounded-xl border ${errors.duty ? 'border-red-400' : 'border-white/10'} bg-slate-950/60 py-2.5 px-4 text-xs text-white focus:outline-none focus:border-amber-500/50 transition-colors duration-75 font-sans`} placeholder="e.g. Choir" />
-                  {errors.duty && <p className="mt-1 text-[11px] font-mono text-red-400 flex items-center gap-1">{errors.duty[0]}</p>}
+                  {errors.duty && <p className="mt-1 text-xs font-mono text-red-400 flex items-center gap-1">{errors.duty[0]}</p>}
                 </div>
               </div>
 
@@ -432,7 +432,7 @@ export default function RegistrationForm({
                   </div>
                 </button>
 
-                <div className="grid grid-cols-2 gap-2 w-full mt-1">
+                <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 w-full mt-1">
                   <button
                     type="button"
                     onClick={() => setShowFullscreenQr(true)}

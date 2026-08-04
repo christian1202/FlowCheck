@@ -181,14 +181,14 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
                           className="px-4 py-2.5 hover:bg-white/10 cursor-pointer flex flex-col border-b border-white/5 last:border-0"
                         >
                           <span className="text-xs font-bold text-white">{user.fullName || 'No name'}</span>
-                          <span className="text-[11px] font-mono text-slate-400">{user.email}</span>
+                          <span className="text-xs font-mono text-slate-400">{user.email}</span>
                         </li>
                       ))}
                     </ul>
                   ) : email.length >= 2 ? (
                     <div className="p-4 text-xs font-mono text-slate-400 text-center">
                       No registered user found.<br/>
-                      <span className="text-[10px] text-slate-500">They must register an account first.</span>
+                      <span className="text-[11px] text-slate-500">They must register an account first.</span>
                     </div>
                   ) : null}
                 </div>
@@ -230,17 +230,17 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
           <div className="border border-white/10 rounded-2xl overflow-hidden bg-slate-950/40">
             <ul className="divide-y divide-white/10">
               {initialTeam.map((member) => (
-                <li key={member.adminId} className="px-4 py-3 flex items-center justify-between hover:bg-white/[0.03] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-mono font-bold text-xs">
+                <li key={member.adminId} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-white/[0.03] transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-mono font-bold text-xs shrink-0">
                       {member.fullName ? member.fullName[0].toUpperCase() : member.email[0].toUpperCase()}
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-white">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white truncate">
                         {member.fullName || 'No name'}
-                        {member.adminId === currentAdminId && <span className="ml-2 text-[10px] font-mono text-amber-400">(You)</span>}
+                        {member.adminId === currentAdminId && <span className="ml-2 text-xs font-mono text-amber-400">(You)</span>}
                       </p>
-                      <p className="text-[11px] font-mono text-slate-400">{member.email}</p>
+                      <p className="text-xs font-mono text-slate-400 truncate">{member.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -251,8 +251,9 @@ export default function TeamManagement({ eventId, initialTeam, currentUserRole, 
                     {canManage && member.adminId !== currentAdminId && !(currentUserRole === 'editor' && member.role === 'owner') && (
                       <button
                         onClick={() => handleRemove(member.adminId)}
-                        className="text-red-400 hover:bg-red-500/10 p-2 rounded-xl transition-colors"
+                        className="text-red-400 hover:bg-red-500/10 p-2.5 rounded-xl transition-colors active-scale"
                         title="Remove member"
+                        aria-label={`Remove ${member.fullName || member.email} from team`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

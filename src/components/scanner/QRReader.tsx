@@ -307,39 +307,39 @@ export default function QRReader({ eventId }: { eventId: string }) {
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-row h-full min-h-[82vh] w-full absolute inset-0 pt-14 md:pt-0 text-slate-100 bg-black">
+    <div className="flex flex-col md:flex-row h-full w-full absolute inset-0 bottom-16 md:bottom-0 pt-14 md:pt-0 text-slate-100 bg-black">
       {/* Viewfinder Area */}
       <div className="flex-1 relative bg-slate-950 flex flex-col items-center justify-center p-4 md:p-8 z-10 bg-ambient-mesh">
         {/* Top Floating HUD Controls */}
         <div className="absolute top-4 right-4 z-20 flex gap-2.5">
-          <button 
-            type="button" 
-            onClick={toggleMirror} 
+          <button
+            type="button"
+            onClick={toggleMirror}
             className={`w-10 h-10 rounded-full backdrop-blur-md flex items-center justify-center border transition-colors ${
-              isMirrored 
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]' 
+              isMirrored
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
                 : 'bg-slate-900/80 text-slate-300 border-white/10 hover:text-white hover:bg-slate-800'
-            }`} 
+            }`}
             title={isMirrored ? "Camera Mirrored (Click to Unmirror)" : "Camera Unmirrored (Click to Mirror)"}
           >
             <span className="material-symbols-outlined text-lg">flip</span>
           </button>
-          
-          <button 
-            type="button" 
-            onClick={toggleCamera} 
-            className="w-10 h-10 rounded-full bg-slate-900/80 backdrop-blur-md border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors" 
+
+          <button
+            type="button"
+            onClick={toggleCamera}
+            className="w-10 h-10 rounded-full bg-slate-900/80 backdrop-blur-md border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active-scale"
             title={`Switch to ${facingMode === 'environment' ? 'Front' : 'Rear'} Camera`}
           >
             <span className="material-symbols-outlined text-lg">flip_camera_ios</span>
           </button>
         </div>
 
-        {/* Dynamic Toast Feedback Overlay */}
+        {/* Dynamic Toast Feedback Overlay — clamped so long messages never clip on phones */}
         {toastMessage && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-xl bg-slate-900/90 border border-amber-500/30 text-amber-300 text-xs font-mono shadow-2xl backdrop-blur-md animate-fade-in flex items-center gap-2">
-            <span className="material-symbols-outlined text-sm text-amber-400">info</span>
-            <span>{toastMessage}</span>
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 max-w-[90%] px-4 py-2 rounded-xl bg-slate-900/90 border border-amber-500/30 text-amber-300 text-xs font-mono shadow-2xl backdrop-blur-md animate-fade-in flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm text-amber-400 shrink-0">info</span>
+            <span className="truncate">{toastMessage}</span>
           </div>
         )}
 
@@ -436,13 +436,13 @@ export default function QRReader({ eventId }: { eventId: string }) {
       </div>
 
       {/* Side Log Drawer */}
-      <aside className="w-full md:w-80 bg-slate-950 border-t md:border-t-0 md:border-l border-white/10 flex flex-col h-64 md:h-full shrink-0 z-10">
+      <aside className="w-full md:w-80 bg-slate-950 border-t md:border-t-0 md:border-l border-white/10 flex flex-col h-[38dvh] md:h-full shrink-0 z-10">
         <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-amber-400 text-lg">history</span>
             <h3 className="text-xs font-mono uppercase tracking-widest text-slate-200 font-bold">Live Scan Stream</h3>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
             {recentScans.length} Scans
           </span>
         </div>
@@ -467,12 +467,12 @@ export default function QRReader({ eventId }: { eventId: string }) {
               >
                 <div className="flex justify-between items-start gap-2 mb-1">
                   <span className="font-bold truncate">{scan.attendee?.name || scan.message}</span>
-                  <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                  <span className="text-[11px] font-mono text-slate-400 shrink-0">
                     {scan.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </span>
                 </div>
                 {scan.attendee && (
-                  <div className="text-[11px] text-slate-400 flex gap-2 font-mono truncate">
+                  <div className="text-xs text-slate-400 flex gap-2 font-mono truncate">
                     <span>{scan.attendee.local || 'Local N/A'}</span>
                     <span>•</span>
                     <span>{scan.attendee.duty || 'Attendee'}</span>

@@ -96,7 +96,7 @@ export const CopyLinkButton = memo(function CopyLinkButton({
             {qrCodeDataUrl ? (
               <>
                 <Image src={qrCodeDataUrl} alt="Registration QR Code" width={128} height={128} className="w-32 h-32 object-contain" unoptimized />
-                <div className="absolute inset-0 bg-slate-950/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[11px] font-mono font-bold gap-1 bg-slate-950/50 backdrop-blur-[2px]">
+                <div className="absolute inset-0 bg-slate-950/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-mono font-bold gap-1 bg-slate-950/50 backdrop-blur-[2px]">
                   <Maximize2 className="w-3.5 h-3.5" /> Fullscreen
                 </div>
               </>
@@ -136,7 +136,7 @@ export const CopyLinkButton = memo(function CopyLinkButton({
           <h4 className="text-base font-bold text-white mb-1.5 flex items-center gap-2">
             <span>Public Registration</span>
             {eventTitle && (
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-mono font-normal truncate max-w-[200px]">
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono font-normal truncate max-w-[200px]">
                 {eventTitle}
               </span>
             )}
@@ -215,7 +215,7 @@ export const CopyLinkButton = memo(function CopyLinkButton({
               />
             </div>
 
-            <p className="text-[11px] font-mono text-slate-400 truncate max-w-full px-2 mb-5">
+            <p className="text-xs font-mono text-slate-400 truncate max-w-full px-2 mb-5">
               {url}
             </p>
 

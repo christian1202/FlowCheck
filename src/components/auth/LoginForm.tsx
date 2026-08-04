@@ -135,9 +135,9 @@ export default function LoginForm() {
         <button
           type="button"
           onClick={() => resetState(true)}
-          className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-colors transition-transform transform-gpu active-scale ${
-            isLogin && !isForgotPassword 
-              ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
+          className={`flex-1 min-h-11 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-colors transition-transform transform-gpu active-scale ${
+            isLogin && !isForgotPassword
+              ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
               : 'text-slate-400 md:hover:text-white'
           }`}
         >
@@ -146,9 +146,9 @@ export default function LoginForm() {
         <button
           type="button"
           onClick={() => resetState(false)}
-          className={`flex-1 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-colors transition-transform transform-gpu active-scale ${
-            !isLogin && !isForgotPassword 
-              ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
+          className={`flex-1 min-h-11 py-2 text-xs font-mono uppercase tracking-wider rounded-lg transition-colors transition-transform transform-gpu active-scale ${
+            !isLogin && !isForgotPassword
+              ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
               : 'text-slate-400 md:hover:text-white'
           }`}
         >
@@ -193,7 +193,7 @@ export default function LoginForm() {
                   <button
                     type="button"
                     onClick={() => { setIsForgotPassword(true); setMessage(null); }}
-                    className="text-[11px] font-mono text-amber-400 hover:text-amber-300 transition-colors"
+                    className="text-xs font-mono text-amber-400 hover:text-amber-300 transition-colors min-h-11 inline-flex items-center px-1 -ml-1"
                   >
                     Forgot password?
                   </button>
@@ -214,8 +214,9 @@ export default function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-0 pr-2 pl-2 flex items-center text-slate-400 hover:text-white transition-colors"
                   tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -233,7 +234,7 @@ export default function LoginForm() {
                       style={{ width: `${(passwordStrength / 5) * 100}%` }}
                     />
                   </div>
-                  <div className="flex justify-between items-center text-[10px] font-mono">
+                  <div className="flex justify-between items-center text-[11px] font-mono">
                     <span className={`font-bold uppercase tracking-wider ${passwordStrength < 4 ? 'text-red-400' : 'text-emerald-400'}`}>
                       {getStrengthText()}
                     </span>
@@ -267,8 +268,9 @@ export default function LoginForm() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white transition-colors"
+                    className="absolute inset-y-0 right-0 pr-2 pl-2 flex items-center text-slate-400 hover:text-white transition-colors"
                     tabIndex={-1}
+                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -302,7 +304,7 @@ export default function LoginForm() {
             <button
               type="button"
               onClick={() => setIsForgotPassword(false)}
-              className="text-xs font-mono text-slate-400 hover:text-white transition-colors"
+              className="text-xs font-mono text-slate-400 hover:text-white transition-colors min-h-11 inline-flex items-center px-2"
             >
               Back to sign in
             </button>

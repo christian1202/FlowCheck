@@ -83,7 +83,7 @@ export default function SidebarNav({ isCollapsed = false, isHorizontal = false, 
                 </span>
               </div>
               <span
-                className={`text-[10px] font-medium tracking-wide ${
+                className={`text-[11px] font-medium tracking-wide ${
                   link.isActive ? 'text-amber-400 font-semibold' : 'text-slate-400'
                 }`}
               >

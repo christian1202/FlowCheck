@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 const QRScannerDynamic = dynamic(() => import('./QRReader'), { 
   ssr: false,
   loading: () => (
-    <div className="flex flex-col md:flex-row h-full min-h-[82vh] w-full absolute inset-0 pt-14 md:pt-0 text-slate-100 bg-black">
+    <div className="flex flex-col md:flex-row h-full w-full absolute inset-0 bottom-16 md:bottom-0 pt-14 md:pt-0 text-slate-100 bg-black">
       <div className="flex-1 relative bg-slate-950 flex flex-col items-center justify-center p-4 md:p-8 z-10 bg-ambient-mesh">
         <div className="relative z-10 w-full max-w-md aspect-square border border-white/15 rounded-3xl overflow-hidden shadow-2xl bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center">
           <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.2)] animate-pulse">

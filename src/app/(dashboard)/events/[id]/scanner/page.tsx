@@ -39,7 +39,7 @@ async function EventScannerContent({ id, adminId }: { id: string; adminId: strin
   }
 
   return (
-    <div className="flex-1 relative h-full min-h-[calc(100vh-64px)] w-full flex flex-col bg-surface-bright overflow-hidden">
+    <div className="flex-1 relative h-full min-h-[calc(100dvh-64px)] w-full flex flex-col bg-surface-bright overflow-hidden">
       <div className="absolute top-4 left-4 z-50 md:hidden">
         <PrefetchLink href={`/events/${event.id}/settings`} warm={warmEventSettings.bind(null, event.id)} className="w-touch-target h-touch-target bg-surface/95 rounded-full flex items-center justify-center shadow-md">
           <span className="material-symbols-outlined text-primary">arrow_back</span>

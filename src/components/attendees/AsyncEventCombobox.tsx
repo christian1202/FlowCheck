@@ -57,18 +57,20 @@ export default function AsyncEventCombobox({
     : events.find(e => e.id === value) || initialEvents.find(e => e.id === value);
 
   return (
-    <div className="relative w-full md:w-64" ref={containerRef}>
+    <div className="relative w-full md:w-64 min-w-0" ref={containerRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between bg-slate-950/60 border border-white/10 rounded-xl py-2.5 px-3 text-xs text-white font-mono hover:border-amber-500/30 transition-colors transform-gpu"
+        className="w-full min-h-10 flex items-center justify-between bg-slate-950/60 border border-white/10 rounded-xl py-2.5 px-3 text-xs text-white font-mono hover:border-amber-500/30 transition-colors transform-gpu"
       >
         <span className="truncate pr-2">{selectedEvent?.title || 'Select Event...'}</span>
         <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 top-full left-0 mt-2 w-full min-w-[240px] bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[300px]">
+        // right-0 + min-w-0 clamps the dropdown to the viewport instead of
+        // overflowing past the right edge on narrow phones.
+        <div className="absolute z-50 top-full left-0 right-0 mt-2 min-w-0 max-w-[calc(100vw-2rem)] bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[300px]">
           <div className="p-2 border-b border-white/10 relative shrink-0">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
             <input
@@ -90,18 +92,18 @@ export default function AsyncEventCombobox({
                 <button
                   type="button"
                   onClick={() => { onChange('all'); setIsOpen(false); setSearch(''); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-mono text-left transition-colors ${value === 'all' ? 'bg-amber-500/10 text-amber-400' : 'text-slate-300 hover:bg-white/5'}`}
+                  className={`w-full flex items-center justify-between px-3 min-h-10 rounded-lg text-xs font-mono text-left transition-colors ${value === 'all' ? 'bg-amber-500/10 text-amber-400' : 'text-slate-300 hover:bg-white/5'}`}
                 >
                   <span className="truncate">All Events</span>
                   {value === 'all' && <Check className="w-3.5 h-3.5 shrink-0" />}
                 </button>
-                
+
                 {events.map(event => (
                   <button
                     key={event.id}
                     type="button"
                     onClick={() => { onChange(event.id); setIsOpen(false); setSearch(''); }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-mono text-left transition-colors ${value === event.id ? 'bg-amber-500/10 text-amber-400' : 'text-slate-300 hover:bg-white/5'}`}
+                    className={`w-full flex items-center justify-between px-3 min-h-10 rounded-lg text-xs font-mono text-left transition-colors ${value === event.id ? 'bg-amber-500/10 text-amber-400' : 'text-slate-300 hover:bg-white/5'}`}
                   >
                     <span className="truncate">{event.title}</span>
                     {value === event.id && <Check className="w-3.5 h-3.5 shrink-0" />}

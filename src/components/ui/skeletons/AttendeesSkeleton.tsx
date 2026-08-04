@@ -5,8 +5,8 @@ export default function AttendeesSkeleton() {
       <div className="claude-card p-4 rounded-3xl border border-white/10 flex flex-col md:flex-row gap-4 justify-between">
         <div className="h-10 bg-slate-900/80 rounded-xl w-full md:w-1/3 border border-white/5"></div>
         <div className="flex gap-3 w-full md:w-auto">
-          <div className="h-10 bg-slate-900/80 rounded-xl w-36 border border-white/5"></div>
-          <div className="h-10 bg-slate-900/80 rounded-xl w-36 border border-white/5"></div>
+          <div className="h-10 bg-slate-900/80 rounded-xl w-24 md:w-36 border border-white/5"></div>
+          <div className="h-10 bg-slate-900/80 rounded-xl w-24 md:w-36 border border-white/5"></div>
         </div>
       </div>
 

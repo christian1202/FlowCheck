@@ -71,11 +71,11 @@ export default async function RegisterPage({
       {/* Optimized Premium Event Details Card */}
       <div className="w-full max-w-2xl claude-card rounded-3xl shadow-xl p-6 md:p-8 mb-6 relative z-10 border border-white/10 bg-slate-950/95 md:bg-slate-950/80 [contain:content] transform-gpu">
         <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/15 to-emerald-500/5 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono uppercase tracking-widest shadow-[0_0_12px_rgba(16,185,129,0.15)]">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/15 to-emerald-500/5 border border-emerald-500/30 text-emerald-300 text-[11px] font-mono uppercase tracking-widest shadow-[0_0_12px_rgba(16,185,129,0.15)]">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] shrink-0"></span>
             <span>Registration Open</span>
           </div>
-          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Verified Event Node</span>
+          <span className="text-[11px] font-mono text-slate-500 uppercase tracking-widest">Verified Event Node</span>
         </div>
 
         <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-5 gradient-text">
@@ -91,7 +91,7 @@ export default async function RegisterPage({
               <span className="material-symbols-outlined text-lg pointer-events-none">calendar_today</span>
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">Date & Time</span>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500">Date & Time</span>
               <span className="text-xs font-semibold text-slate-200 truncate">
                 {formattedDate}
               </span>
@@ -105,7 +105,7 @@ export default async function RegisterPage({
                 <span className="material-symbols-outlined text-lg pointer-events-none">location_on</span>
               </div>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">Venue Location</span>
+                <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500">Venue Location</span>
                 <span className="text-xs font-semibold text-slate-200 truncate">{event.location}</span>
               </div>
               {event.mapLink && (
@@ -128,7 +128,7 @@ export default async function RegisterPage({
         {/* Event Description Container */}
         {event.description && (
           <div className="mt-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
               <span className="material-symbols-outlined text-xs text-amber-400 pointer-events-none">info</span>
               About This Event
             </span>
@@ -145,7 +145,7 @@ export default async function RegisterPage({
       </div>
 
       <footer className="mt-8 text-center relative z-10 fade-in-stagger opacity-60">
-        <p className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">© 2026 FlowCheck Platform. Encrypted Telemetry & Ticket Node.</p>
+        <p className="text-[11px] font-mono text-slate-400 uppercase tracking-widest">© 2026 FlowCheck Platform. Encrypted Telemetry & Ticket Node.</p>
       </footer>
     </div>
   );

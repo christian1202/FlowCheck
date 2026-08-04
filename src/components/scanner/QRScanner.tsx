@@ -310,40 +310,40 @@ export default function QRScanner({ eventId }: { eventId: string }) {
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-row h-full min-h-[82vh] w-full absolute inset-0 pt-14 md:pt-0 text-slate-100 bg-black">
-      
+    <div className="flex flex-col md:flex-row h-full w-full absolute inset-0 bottom-16 md:bottom-0 pt-14 md:pt-0 text-slate-100 bg-black">
+
       {/* Viewfinder Area */}
       <div className="flex-1 relative bg-slate-950 flex flex-col items-center justify-center p-4 md:p-8 z-10 bg-ambient-mesh">
-        
-        {/* Top Floating HUD Controls */}
-        <div className="absolute top-4 right-4 z-20 flex gap-2.5">
-          <button 
-            onClick={toggleMirror} 
-            className={`px-3.5 py-2 rounded-xl bg-slate-900/95 md:bg-slate-900/80 md:backdrop-blur-md border text-xs font-mono transition-colors transition-transform transform-gpu flex items-center gap-1.5 active-scale ${
-              isMirrored 
-                ? 'border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]' 
+
+        {/* Top Floating HUD Controls — wraps and drops labels on very narrow screens */}
+        <div className="absolute top-4 right-4 z-20 flex flex-wrap justify-end gap-2">
+          <button
+            onClick={toggleMirror}
+            className={`px-3.5 min-h-10 rounded-xl bg-slate-900/95 md:bg-slate-900/80 md:backdrop-blur-md border text-xs font-mono transition-colors transition-transform transform-gpu flex items-center gap-1.5 active-scale ${
+              isMirrored
+                ? 'border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
                 : 'border-white/10 text-slate-300 md:hover:text-white md:hover:bg-slate-800'
             }`}
             title="Toggle video mirror effect"
           >
             <span className="material-symbols-outlined text-sm">flip</span>
-            <span>{isMirrored ? 'Mirrored' : 'Unmirrored'}</span>
+            <span className="hidden sm:inline">{isMirrored ? 'Mirrored' : 'Unmirrored'}</span>
           </button>
-          <button 
-            onClick={toggleCamera} 
-            className="px-3.5 py-2 rounded-xl bg-slate-900/95 md:bg-slate-900/80 md:backdrop-blur-md border border-white/10 text-xs font-mono text-slate-300 md:hover:text-white md:hover:bg-slate-800 transition-colors transition-transform transform-gpu flex items-center gap-1.5 active-scale"
+          <button
+            onClick={toggleCamera}
+            className="px-3.5 min-h-10 rounded-xl bg-slate-900/95 md:bg-slate-900/80 md:backdrop-blur-md border border-white/10 text-xs font-mono text-slate-300 md:hover:text-white md:hover:bg-slate-800 transition-colors transition-transform transform-gpu flex items-center gap-1.5 active-scale"
             title="Switch front/rear camera"
           >
             <span className="material-symbols-outlined text-sm">cameraswitch</span>
-            <span>{facingMode === 'environment' ? 'Rear' : 'Front'}</span>
+            <span className="hidden sm:inline">{facingMode === 'environment' ? 'Rear' : 'Front'}</span>
           </button>
           {status !== 'idle' && (
-             <button 
-               onClick={stopScanner} 
-               className="px-3.5 py-2 rounded-xl bg-red-950/95 md:bg-red-950/80 md:backdrop-blur-md border border-red-500/40 text-xs font-mono text-red-300 md:hover:bg-red-900 transition-colors transition-transform transform-gpu flex items-center gap-1.5 active-scale"
+             <button
+               onClick={stopScanner}
+               className="px-3.5 min-h-10 rounded-xl bg-red-950/95 md:bg-red-950/80 md:backdrop-blur-md border border-red-500/40 text-xs font-mono text-red-300 md:hover:bg-red-900 transition-colors transition-transform transform-gpu flex items-center gap-1.5 active-scale"
              >
                <span className="material-symbols-outlined text-sm">stop_circle</span>
-               <span>Stop</span>
+               <span className="hidden sm:inline">Stop</span>
              </button>
           )}
         </div>
@@ -429,7 +429,7 @@ export default function QRScanner({ eventId }: { eventId: string }) {
                     }}
                   ></div>
                 </div>
-                <div className="flex items-center gap-1.5 mt-2 text-[11px] font-mono text-slate-400">
+                <div className="flex items-center gap-1.5 mt-2 text-xs font-mono text-slate-400">
                   <span className="material-symbols-outlined text-xs text-amber-400 animate-spin">hourglass_top</span>
                   <span>Cooldown active • Readying scanner...</span>
                 </div>
@@ -439,19 +439,19 @@ export default function QRScanner({ eventId }: { eventId: string }) {
         </div>
         
         {status === 'scanning' && (
-           <p className="mt-6 text-slate-400 font-mono text-[11px] z-10 text-center max-w-sm">
+           <p className="mt-6 text-slate-400 font-mono text-xs z-10 text-center max-w-sm">
                Align QR code inside target frame to process check-in.
            </p>
         )}
       </div>
 
       {/* Telemetry Log Sidebar */}
-      <aside className="w-full md:w-80 bg-slate-950 border-l border-white/10 flex flex-col h-[40vh] md:h-full shrink-0 z-20">
+      <aside className="w-full md:w-80 bg-slate-950 border-l border-white/10 flex flex-col h-[38dvh] md:h-full shrink-0 z-20">
         <div className="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900 transform-gpu isolation-isolate sticky top-0 z-10">
           <h2 className="text-xs font-mono uppercase tracking-widest text-slate-300 font-bold">Telemetry Stream</h2>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-[10px] font-mono text-emerald-400 uppercase">Live</span>
+            <span className="text-[11px] font-mono text-emerald-400 uppercase">Live</span>
           </div>
         </div>
         
@@ -484,18 +484,18 @@ export default function QRScanner({ eventId }: { eventId: string }) {
                     <p className="text-xs font-bold text-white truncate">
                       {scan.attendee?.name || 'Unknown Token'}
                     </p>
-                    <span className="text-[10px] font-mono text-slate-500">
+                    <span className="text-[11px] font-mono text-slate-500">
                       {scan.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}
                     </span>
                   </div>
                   
                   {scan.result === 'success' ? (
-                    <div className="flex items-center gap-1.5 mt-1 text-[11px] font-mono text-slate-400">
-                       <span className="px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/10 text-slate-300 text-[10px] truncate">{scan.attendee?.local || 'Standard'}</span>
+                    <div className="flex items-center gap-1.5 mt-1 text-xs font-mono text-slate-400">
+                       <span className="px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/10 text-slate-300 text-[11px] truncate">{scan.attendee?.local || 'Standard'}</span>
                        <span className="truncate">{scan.attendee?.duty}</span>
                     </div>
                   ) : (
-                    <p className={`text-[11px] font-mono truncate mt-0.5 ${scan.result === 'error' ? 'text-red-400' : 'text-amber-400'}`}>
+                    <p className={`text-xs font-mono truncate mt-0.5 ${scan.result === 'error' ? 'text-red-400' : 'text-amber-400'}`}>
                       {scan.message}
                     </p>
                   )}

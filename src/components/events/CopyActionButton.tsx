@@ -43,7 +43,7 @@ export const CopyActionButton = memo(function CopyActionButton({
     <button
       type="button"
       onClick={handleCopy}
-      className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-xs text-amber-400 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 transition-colors shadow-sm active-scale ${className}`}
+      className={`flex items-center justify-center gap-1.5 px-3 min-h-11 rounded-xl font-mono text-xs text-amber-400 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 transition-colors shadow-sm active-scale ${className}`}
       title={label}
     >
       {copied ? (
